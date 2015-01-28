@@ -22,6 +22,7 @@ public class MainActivity extends ActionBarActivity
     Tcp TcpEngine = new Tcp();
 
     /*
+    artadrter
     Used to attempt to connect to another device
      */
     Button connectButton;
