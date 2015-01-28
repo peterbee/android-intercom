@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Two Way</string>
+    <string name="ip_address_hint">Ip Address (xxx.xxx.xxx.xxx)</string>
+    <string name="connect_button_text">Connect To Device</string>
+    <string name="video_link_open_text">Open Video Link</string>
+    <string name="video_link_close_text">Close Video Link</string>
+
+
+    <string name="action_listen">Listen For Connection</string>
+    <string name="action_connect">Connect To Device</string>
+
+</resources>
