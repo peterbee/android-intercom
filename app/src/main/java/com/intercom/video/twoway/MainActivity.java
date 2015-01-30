@@ -1,9 +1,11 @@
 package com.intercom.video.twoway;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,6 +14,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends ActionBarActivity
@@ -42,6 +47,21 @@ public class MainActivity extends ActionBarActivity
     ProgressBar connectionProgressBar;
 
     static Context context;
+
+    public void startDemonstrationUnlockTimer(View v)
+    {
+        Timer myTimer = new Timer();
+        myTimer.schedule(new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                UsefulStuff.forceWakeUp();
+                UsefulStuff.forceUnlock();
+            }
+
+        }, 0, 5000);
+    }
 
     void setupButtons()
     {
@@ -89,7 +109,6 @@ public class MainActivity extends ActionBarActivity
      /*
     Called when menu item listen is pressed
      */
-
     void listenForConnection()
     {
         hideAllButtons();

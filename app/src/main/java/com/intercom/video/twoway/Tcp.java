@@ -16,7 +16,7 @@ This class does all the tcp and networking stuff
  */
 public class Tcp
 {
-    private final int DEFAULT_PORT = 22;
+    private final int DEFAULT_PORT = 80;
 
     /*
     Used when we are the client

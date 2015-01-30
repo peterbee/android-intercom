@@ -43,4 +43,14 @@
         android:layout_centerHorizontal="true"
         android:indeterminate="false" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unlock Timer Test"
+        android:id="@+id/unlockButton"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:onClick="startDemonstrationUnlockTimer"
+        android:layout_alignParentEnd="true"/>
+
 </RelativeLayout>
