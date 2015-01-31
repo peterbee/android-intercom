@@ -50,6 +50,8 @@ public class MainActivity extends ActionBarActivity
 
     public void startDemonstrationUnlockTimer(View v)
     {
+        ShowToastMessage("Unlocking Screen in 5 Seconds...");
+
         Timer myTimer = new Timer();
         myTimer.schedule(new TimerTask()
         {
@@ -85,7 +87,6 @@ public class MainActivity extends ActionBarActivity
                 ShowToastMessage("Feature Not Yet Implemented");
             }
         });
-
     }
 
     void hideAllButtons()

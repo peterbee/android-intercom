@@ -37,6 +37,4 @@ public class UsefulStuff
         KeyguardManager.KeyguardLock keyguardLock =  keyguardManager.newKeyguardLock("TAG");
         keyguardLock.disableKeyguard();
     }
-
-
 }
