@@ -50,7 +50,7 @@ public class MainActivity extends ActionBarActivity
 
     public void startDemonstrationUnlockTimer(View v)
     {
-        ShowToastMessage("Unlocking Screen in 5 Seconds...");
+        ShowToastMessage("Unlocking Screen in 5 Seconds....");
 
         Timer myTimer = new Timer();
         myTimer.schedule(new TimerTask()
