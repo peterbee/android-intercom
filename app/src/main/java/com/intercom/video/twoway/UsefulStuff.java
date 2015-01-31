@@ -1,8 +1,11 @@
 package com.intercom.video.twoway;
 
+import android.app.Activity;
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.os.PowerManager;
+import android.view.Window;
+import android.view.WindowManager;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,23 +21,23 @@ This class contains useful stuff that we dont want to put in main activity becau
  */
 public class UsefulStuff
 {
-    /*
-    forces screen wake up.  Need to make this not use depricated features
-     */
-    static void forceWakeUp()
+
+    public UsefulStuff()
     {
-        PowerManager pm = (PowerManager) MainActivity.context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
-        wakeLock.acquire();
+
     }
 
     /*
-    forces unlock.  Need to make this not use depricated features
-     */
-    static void forceUnlock()
+    forces screen wake up and unlock
+    */
+    void forceWakeUpUnlock()
     {
-        KeyguardManager keyguardManager = (KeyguardManager) MainActivity.context.getSystemService(Context.KEYGUARD_SERVICE);
-        KeyguardManager.KeyguardLock keyguardLock =  keyguardManager.newKeyguardLock("TAG");
-        keyguardLock.disableKeyguard();
+        Window window = ((Activity)MainActivity.context).getWindow();
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
+
+
 }

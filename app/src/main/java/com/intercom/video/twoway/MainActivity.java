@@ -24,7 +24,13 @@ public class MainActivity extends ActionBarActivity
     /*
     Handles all networking stuff
      */
-    Tcp TcpEngine = new Tcp();
+    Tcp tcpEngine = new Tcp();
+
+    /*
+    Some helpful things (screen unlock, etc) that shouldnt go in main activity
+     */
+    UsefulStuff usefulStuff = new UsefulStuff();
+
 
     /*
     Used to attempt to connect to another device
@@ -58,11 +64,16 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void run()
             {
-                UsefulStuff.forceWakeUp();
-                UsefulStuff.forceUnlock();
+                ((Activity)context).runOnUiThread(new Runnable()
+                {
+                    public void run()
+                    {
+                        usefulStuff.forceWakeUpUnlock();
+                    }
+                });
             }
 
-        }, 0, 5000);
+        }, 5000);
     }
 
     void setupButtons()
@@ -114,7 +125,7 @@ public class MainActivity extends ActionBarActivity
     {
         hideAllButtons();
         connectionProgressBar.setVisibility(View.VISIBLE);
-        TcpEngine.listenForConnection();
+        tcpEngine.listenForConnection();
     }
 
 
@@ -125,7 +136,7 @@ public class MainActivity extends ActionBarActivity
     {
         String ipAddress=ipAddressEditText.getText().toString();
 
-        TcpEngine.connectToDevice(ipAddress);
+        tcpEngine.connectToDevice(ipAddress);
     }
 
     /*
