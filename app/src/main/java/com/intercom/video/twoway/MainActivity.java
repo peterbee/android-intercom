@@ -35,22 +35,22 @@ public class MainActivity extends ActionBarActivity
     /*
     Used to attempt to connect to another device
      */
-    Button connectButton;
+    static Button connectButton;
 
     /*
     Opens and closes video link between devices
      */
-    Button videoLinkButton;
+    static Button videoLinkButton;
 
     /*
     Used to enter ip address of other device for connecting
      */
-    EditText ipAddressEditText;
+    static EditText ipAddressEditText;
 
     /*
     Spinning progress circle, is visible when waiting to establish connections
      */
-    ProgressBar connectionProgressBar;
+    static ProgressBar connectionProgressBar;
 
     static Context context;
 
@@ -100,7 +100,7 @@ public class MainActivity extends ActionBarActivity
         });
     }
 
-    void hideAllButtons()
+    static void hideAllButtons()
     {
         connectButton.setVisibility(View.INVISIBLE);
         videoLinkButton.setVisibility(View.INVISIBLE);

@@ -1,5 +1,6 @@
 package com.intercom.video.twoway;
 
+import android.app.Activity;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -16,7 +17,7 @@ This class does all the tcp and networking stuff
  */
 public class Tcp
 {
-    private final int DEFAULT_PORT = 80;
+    private final int DEFAULT_PORT = 1025;
 
     /*
     Used when we are the client
@@ -47,6 +48,64 @@ public class Tcp
         connectionState=DISCONNECTED;
     }
 
+
+    /*
+    Close the streams and socket
+     */
+    void closeConnection()
+    {
+        try
+        {
+            tcpIn.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            tcpOut.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            bufferedTcpIn.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            bufferedTcpOut.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            tcpSocket.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            tcpServerSocket.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        connectionState=DISCONNECTED;
+    }
+
      /*
     Listen for a connection.  This is done in a seperate thread so we do not block the main UI thread
      */
@@ -60,6 +119,9 @@ public class Tcp
                 try
                 {
                     System.out.println("Listening for connection!");
+
+                    closeConnection();
+
                     tcpServerSocket = new ServerSocket(DEFAULT_PORT);
                     tcpSocket = tcpServerSocket.accept();
                     tcpIn=tcpSocket.getInputStream();
@@ -78,7 +140,20 @@ public class Tcp
                 catch (Exception e)
                 {
                     e.printStackTrace();
+                    MainActivity.ShowToastMessage("Error listening for connection");
                 }
+
+                // close connection since this is only a demonstration
+                closeConnection();
+
+                // make the progress circle dissapear
+               ((Activity) MainActivity.context).runOnUiThread(new Runnable()
+                {
+                    public void run()
+                    {
+                        MainActivity.hideAllButtons();
+                    }
+                });
             }
         };
 
@@ -97,6 +172,8 @@ public class Tcp
             {
                 try
                 {
+                    closeConnection();
+
                     tcpSocket = new Socket(ipAddress, DEFAULT_PORT);
                     tcpIn= tcpSocket.getInputStream();
                     tcpOut= tcpSocket.getOutputStream();
@@ -111,11 +188,16 @@ public class Tcp
                     // send a message to prove we are connected
                     bufferedTcpOut.write("HELLO!\n");
                     bufferedTcpOut.flush();
+
                 }
                 catch(Exception e)
                 {
                     e.printStackTrace();
+                    MainActivity.ShowToastMessage("Error Connecting");
                 }
+
+                // close connection since this is only a demonstration
+                closeConnection();
             }
         };
 
