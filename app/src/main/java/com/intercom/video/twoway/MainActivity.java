@@ -126,7 +126,7 @@ public class MainActivity extends Activity
     @Override
     protected void onNewIntent(Intent intent)
     {
-        super.onNewIntent(intent);
+        super.onNewIntent(intent); 
         setIntent(intent);
 
         usefulStuff.ShowToastMessage("New Intent Received");
