@@ -17,7 +17,7 @@ This class does all the tcp and networking stuff
  */
 public class Tcp
 {
-    private final int DEFAULT_PORT = 1025;
+    private int PORT = 1025;
 
     /*
     Used when we are the client
@@ -48,6 +48,16 @@ public class Tcp
         connectionState=DISCONNECTED;
     }
 
+
+    public int getPORT()
+    {
+        return PORT;
+    }
+
+    public void setPORT(int PORT)
+    {
+        this.PORT = PORT;
+    }
 
     /*
     Close the streams and socket
@@ -106,58 +116,33 @@ public class Tcp
         connectionState=DISCONNECTED;
     }
 
-     /*
-    Listen for a connection.  This is done in a seperate thread so we do not block the main UI thread
-     */
+    /*
+   Listen for a connection.  This should only be called from a seperate thread so the main thread isnt blocked
+    */
     void listenForConnection()
     {
-
-        Thread listenForConnectionThread = new Thread()
+        try
         {
-            public void run()
-            {
-                try
-                {
-                    System.out.println("Listening for connection!");
+            System.out.println("Listening for connection!");
 
-                    closeConnection();
+            closeConnection();
 
-                    tcpServerSocket = new ServerSocket(DEFAULT_PORT);
-                    tcpSocket = tcpServerSocket.accept();
-                    tcpIn=tcpSocket.getInputStream();
-                    tcpOut=tcpSocket.getOutputStream();
-                    bufferedTcpOut=new BufferedWriter(new OutputStreamWriter(tcpOut));
-                    bufferedTcpIn=new BufferedReader(new InputStreamReader(tcpIn));
+            tcpServerSocket = new ServerSocket(getPORT());
+            tcpSocket = tcpServerSocket.accept();
+            tcpIn = tcpSocket.getInputStream();
+            tcpOut = tcpSocket.getOutputStream();
+            bufferedTcpOut = new BufferedWriter(new OutputStreamWriter(tcpOut));
+            bufferedTcpIn = new BufferedReader(new InputStreamReader(tcpIn));
 
 
-                    // if we got here with no exception we can assume we are connected
-                    connectionState=CONNECTED;
+            // if we got here with no exception we can assume we are connected
+            connectionState = CONNECTED;
 
-                    // prove that we are actually connected
-                    MainActivity.ShowToastMessage("Connected! Client says: "+bufferedTcpIn.readLine());
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
 
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                    MainActivity.ShowToastMessage("Error listening for connection");
-                }
-
-                // close connection since this is only a demonstration
-                closeConnection();
-
-                // make the progress circle dissapear
-               ((Activity) MainActivity.context).runOnUiThread(new Runnable()
-                {
-                    public void run()
-                    {
-                        MainActivity.hideAllButtons();
-                    }
-                });
-            }
-        };
-
-        listenForConnectionThread.start();
     }
 
     /*
@@ -165,7 +150,6 @@ public class Tcp
      */
     void connectToDevice(final String ipAddress)
     {
-
         Thread openConnectionThread = new Thread()
         {
             public void run()
@@ -174,7 +158,7 @@ public class Tcp
                 {
                     closeConnection();
 
-                    tcpSocket = new Socket(ipAddress, DEFAULT_PORT);
+                    tcpSocket = new Socket(ipAddress, getPORT());
                     tcpIn= tcpSocket.getInputStream();
                     tcpOut= tcpSocket.getOutputStream();
                     bufferedTcpOut=new BufferedWriter(new OutputStreamWriter(tcpOut));
@@ -183,17 +167,13 @@ public class Tcp
 
                     // if we got here with no exception we can assume we are connected
                     connectionState=CONNECTED;
-                    MainActivity.ShowToastMessage("CONNECTED TO SERVER, SAYING HELLO!");
-
-                    // send a message to prove we are connected
-                    bufferedTcpOut.write("HELLO!\n");
-                    bufferedTcpOut.flush();
+                    MainActivity.usefulStuff.ShowToastMessage("CONNECTED TO SERVER!");
 
                 }
                 catch(Exception e)
                 {
                     e.printStackTrace();
-                    MainActivity.ShowToastMessage("Error Connecting");
+                    MainActivity.usefulStuff.ShowToastMessage("Error Connecting");
                 }
 
                 // close connection since this is only a demonstration
