@@ -26,9 +26,11 @@ public class UsefulStuff
     /*
     forces screen wake up and unlock
     TODO make this work without depricated features.
+    TODO make this method less shitty and figure out the right way to do it
     */
     void forceWakeUpUnlock()
     {
+
         KeyguardManager km = (KeyguardManager) MainActivity.context.getSystemService(Context.KEYGUARD_SERVICE);
         final KeyguardManager.KeyguardLock kl = km .newKeyguardLock("MyKeyguardLock");
         kl.disableKeyguard();
@@ -38,6 +40,12 @@ public class UsefulStuff
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP
                 | PowerManager.ON_AFTER_RELEASE, "MyWakeLock");
         wakeLock.acquire();
+
+
+        Window window = ((Activity)MainActivity.context).getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     /*
