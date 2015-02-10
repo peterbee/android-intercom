@@ -35,6 +35,11 @@ public class MainActivity extends Activity
     static UsefulStuff usefulStuff;
 
     /*
+    Handles all the video and audio streaming stuff
+     */
+    static VideoStreaming streamingEngine = new VideoStreaming();
+
+    /*
     Used to attempt to connect to another device
      */
     static Button connectButton;
@@ -111,7 +116,7 @@ public class MainActivity extends Activity
         tcpEngine.connectToDevice(ipAddress);
 
         // and this starts transmitting our video
-//        usefulStuff.startVideoBroadcast(1234, (SurfaceView)findViewById(R.id.surfaceView));
+        streamingEngine.startVideoBroadcast(1234, (SurfaceView)findViewById(R.id.transmitterVideoView));
     }
 
     @Override
@@ -166,8 +171,9 @@ public class MainActivity extends Activity
     @Override
     public void onDestroy()
     {
-//        listenerService.stopListeningForConnections();
-//        stopService(new Intent(this, ListenerService.class));
+        // if we wanted to destroy the service on activity destroy we could uncomment this
+//      listenerService.stopListeningForConnections();
+//      stopService(new Intent(this, ListenerService.class));
         super.onDestroy();
     }
 

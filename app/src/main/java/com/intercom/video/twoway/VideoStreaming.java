@@ -12,6 +12,7 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.MediaController;
@@ -30,6 +31,25 @@ This class contains things that deal with transmitting and receiving video / aud
 
 public class VideoStreaming
 {
+    /*
+    hides the receiver VideoView and unhides the broadcaster SurfaceView
+    */
+    void showBroadcasterVideoSurface()
+    {
+        ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.transmitterVideoView).setVisibility(View.VISIBLE);
+        ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.receiverVideoView).setVisibility(View.GONE);
+    }
+
+    /*
+    shows the receiver VideoView and hides the broadcaster SurfaceView
+    */
+    void showReceiverVideoSurface()
+    {
+        ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.transmitterVideoView).setVisibility(View.GONE);
+        ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.receiverVideoView).setVisibility(View.VISIBLE);
+    }
+
+
     /*
     This code is taken from the libstreaming example1 with minor modifications
      */
