@@ -1,8 +1,5 @@
 package com.intercom.video.twoway;
 
-import android.app.Activity;
-import android.widget.Toast;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStream;
@@ -17,7 +14,7 @@ This class does all the tcp and networking stuff
  */
 public class Tcp
 {
-    private int PORT = 1025;
+    private int LISTENING_SERVICE_PORT = 1025;
 
     /*
     Used when we are the client
@@ -49,14 +46,14 @@ public class Tcp
     }
 
 
-    public int getPORT()
+    public int getLISTENING_SERVICE_PORT()
     {
-        return PORT;
+        return LISTENING_SERVICE_PORT;
     }
 
-    public void setPORT(int PORT)
+    public void setLISTENING_SERVICE_PORT(int LISTENING_SERVICE_PORT)
     {
-        this.PORT = PORT;
+        this.LISTENING_SERVICE_PORT = LISTENING_SERVICE_PORT;
     }
 
     /*
@@ -127,7 +124,7 @@ public class Tcp
 
             closeConnection();
 
-            tcpServerSocket = new ServerSocket(getPORT());
+            tcpServerSocket = new ServerSocket(getLISTENING_SERVICE_PORT());
             tcpSocket = tcpServerSocket.accept();
             tcpIn = tcpSocket.getInputStream();
             tcpOut = tcpSocket.getOutputStream();
@@ -158,7 +155,7 @@ public class Tcp
                 {
                     closeConnection();
 
-                    tcpSocket = new Socket(ipAddress, getPORT());
+                    tcpSocket = new Socket(ipAddress, getLISTENING_SERVICE_PORT());
                     tcpIn= tcpSocket.getInputStream();
                     tcpOut= tcpSocket.getOutputStream();
                     bufferedTcpOut=new BufferedWriter(new OutputStreamWriter(tcpOut));

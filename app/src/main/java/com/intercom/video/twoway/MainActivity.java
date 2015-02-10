@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.session.MediaController;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
@@ -14,6 +15,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+
+import net.majorkernelpanic.streaming.gl.SurfaceView;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -29,7 +32,7 @@ public class MainActivity extends Activity
     /*
     Some helpful things (screen unlock, etc) that shouldnt go in main activity
      */
-    static UsefulStuff usefulStuff = new UsefulStuff();
+    static UsefulStuff usefulStuff;
 
     /*
     Used to attempt to connect to another device
@@ -46,7 +49,6 @@ public class MainActivity extends Activity
      */
     static EditText ipAddressEditText;
 
-    static Context context;
 
     volatile static ListenerService listenerService;
     volatile static boolean serviceIsBoundToActivity = false;
@@ -79,7 +81,7 @@ public class MainActivity extends Activity
 
     public void startListenerService()
     {
-        Intent service = new Intent(context, ListenerService.class);
+        Intent service = new Intent(usefulStuff.mainContext, ListenerService.class);
         startService(service);
     }
 
@@ -105,7 +107,11 @@ public class MainActivity extends Activity
     {
         String ipAddress=ipAddressEditText.getText().toString();
 
+        // this just unlocks and turns on the other device via service
         tcpEngine.connectToDevice(ipAddress);
+
+        // and this starts transmitting our video
+//        usefulStuff.startVideoBroadcast(1234, (SurfaceView)findViewById(R.id.surfaceView));
     }
 
     @Override
@@ -113,14 +119,13 @@ public class MainActivity extends Activity
     {
         super.onCreate(savedInstanceState);
 
+        usefulStuff = new UsefulStuff(this);
+
         setContentView(R.layout.activity_main);
-        context=this;
         setupButtons();
         startListenerService();
 
         usefulStuff.ShowToastMessage("oncreate called!");
-
-
     }
 
     @Override

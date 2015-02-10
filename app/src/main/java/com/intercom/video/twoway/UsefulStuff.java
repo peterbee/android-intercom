@@ -2,14 +2,25 @@ package com.intercom.video.twoway;
 
 import android.app.Activity;
 import android.app.KeyguardManager;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.media.MediaPlayer;
+import android.widget.MediaController;
+import android.net.Uri;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
-import android.text.Layout;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
+import android.widget.VideoView;
+
+import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.gl.SurfaceView;
+import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
 import java.util.UUID;
 
@@ -18,9 +29,12 @@ This class contains useful stuff that we dont want to put in main activity becau
  */
 public class UsefulStuff
 {
-    public UsefulStuff()
-    {
+    static Context mainContext;
 
+
+    public UsefulStuff(Context c)
+    {
+        mainContext=c;
     }
 
     /*
@@ -30,19 +44,18 @@ public class UsefulStuff
     */
     void forceWakeUpUnlock()
     {
-
-        KeyguardManager km = (KeyguardManager) MainActivity.context.getSystemService(Context.KEYGUARD_SERVICE);
+        KeyguardManager km = (KeyguardManager) mainContext.getSystemService(Context.KEYGUARD_SERVICE);
         final KeyguardManager.KeyguardLock kl = km .newKeyguardLock("MyKeyguardLock");
         kl.disableKeyguard();
 
-        PowerManager pm = (PowerManager) MainActivity.context.getSystemService(Context.POWER_SERVICE);
+        PowerManager pm = (PowerManager) mainContext.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP
                 | PowerManager.ON_AFTER_RELEASE, "MyWakeLock");
         wakeLock.acquire();
 
 
-        Window window = ((Activity)MainActivity.context).getWindow();
+        Window window = ((Activity)mainContext).getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -54,7 +67,7 @@ public class UsefulStuff
      */
     static String getDeviceId()
     {
-        final TelephonyManager tm = (TelephonyManager) MainActivity.context
+        final TelephonyManager tm = (TelephonyManager) mainContext
                 .getSystemService(Context.TELEPHONY_SERVICE);
 
         final String tmDevice, tmSerial, androidId;
@@ -62,7 +75,7 @@ public class UsefulStuff
         tmSerial = "" + tm.getSimSerialNumber();
         androidId = ""
                 + android.provider.Settings.Secure.getString(
-               MainActivity.context.getContentResolver(),
+                mainContext.getContentResolver(),
                 android.provider.Settings.Secure.ANDROID_ID);
 
         UUID deviceUuid = new UUID(androidId.hashCode(),
@@ -77,11 +90,11 @@ public class UsefulStuff
     */
     static void ShowToastMessage(final String message)
     {
-        ((Activity)MainActivity.context).runOnUiThread(new Runnable()
+        ((Activity)mainContext).runOnUiThread(new Runnable()
         {
             public void run()
             {
-                Toast.makeText(MainActivity.context, message, Toast.LENGTH_LONG).show();
+                Toast.makeText(mainContext, message, Toast.LENGTH_LONG).show();
             }
         });
     };
