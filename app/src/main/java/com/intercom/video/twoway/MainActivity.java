@@ -80,7 +80,7 @@ public class MainActivity extends Activity
     };
 
     public void startListenerService()
-    { 
+    {
         Intent service = new Intent(usefulStuff.mainContext, ListenerService.class);
         startService(service);
     }
