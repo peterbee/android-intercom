@@ -10,47 +10,32 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/ipAddressEditText"
-        android:visibility="gone"
         android:hint="@string/ip_address_hint"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_above="@+id/connectButton"
+        android:layout_centerHorizontal="true"/>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/connect_button_text"
         android:id="@+id/connectButton"
-        android:visibility="gone"
-        android:layout_below="@+id/ipAddressEditText"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/video_link_open_text"
-        android:id="@+id/video_link_button"
-        android:visibility="gone"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"/>
 
-    <ProgressBar
-        style="?android:attr/progressBarStyleLarge"
+    <SurfaceView
+        android:id="@+id/transmitterVideoView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/connectionProgressBar"
-        android:visibility="gone"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:indeterminate="false" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Unlock Timer Test"
-        android:id="@+id/unlockButton"
         android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:onClick="startDemonstrationUnlockTimer"
-        android:layout_alignParentEnd="true"/>
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"
+        />
 
+    <VideoView
+        android:id="@+id/receiverVideoView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        />
 </RelativeLayout>

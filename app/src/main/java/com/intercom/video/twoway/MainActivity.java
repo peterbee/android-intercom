@@ -1,11 +1,13 @@
 package com.intercom.video.twoway;
 
 import android.app.Activity;
-import android.app.KeyguardManager;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.media.session.MediaController;
 import android.os.Bundle;
-import android.os.Looper;
-import android.os.PowerManager;
+import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,13 +15,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast;
+
+import net.majorkernelpanic.streaming.gl.SurfaceView;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MainActivity extends ActionBarActivity
+public class MainActivity extends Activity
 {
     /*
     Handles all networking stuff
@@ -29,8 +32,12 @@ public class MainActivity extends ActionBarActivity
     /*
     Some helpful things (screen unlock, etc) that shouldnt go in main activity
      */
-    UsefulStuff usefulStuff = new UsefulStuff();
+    static UsefulStuff usefulStuff;
 
+    /*
+    Handles all the video and audio streaming stuff
+     */
+    static VideoStreaming streamingEngine = new VideoStreaming();
 
     /*
     Used to attempt to connect to another device
@@ -47,41 +54,46 @@ public class MainActivity extends ActionBarActivity
      */
     static EditText ipAddressEditText;
 
-    /*
-    Spinning progress circle, is visible when waiting to establish connections
-     */
-    static ProgressBar connectionProgressBar;
 
-    static Context context;
+    volatile static ListenerService listenerService;
+    volatile static boolean serviceIsBoundToActivity = false;
 
-    public void startDemonstrationUnlockTimer(View v)
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection listenerServiceConnection = new ServiceConnection()
     {
-        ShowToastMessage("Unlocking Screen in 5 Seconds....");
-
-        Timer myTimer = new Timer();
-        myTimer.schedule(new TimerTask()
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service)
         {
-            @Override
-            public void run()
-            {
-                ((Activity)context).runOnUiThread(new Runnable()
-                {
-                    public void run()
-                    {
-                        usefulStuff.forceWakeUpUnlock();
-                    }
-                });
-            }
+            usefulStuff.ShowToastMessage("Connected to service");
+            // We've bound to LocalService, cast the IBinder and get
+            // LocalService instance
+            com.intercom.video.twoway.ListenerService.LocalBinder binder = (com.intercom.video.twoway.ListenerService.LocalBinder) service;
+            listenerService = binder.getService();
 
-        }, 5000);
+            serviceIsBoundToActivity = true;
+
+            // start the service listening for connection
+            listenerService.startListeningForConnections();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0)
+        {
+            usefulStuff.ShowToastMessage("Disconnected from service");
+            serviceIsBoundToActivity = false;
+        }
+    };
+
+    public void startListenerService()
+    {
+        Intent service = new Intent(usefulStuff.mainContext, ListenerService.class);
+        startService(service);
     }
 
     void setupButtons()
     {
         connectButton=(Button)findViewById(R.id.connectButton);
-        videoLinkButton=(Button)findViewById(R.id.video_link_button);
         ipAddressEditText=(EditText)findViewById(R.id.ipAddressEditText);
-        connectionProgressBar=(ProgressBar)findViewById(R.id.connectionProgressBar);
 
         connectButton.setOnClickListener(new View.OnClickListener()
         {
@@ -91,43 +103,7 @@ public class MainActivity extends ActionBarActivity
             }
         });
 
-        videoLinkButton.setOnClickListener(new View.OnClickListener()
-        {
-            public void onClick(View v)
-            {
-                ShowToastMessage("Feature Not Yet Implemented");
-            }
-        });
     }
-
-    static void hideAllButtons()
-    {
-        connectButton.setVisibility(View.INVISIBLE);
-        videoLinkButton.setVisibility(View.INVISIBLE);
-        ipAddressEditText.setVisibility(View.INVISIBLE);
-        connectionProgressBar.setVisibility(View.INVISIBLE);
-    }
-
-    /*
-    Called when menu item connect is pressed
-     */
-    void unHideConnectButtons()
-    {
-        hideAllButtons();
-        ipAddressEditText.setVisibility(View.VISIBLE);
-        connectButton.setVisibility(View.VISIBLE);
-    }
-
-     /*
-    Called when menu item listen is pressed
-     */
-    void listenForConnection()
-    {
-        hideAllButtons();
-        connectionProgressBar.setVisibility(View.VISIBLE);
-        tcpEngine.listenForConnection();
-    }
-
 
     /*
     Attempts to establish the tcp connection to another device
@@ -136,35 +112,76 @@ public class MainActivity extends ActionBarActivity
     {
         String ipAddress=ipAddressEditText.getText().toString();
 
+        // this just unlocks and turns on the other device via service
         tcpEngine.connectToDevice(ipAddress);
+
+        // and this starts transmitting our video
+        streamingEngine.startVideoBroadcast(1234, (SurfaceView)findViewById(R.id.transmitterVideoView));
     }
-
-    /*
-    Lets us show a toast message from any thread
-     */
-    static void ShowToastMessage(final String message)
-    {
-        ((Activity)context).runOnUiThread(new Runnable()
-        {
-            public void run()
-            {
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show();
-            }
-        });
-    };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        context=this;
+        usefulStuff = new UsefulStuff(this);
+
+        setContentView(R.layout.activity_main);
         setupButtons();
+        startListenerService();
+
+        usefulStuff.ShowToastMessage("oncreate called!");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent)
+    {
+        super.onNewIntent(intent); 
+        setIntent(intent);
+
+        usefulStuff.ShowToastMessage("New Intent Received");
+
+        usefulStuff.forceWakeUpUnlock();
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        Intent theService = new Intent(this, ListenerService.class);
+        bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
 
+    @Override
+    public void onPause()
+    {
+
+        super.onPause();
+    }
+
+    @Override
+    public void onStop()
+    {
+
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        // if we wanted to destroy the service on activity destroy we could uncomment this
+//      listenerService.stopListeningForConnections();
+//      stopService(new Intent(this, ListenerService.class));
+        super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -180,12 +197,6 @@ public class MainActivity extends ActionBarActivity
         // Handle item selection
         switch (item.getItemId())
         {
-            case R.id.action_listen:
-               listenForConnection();
-                return true;
-            case R.id.action_connect:
-                unHideConnectButtons();
-                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
