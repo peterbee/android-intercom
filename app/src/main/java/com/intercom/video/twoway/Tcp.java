@@ -16,7 +16,7 @@ public class Tcp
 {
     private int LISTENING_SERVICE_PORT = 1025;
 
-    /* 
+    /*  
     Used when we are the client
      */
     private Socket tcpSocket;
