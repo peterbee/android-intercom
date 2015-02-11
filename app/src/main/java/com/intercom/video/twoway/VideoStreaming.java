@@ -6,7 +6,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.hardware.Camera;
 import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
@@ -22,6 +24,8 @@ import android.widget.VideoView;
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.gl.SurfaceView;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
+import net.majorkernelpanic.streaming.video.VideoQuality;
+
 
 import java.util.UUID;
 
@@ -31,6 +35,9 @@ This class contains things that deal with transmitting and receiving video / aud
 
 public class VideoStreaming
 {
+    ControlConstants constants = new ControlConstants();
+
+    final int DEFAULT_STREAMING_PORT = 1234;
     /*
     hides the receiver VideoView and unhides the broadcaster SurfaceView
     */
@@ -49,24 +56,33 @@ public class VideoStreaming
         ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.receiverVideoView).setVisibility(View.VISIBLE);
     }
 
-
     /*
     This code is taken from the libstreaming example1 with minor modifications
      */
-    void startVideoBroadcast(int port, SurfaceView videoSurface)
+    void startVideoBroadcast()
     {
+
+        SurfaceView mSurfaceView = (SurfaceView) ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.transmitterVideoView);
+
+        // unhides the video surface we are broadcasting
+        showBroadcasterVideoSurface();
+
         // Sets the port of the RTSP server to 1234
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.usefulStuff.mainContext).edit();
-        editor.putString(RtspServer.KEY_PORT, String.valueOf(1234));
+        editor.putString(RtspServer.KEY_PORT, String.valueOf(DEFAULT_STREAMING_PORT));
         editor.commit();
+
 
         // Configures the SessionBuilder
         SessionBuilder.getInstance()
-                .setSurfaceView(videoSurface)
-                .setPreviewOrientation(90)
+
+                .setSurfaceView(mSurfaceView)
+                .setPreviewOrientation(0)
                 .setContext(MainActivity.usefulStuff.mainContext)
                 .setAudioEncoder(SessionBuilder.AUDIO_AAC)
-                .setVideoEncoder(SessionBuilder.VIDEO_H264);
+                .setVideoEncoder(SessionBuilder.VIDEO_H264)
+                .setVideoQuality(new VideoQuality(constants.X_RESOLUTION, constants.Y_RESOLUTION, constants.FRAMERATE, constants.BITRATE)).setCamera(Camera.CameraInfo.CAMERA_FACING_BACK)
+                .build();
 
         // Starts the RTSP server
         MainActivity.usefulStuff.mainContext.startService(new Intent(MainActivity.usefulStuff.mainContext, RtspServer.class));
@@ -75,16 +91,22 @@ public class VideoStreaming
     /*
     Sets up an android media player to stream rtsp from server at the given ip / port
     */
-    void playVideoBroadcast(int port, String ip, final VideoView myVideoView)
+    void playVideoStream(String ip)
     {
         final int position = 0;
         final ProgressDialog progressDialog;
+
+        final VideoView myVideoView = (VideoView) ((Activity) MainActivity.usefulStuff.mainContext).findViewById(R.id.receiverVideoView);
+
+        // unhide the video surface we are receiving
+        showReceiverVideoSurface();
+
         MediaController mediaControls = new MediaController(MainActivity.usefulStuff.mainContext);
 
         // create a progress bar while the video file is loading
         progressDialog = new ProgressDialog(MainActivity.usefulStuff.mainContext);
         // set a title for the progress bar
-        progressDialog.setTitle("Rtsp Client Test");
+        progressDialog.setTitle("Loading...");
         // set a message for the progress bar
         progressDialog.setMessage("Loading...");
         //set the progress bar not cancelable on users' touch
@@ -98,7 +120,7 @@ public class VideoStreaming
             myVideoView.setMediaController(mediaControls);
 
             //set the uri of the video to be played
-            myVideoView.setVideoURI(Uri.parse("rtsp://"+ip+":"+port));
+            myVideoView.setVideoURI(Uri.parse("rtsp://"+ip+":"+DEFAULT_STREAMING_PORT));
         }
         catch (Exception e)
         {
@@ -114,17 +136,7 @@ public class VideoStreaming
             {
                 // close the progress bar and play the video
                 progressDialog.dismiss();
-                //if we have a position on savedInstanceState, the video playback should start from here
-                myVideoView.seekTo(position);
-                if (position == 0)
-                {
-                    myVideoView.start();
-                }
-                else
-                {
-                    //if we come from a resumed activity, video playback will be paused
-                    myVideoView.pause();
-                }
+                myVideoView.start();
             }
         });
 

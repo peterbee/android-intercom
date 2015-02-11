@@ -1,43 +1,13 @@
 package com.intercom.video.twoway;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
-
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.app.Activity;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Binder;
-import android.os.Build;
 import android.os.IBinder;
-import android.os.RemoteException;
-import android.os.Vibrator;
-import android.support.v4.app.NotificationCompat;
-import android.telephony.TelephonyManager;
-import android.util.Log;
-import android.widget.Toast;
 
 public class ListenerService extends Service 
 {
@@ -50,6 +20,8 @@ public class ListenerService extends Service
 
 	// Binder given to clients
 	private final IBinder mBinder = new LocalBinder();
+
+    ControlConstants constants = new ControlConstants();
 
 	/**
 	 * Class used for the client Binder. Because we know this service always
@@ -131,11 +103,16 @@ public class ListenerService extends Service
                     {
                         serviceTcpEngine.listenForConnection();
 
+                        // extract just the ip address from ip address and prot combo string
+                        // this would be cooler if done with regular expressions
+                        String RemoteAddress = serviceTcpEngine.getRemoteIpAddress();
+                        String newRemoteAddress = RemoteAddress.substring(1, RemoteAddress.indexOf(":"));
+
+                        // tell main activity to start streaming the remote video
+                        sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING, newRemoteAddress);
+
                         // now just close the connection since this is only proof of concept
                         serviceTcpEngine.closeConnection();
-
-                        // start the main activity
-                        startMainActivity();
                     }
                 }
             };
@@ -144,13 +121,18 @@ public class ListenerService extends Service
     }
 
     /*
-    Starts the main activity from the service
+    send a command to the activity
+    This will probably be our primary means of communicating with the activity
+    this also wakes the activity and turns on the screen
      */
-    public void startMainActivity()
+    public void sendCommandToActivity(String command, String extra)
     {
         Intent startMainActivityIntent = new Intent(getBaseContext(), MainActivity.class);
         startMainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getApplication().startActivity(startMainActivityIntent);
-    }
+        startMainActivityIntent.putExtra("COMMAND", command);
+        startMainActivityIntent.putExtra("EXTRA_DATA", extra);
 
+        getApplication().startActivity(startMainActivityIntent);
+
+    }
 }

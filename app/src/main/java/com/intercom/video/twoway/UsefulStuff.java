@@ -1,5 +1,4 @@
 package com.intercom.video.twoway;
-
 import android.app.Activity;
 import android.app.KeyguardManager;
 import android.app.ProgressDialog;
@@ -30,7 +29,6 @@ This class contains useful stuff that we dont want to put in main activity becau
 public class UsefulStuff
 {
     static Context mainContext;
-
 
     public UsefulStuff(Context c)
     {
@@ -88,7 +86,7 @@ public class UsefulStuff
     /*
     Lets us show a toast message from any thread
     */
-    static void ShowToastMessage(final String message)
+    static void showToastMessage(final String message)
     {
         ((Activity)mainContext).runOnUiThread(new Runnable()
         {

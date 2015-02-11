@@ -5,39 +5,39 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.media.session.MediaController;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
+import android.os.Handler;
 
 import net.majorkernelpanic.streaming.gl.SurfaceView;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 public class MainActivity extends Activity
 {
+    static Handler h;
+
+    ControlConstants constants = new ControlConstants();
+
     /*
     Handles all networking stuff
      */
     Tcp tcpEngine = new Tcp();
 
     /*
-    Some helpful things (screen unlock, etc) that shouldnt go in main activity
+    Some helpful things (screen unlock, etc) that shouldn't go in main activity because it will be too much and messy
      */
     static UsefulStuff usefulStuff;
 
     /*
     Handles all the video and audio streaming stuff
      */
-    static VideoStreaming streamingEngine = new VideoStreaming();
+    static VideoStreaming streamingEngine;
 
     /*
     Used to attempt to connect to another device
@@ -54,7 +54,6 @@ public class MainActivity extends Activity
      */
     static EditText ipAddressEditText;
 
-
     volatile static ListenerService listenerService;
     volatile static boolean serviceIsBoundToActivity = false;
 
@@ -64,7 +63,7 @@ public class MainActivity extends Activity
         @Override
         public void onServiceConnected(ComponentName className, IBinder service)
         {
-            usefulStuff.ShowToastMessage("Connected to service");
+            usefulStuff.showToastMessage("Connected to service");
             // We've bound to LocalService, cast the IBinder and get
             // LocalService instance
             com.intercom.video.twoway.ListenerService.LocalBinder binder = (com.intercom.video.twoway.ListenerService.LocalBinder) service;
@@ -79,7 +78,7 @@ public class MainActivity extends Activity
         @Override
         public void onServiceDisconnected(ComponentName arg0)
         {
-            usefulStuff.ShowToastMessage("Disconnected from service");
+            usefulStuff.showToastMessage("Disconnected from service");
             serviceIsBoundToActivity = false;
         }
     };
@@ -116,32 +115,53 @@ public class MainActivity extends Activity
         tcpEngine.connectToDevice(ipAddress);
 
         // and this starts transmitting our video
-        streamingEngine.startVideoBroadcast(1234, (SurfaceView)findViewById(R.id.transmitterVideoView));
+        streamingEngine.startVideoBroadcast();
     }
+
+    private SurfaceView mSurfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
 
+        h = new Handler();
+        streamingEngine = new VideoStreaming();
         usefulStuff = new UsefulStuff(this);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_main);
         setupButtons();
         startListenerService();
-
-        usefulStuff.ShowToastMessage("oncreate called!");
     }
 
+    /*
+    This is where we handle messages (as intents) from the service
+     */
     @Override
     protected void onNewIntent(Intent intent)
     {
         super.onNewIntent(intent); 
         setIntent(intent);
 
-        usefulStuff.ShowToastMessage("New Intent Received");
+        String COMMAND_STRING = intent.getExtras().getString("COMMAND");
 
-        usefulStuff.forceWakeUpUnlock();
+        usefulStuff.showToastMessage("Intent Received - " + intent.getExtras().getString("COMMAND"));
+
+
+        // simply start he activity and turn on the screen, nothing more
+        if(COMMAND_STRING.equals(constants.INTENT_COMMAND_START_ACTIVITY))
+        {
+            usefulStuff.forceWakeUpUnlock();
+        }
+
+        // tells us to start streaming a remote video source
+        if(COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING))
+        {
+            usefulStuff.forceWakeUpUnlock();
+            MainActivity.streamingEngine.playVideoStream(intent.getExtras().getString("EXTRA_DATA"));
+        }
     }
 
     @Override
@@ -172,8 +192,8 @@ public class MainActivity extends Activity
     public void onDestroy()
     {
         // if we wanted to destroy the service on activity destroy we could uncomment this
-//      listenerService.stopListeningForConnections();
-//      stopService(new Intent(this, ListenerService.class));
+        listenerService.stopListeningForConnections();
+        stopService(new Intent(this, ListenerService.class));
         super.onDestroy();
     }
 
@@ -189,7 +209,6 @@ public class MainActivity extends Activity
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
