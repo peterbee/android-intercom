@@ -20,8 +20,6 @@ import net.majorkernelpanic.streaming.gl.SurfaceView;
 
 public class MainActivity extends Activity
 {
-    static Handler h;
-
     ControlConstants constants = new ControlConstants();
 
     /*
@@ -101,7 +99,6 @@ public class MainActivity extends Activity
                 establishConnection();
             }
         });
-
     }
 
     /*
@@ -118,14 +115,11 @@ public class MainActivity extends Activity
         streamingEngine.startVideoBroadcast();
     }
 
-    private SurfaceView mSurfaceView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
 
-        h = new Handler();
         streamingEngine = new VideoStreaming();
         usefulStuff = new UsefulStuff(this);
 
@@ -150,7 +144,7 @@ public class MainActivity extends Activity
         usefulStuff.showToastMessage("Intent Received - " + intent.getExtras().getString("COMMAND"));
 
 
-        // simply start he activity and turn on the screen, nothing more
+        // simply start the activity and turn on the screen, nothing more
         if(COMMAND_STRING.equals(constants.INTENT_COMMAND_START_ACTIVITY))
         {
             usefulStuff.forceWakeUpUnlock();
@@ -191,7 +185,7 @@ public class MainActivity extends Activity
     @Override
     public void onDestroy()
     {
-        // if we wanted to destroy the service on activity destroy we could uncomment this
+        // if we wanted to not destroy the service on activity destroy we could comment this out
         listenerService.stopListeningForConnections();
         stopService(new Intent(this, ListenerService.class));
         super.onDestroy();
@@ -202,23 +196,4 @@ public class MainActivity extends Activity
     {
 
     }
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        // Handle item selection
-        switch (item.getItemId())
-        {
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
 }
