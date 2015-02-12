@@ -164,22 +164,26 @@ public class Tcp
 
                     // if we got here with no exception we can assume we are connected
                     connectionState=CONNECTED;
-                    MainActivity.usefulStuff.ShowToastMessage("CONNECTED TO SERVER!");
-
                 }
                 catch(Exception e)
                 {
                     e.printStackTrace();
-                    MainActivity.usefulStuff.ShowToastMessage("Error Connecting");
                 }
 
-                // close connection since this is only a demonstration
-                closeConnection();
             }
         };
 
         openConnectionThread.start();
 
+    }
+
+    /*
+    Returns the ip address of the remote device we are connected to
+     */
+    String getRemoteIpAddress()
+    {
+
+        return tcpSocket.getRemoteSocketAddress().toString();
     }
 
 
