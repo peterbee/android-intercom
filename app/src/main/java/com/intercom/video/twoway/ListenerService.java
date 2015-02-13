@@ -40,7 +40,7 @@ public class ListenerService extends Service
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
-        System.out.println("New service created!");
+
 		// If we get killed, after returning from here, restart the service
 		return START_STICKY;
 	}
@@ -133,6 +133,5 @@ public class ListenerService extends Service
         startMainActivityIntent.putExtra("EXTRA_DATA", extra);
 
         getApplication().startActivity(startMainActivityIntent);
-
     }
 }

@@ -26,11 +26,11 @@ import java.util.UUID;
 /*
 This class contains useful stuff that we dont want to put in main activity because it will be big and messy
  */
-public class UsefulStuff
+public class Utilities
 {
     static Context mainContext;
 
-    public UsefulStuff(Context c)
+    public Utilities(Context c)
     {
         mainContext=c;
     }
