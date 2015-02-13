@@ -1,33 +1,22 @@
 package com.intercom.video.twoway;
 
 import android.app.Activity;
-import android.app.KeyguardManager;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.media.MediaPlayer;
-import android.media.MediaRecorder;
 import android.net.Uri;
-import android.os.PowerManager;
 import android.preference.PreferenceManager;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.MediaController;
-import android.widget.Toast;
 import android.widget.VideoView;
 
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.gl.SurfaceView;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import net.majorkernelpanic.streaming.video.VideoQuality;
-
-
-import java.util.UUID;
 
 /*
 This class contains things that deal with transmitting and receiving video / audio streams
@@ -43,8 +32,8 @@ public class VideoStreaming
     */
     void showBroadcasterVideoSurface()
     {
-        ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.transmitterVideoView).setVisibility(View.VISIBLE);
-        ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.receiverVideoView).setVisibility(View.GONE);
+        ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.transmitterVideoView).setVisibility(View.VISIBLE);
+        ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.receiverVideoView).setVisibility(View.GONE);
     }
 
     /*
@@ -52,8 +41,8 @@ public class VideoStreaming
     */
     void showReceiverVideoSurface()
     {
-        ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.transmitterVideoView).setVisibility(View.GONE);
-        ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.receiverVideoView).setVisibility(View.VISIBLE);
+        ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.transmitterVideoView).setVisibility(View.GONE);
+        ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.receiverVideoView).setVisibility(View.VISIBLE);
     }
 
     /*
@@ -62,13 +51,13 @@ public class VideoStreaming
     void startVideoBroadcast()
     {
 
-        SurfaceView mSurfaceView = (SurfaceView) ((Activity)MainActivity.usefulStuff.mainContext).findViewById(R.id.transmitterVideoView);
+        SurfaceView mSurfaceView = (SurfaceView) ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.transmitterVideoView);
 
         // unhides the video surface we are broadcasting
         showBroadcasterVideoSurface();
 
         // Sets the port of the RTSP server to 1234
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.usefulStuff.mainContext).edit();
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.utilities.mainContext).edit();
         editor.putString(RtspServer.KEY_PORT, String.valueOf(DEFAULT_STREAMING_PORT));
         editor.commit();
 
@@ -78,14 +67,14 @@ public class VideoStreaming
 
                 .setSurfaceView(mSurfaceView)
                 .setPreviewOrientation(0)
-                .setContext(MainActivity.usefulStuff.mainContext)
+                .setContext(MainActivity.utilities.mainContext)
                 .setAudioEncoder(SessionBuilder.AUDIO_AAC)
                 .setVideoEncoder(SessionBuilder.VIDEO_H264)
                 .setVideoQuality(new VideoQuality(constants.X_RESOLUTION, constants.Y_RESOLUTION, constants.FRAMERATE, constants.BITRATE)).setCamera(Camera.CameraInfo.CAMERA_FACING_BACK)
                 .build();
 
         // Starts the RTSP server
-        MainActivity.usefulStuff.mainContext.startService(new Intent(MainActivity.usefulStuff.mainContext, RtspServer.class));
+        MainActivity.utilities.mainContext.startService(new Intent(MainActivity.utilities.mainContext, RtspServer.class));
     }
 
     /*
@@ -96,15 +85,15 @@ public class VideoStreaming
         final int position = 0;
         final ProgressDialog progressDialog;
 
-        final VideoView myVideoView = (VideoView) ((Activity) MainActivity.usefulStuff.mainContext).findViewById(R.id.receiverVideoView);
+        final VideoView myVideoView = (VideoView) ((Activity) MainActivity.utilities.mainContext).findViewById(R.id.receiverVideoView);
 
         // unhide the video surface we are receiving
         showReceiverVideoSurface();
 
-        MediaController mediaControls = new MediaController(MainActivity.usefulStuff.mainContext);
+        MediaController mediaControls = new MediaController(MainActivity.utilities.mainContext);
 
         // create a progress bar while the video file is loading
-        progressDialog = new ProgressDialog(MainActivity.usefulStuff.mainContext);
+        progressDialog = new ProgressDialog(MainActivity.utilities.mainContext);
         // set a title for the progress bar
         progressDialog.setTitle("Loading...");
         // set a message for the progress bar

@@ -7,18 +7,16 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.os.Handler;
-
-import net.majorkernelpanic.streaming.gl.SurfaceView;
 
 
-public class MainActivity extends Activity
+public class MainActivity extends ActionBarActivity
 {
     ControlConstants constants = new ControlConstants();
 
@@ -30,7 +28,7 @@ public class MainActivity extends Activity
     /*
     Some helpful things (screen unlock, etc) that shouldn't go in main activity because it will be too much and messy
      */
-    static UsefulStuff usefulStuff;
+    static Utilities utilities;
 
     /*
     Handles all the video and audio streaming stuff
@@ -61,7 +59,7 @@ public class MainActivity extends Activity
         @Override
         public void onServiceConnected(ComponentName className, IBinder service)
         {
-            usefulStuff.showToastMessage("Connected to service");
+            utilities.showToastMessage("Connected to service");
             // We've bound to LocalService, cast the IBinder and get
             // LocalService instance
             com.intercom.video.twoway.ListenerService.LocalBinder binder = (com.intercom.video.twoway.ListenerService.LocalBinder) service;
@@ -76,14 +74,14 @@ public class MainActivity extends Activity
         @Override
         public void onServiceDisconnected(ComponentName arg0)
         {
-            usefulStuff.showToastMessage("Disconnected from service");
+            utilities.showToastMessage("Disconnected from service");
             serviceIsBoundToActivity = false;
         }
     };
 
     public void startListenerService()
     {
-        Intent service = new Intent(usefulStuff.mainContext, ListenerService.class);
+        Intent service = new Intent(utilities.mainContext, ListenerService.class);
         startService(service);
     }
 
@@ -121,7 +119,7 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
 
         streamingEngine = new VideoStreaming();
-        usefulStuff = new UsefulStuff(this);
+        utilities = new Utilities(this);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -141,19 +139,19 @@ public class MainActivity extends Activity
 
         String COMMAND_STRING = intent.getExtras().getString("COMMAND");
 
-        usefulStuff.showToastMessage("Intent Received - " + intent.getExtras().getString("COMMAND"));
+        utilities.showToastMessage("Intent Received - " + intent.getExtras().getString("COMMAND"));
 
 
         // simply start the activity and turn on the screen, nothing more
         if(COMMAND_STRING.equals(constants.INTENT_COMMAND_START_ACTIVITY))
         {
-            usefulStuff.forceWakeUpUnlock();
+            utilities.forceWakeUpUnlock();
         }
 
         // tells us to start streaming a remote video source
         if(COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING))
         {
-            usefulStuff.forceWakeUpUnlock();
+            utilities.forceWakeUpUnlock();
             MainActivity.streamingEngine.playVideoStream(intent.getExtras().getString("EXTRA_DATA"));
         }
     }
@@ -195,5 +193,30 @@ public class MainActivity extends Activity
     public void onBackPressed()
     {
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+// Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+// Handle item selection
+        switch (item.getItemId())
+        {
+            case R.id.action_listen:
+
+                return true;
+            case R.id.action_connect:
+
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }
