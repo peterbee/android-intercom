@@ -169,14 +169,12 @@ public class MainActivity extends ActionBarActivity
     @Override
     public void onPause()
     {
-
         super.onPause();
     }
 
     @Override
     public void onStop()
     {
-
         super.onStop();
     }
 
@@ -209,12 +207,20 @@ public class MainActivity extends ActionBarActivity
 // Handle item selection
         switch (item.getItemId())
         {
+            case R.id.action_view_profile:
+                utilities.showToastMessage("StayTuned: comming soon");
+                return true;
+
+            case R.id.action_find_peers:
+                utilities.showToastMessage("WIFI Peer discovery started");
+                return true;
+
             case R.id.action_listen:
-
                 return true;
+
             case R.id.action_connect:
-
                 return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
