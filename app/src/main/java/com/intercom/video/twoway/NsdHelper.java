@@ -98,13 +98,15 @@ public class NsdHelper {
             @Override
             public void onServiceResolved(NsdServiceInfo serviceInfo) {
                 Log.e(TAG, "Resolve Succeeded. " + serviceInfo);
-                // TODO get ip here!!!!
+
 
                 if (serviceInfo.getServiceName().equals(mServiceName)) {
                     Log.d(TAG, "Same IP.");
                     return;
                 }
                 mService = serviceInfo;
+
+                // TODO get ip here!!!!
                 mIpArray.add(mIpArray.size()+1,mService);
                 Log.i(TAG, "addd to array: "+ mService);
             }
