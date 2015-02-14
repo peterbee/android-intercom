@@ -5,20 +5,28 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.nsd.NsdManager;
+import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import com.intercom.video.twoway.NsdHelper;
 
 
 public class MainActivity extends ActionBarActivity
 {
+
     ControlConstants constants = new ControlConstants();
+
+    // used in logcat logging
+    String TAG = "Two-Way:";
 
     /*
     Handles all networking stuff
@@ -212,7 +220,8 @@ public class MainActivity extends ActionBarActivity
                 return true;
 
             case R.id.action_find_peers:
-                utilities.showToastMessage("WIFI Peer discovery started");
+                Log.i(TAG, " wifiPeerDiscovery button pushed ( step 1) \n"); //debug
+                wifiPeerDiscovery();
                 return true;
 
             case R.id.action_listen:
@@ -225,4 +234,13 @@ public class MainActivity extends ActionBarActivity
                 return super.onOptionsItemSelected(item);
         }
     }
+
+
+    public void wifiPeerDiscovery() {
+        Log.i(TAG, " wifiPeerDiscovery called ( step 2) \n"); //debug
+        NsdHelper mNsdHelper = new NsdHelper(this);
+        mNsdHelper.initializeNsd();
+        Log.i(TAG, " wifiPeerDiscovery called ( step 3) \n"); //debug
+        }
+
 }
