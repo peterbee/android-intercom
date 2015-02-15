@@ -108,7 +108,7 @@ public class NsdHelper {
 
                 // TODO get ip here!!!!
                 mIpArray.add(mIpArray.size()+1,mService);
-                Log.i(TAG, "addd to array: "+ mService);
+                Log.i(TAG, " add to array: "+ mService);
             }
         };
     }

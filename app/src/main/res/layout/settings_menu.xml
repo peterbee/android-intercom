@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/settings_menu"
+    android:weightSum="1">
+
+    <ImageButton
+        android:layout_width="160dp"
+        android:layout_height="100dp"
+        android:text="Back"
+        android:id="@+id/settings_menu_imagebutton_back"
+        android:layout_weight="0.07"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="0dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="0dp"
+        android:src="@drawable/ic_action_button_back"
+        android:layout_toStartOf="@+id/settings_menu_textfield_deviceNic" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Use Camera View"
+        android:id="@+id/settings_menu_checkBox_usecamaraview"
+        android:layout_gravity="right"
+        android:checked="false"
+        android:layout_alignTop="@+id/imageView"
+        android:layout_alignRight="@+id/settings_menu_button_save"
+        android:layout_alignEnd="@+id/settings_menu_button_save"
+        android:layout_marginTop="32dp" />
+
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:id="@+id/imageView"
+        android:layout_weight="0.31"
+        android:src="@drawable/ic_action_view_profile"
+        android:layout_below="@+id/settings_menu_imagebutton_back"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Two-Way"
+        android:id="@+id/settings_menu_textfield_deviceNic"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.07"
+        android:layout_marginTop="65dp"
+        android:layout_below="@+id/imageView"
+        android:layout_alignRight="@+id/settings_menu_button_save"
+        android:layout_alignEnd="@+id/settings_menu_button_save"
+        android:layout_toEndOf="@+id/textView" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:id="@+id/settings_menu_button_save"
+        android:layout_weight="0.07"
+        android:layout_gravity="right"
+        android:layout_marginRight="41dp"
+        android:layout_marginEnd="41dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="56dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:id="@+id/settings_menu_button_cancel"
+        android:layout_weight="0.07"
+        android:layout_alignBaseline="@+id/settings_menu_button_save"
+        android:layout_alignBottom="@+id/settings_menu_button_save"
+        android:layout_alignRight="@+id/textView"
+        android:layout_alignEnd="@+id/textView" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Nickname:   "
+        android:id="@+id/textView"
+        android:layout_alignTop="@+id/settings_menu_textfield_deviceNic"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="40dp"
+        android:layout_marginStart="40dp" />
+
+</RelativeLayout>
