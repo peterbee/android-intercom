@@ -25,15 +25,15 @@
         android:id="@+id/settings_menu_checkBox_usecamaraview"
         android:layout_gravity="right"
         android:checked="false"
-        android:layout_alignTop="@+id/imageView"
+        android:layout_marginTop="74dp"
+        android:layout_alignTop="@+id/imageView_device_avatar"
         android:layout_alignRight="@+id/settings_menu_button_save"
-        android:layout_alignEnd="@+id/settings_menu_button_save"
-        android:layout_marginTop="32dp" />
+        android:layout_alignEnd="@+id/settings_menu_button_save" />
 
     <ImageView
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:id="@+id/imageView"
+        android:id="@+id/imageView_device_avatar"
         android:layout_weight="0.31"
         android:src="@drawable/ic_action_view_profile"
         android:layout_below="@+id/settings_menu_imagebutton_back"
@@ -48,11 +48,9 @@
         android:id="@+id/settings_menu_textfield_deviceNic"
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.07"
-        android:layout_marginTop="65dp"
-        android:layout_below="@+id/imageView"
-        android:layout_alignRight="@+id/settings_menu_button_save"
-        android:layout_alignEnd="@+id/settings_menu_button_save"
-        android:layout_toEndOf="@+id/textView" />
+        android:layout_alignTop="@+id/textView"
+        android:layout_alignLeft="@+id/settings_menu_checkBox_usecamaraview"
+        android:layout_alignStart="@+id/settings_menu_checkBox_usecamaraview" />
 
     <Button
         android:layout_width="wrap_content"
@@ -61,12 +59,12 @@
         android:id="@+id/settings_menu_button_save"
         android:layout_weight="0.07"
         android:layout_gravity="right"
-        android:layout_marginRight="41dp"
-        android:layout_marginEnd="41dp"
+        android:layout_marginBottom="58dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="56dp" />
+        android:layout_toRightOf="@+id/textView"
+        android:layout_toEndOf="@+id/textView"
+        android:layout_marginLeft="42dp"
+        android:layout_marginStart="42dp" />
 
     <Button
         android:layout_width="wrap_content"
@@ -74,10 +72,9 @@
         android:text="Cancel"
         android:id="@+id/settings_menu_button_cancel"
         android:layout_weight="0.07"
-        android:layout_alignBaseline="@+id/settings_menu_button_save"
-        android:layout_alignBottom="@+id/settings_menu_button_save"
-        android:layout_alignRight="@+id/textView"
-        android:layout_alignEnd="@+id/textView" />
+        android:layout_alignTop="@+id/settings_menu_button_save"
+        android:layout_alignLeft="@+id/textView"
+        android:layout_alignStart="@+id/textView" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -85,10 +82,9 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Nickname:   "
         android:id="@+id/textView"
-        android:layout_alignTop="@+id/settings_menu_textfield_deviceNic"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginLeft="40dp"
-        android:layout_marginStart="40dp" />
+        android:layout_below="@+id/imageView_device_avatar"
+        android:layout_alignRight="@+id/imageView_device_avatar"
+        android:layout_alignEnd="@+id/imageView_device_avatar"
+        android:layout_marginTop="56dp" />
 
 </RelativeLayout>

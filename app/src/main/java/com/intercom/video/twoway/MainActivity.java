@@ -14,9 +14,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+
 import com.intercom.video.twoway.NsdHelper;
 
 
@@ -47,6 +52,20 @@ public class MainActivity extends ActionBarActivity
     Used to attempt to connect to another device
      */
     static Button connectButton;
+
+    /*
+    These buttons and checkbox are present in settings_menu layout
+    sm = Settings Menu
+     */
+    static Button smImageButtonBack, smSave, smCancel;
+    static CheckBox smCheckBoxUseCamaraView;
+    static ImageView smDeviceAvatar;
+    static TextView smDeviceNic, smLableDeviceNicL;
+
+    /*
+    Keeps track of what current layout id is
+     */
+    int currentLayoutId;
 
     /*
     Opens and closes video link between devices
@@ -96,6 +115,8 @@ public class MainActivity extends ActionBarActivity
     void setupButtons()
     {
         connectButton=(Button)findViewById(R.id.connectButton);
+
+
         ipAddressEditText=(EditText)findViewById(R.id.ipAddressEditText);
 
         connectButton.setOnClickListener(new View.OnClickListener()
@@ -119,6 +140,15 @@ public class MainActivity extends ActionBarActivity
 
         // and this starts transmitting our video
         streamingEngine.startVideoBroadcast();
+    }
+
+    /*
+    keeps track of current layout id as Int
+     */
+    @Override
+    public void setContentView(int layoutResID) {
+        this.currentLayoutId = layoutResID;
+        super.setContentView(layoutResID);
     }
 
     @Override
@@ -198,7 +228,10 @@ public class MainActivity extends ActionBarActivity
     @Override
     public void onBackPressed()
     {
-
+    //back from settings is main screen
+        if(this.currentLayoutId==R.layout.settings_menu){
+            setContentView(R.layout.activity_main);
+        }
     }
 
     @Override
@@ -216,7 +249,11 @@ public class MainActivity extends ActionBarActivity
         switch (item.getItemId())
         {
             case R.id.action_view_profile:
-                utilities.showToastMessage("StayTuned: comming soon");
+                setContentView(R.layout.settings_menu);
+                return true;
+
+            case R.id.action_home:
+                setContentView(R.layout.activity_main);
                 return true;
 
             case R.id.action_find_peers:
