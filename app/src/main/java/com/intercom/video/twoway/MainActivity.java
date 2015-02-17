@@ -19,6 +19,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -57,7 +58,8 @@ public class MainActivity extends ActionBarActivity
     These buttons and checkbox are present in settings_menu layout
     sm = Settings Menu
      */
-    static Button smImageButtonBack, smSave, smCancel;
+    static Button smSave, smCancel;
+    static ImageButton smImageButtonBack;
     static CheckBox smCheckBoxUseCamaraView;
     static ImageView smDeviceAvatar;
     static TextView smDeviceNic, smLableDeviceNicL;
@@ -115,10 +117,7 @@ public class MainActivity extends ActionBarActivity
     void setupButtons()
     {
         connectButton=(Button)findViewById(R.id.connectButton);
-
-
         ipAddressEditText=(EditText)findViewById(R.id.ipAddressEditText);
-
         connectButton.setOnClickListener(new View.OnClickListener()
         {
             public void onClick(View v)
@@ -126,7 +125,47 @@ public class MainActivity extends ActionBarActivity
                 establishConnection();
             }
         });
+
+    // Settings Menu Controls
+
+
+        //smSave=(Button)findViewById(R.id.settings_menu_button_save);
+        /*
+        smCancel=(Button)findViewById(R.id.settings_menu_button_cancel);
+        smCancel.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v)
+            {
+                // TODO: get stakeholder definition on what this does
+                // cancel =?
+                // setting up to return to main screen
+                // possible other implementation = revert all values to what they were
+                setContentView(R.layout.activity_main);
+            }
+        });
+        */
+
+
     }
+
+
+    // attach listener to imageButton
+    // used in settings menu
+    public void addListenerToImageButton() {
+        smImageButtonBack=(ImageButton)findViewById(R.id.settings_menu_imagebutton_back);
+
+        smImageButtonBack.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+
+                // TODO: BUG: this does not work
+                setContentView(R.layout.activity_main);
+            }
+
+        });
+
+    }
+
 
     /*
     Attempts to establish the tcp connection to another device

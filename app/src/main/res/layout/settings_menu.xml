@@ -16,7 +16,8 @@
         android:layout_alignParentTop="true"
         android:layout_marginTop="0dp"
         android:src="@drawable/ic_action_button_back"
-        android:layout_toStartOf="@+id/settings_menu_textfield_deviceNic" />
+        android:layout_toStartOf="@+id/textView"
+        android:layout_toLeftOf="@+id/textView" />
 
     <CheckBox
         android:layout_width="wrap_content"
@@ -49,8 +50,9 @@
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.07"
         android:layout_alignTop="@+id/textView"
-        android:layout_alignLeft="@+id/settings_menu_checkBox_usecamaraview"
-        android:layout_alignStart="@+id/settings_menu_checkBox_usecamaraview" />
+        android:layout_toRightOf="@+id/textView"
+        android:layout_alignRight="@+id/settings_menu_checkBox_usecamaraview"
+        android:layout_alignEnd="@+id/settings_menu_checkBox_usecamaraview" />
 
     <Button
         android:layout_width="wrap_content"
