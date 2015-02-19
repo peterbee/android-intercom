@@ -9,6 +9,8 @@
 
 
     <string name="action_listen">Listen For Connection</string>
-    <string name="action_connect">Connect To Device</string>
+    <string name="action_find_peers">Find WIFI peers</string>
+    <string name="action_view_profile">MyProfile</string>
+    <string name="action_home">Go Home</string>
 
 </resources>
