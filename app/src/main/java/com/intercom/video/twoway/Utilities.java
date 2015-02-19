@@ -28,7 +28,7 @@ This class contains useful stuff that we dont want to put in main activity becau
  */
 public class Utilities
 {
-    static Context mainContext;
+    public Context mainContext;
 
     public Utilities(Context c)
     {
@@ -63,7 +63,7 @@ public class Utilities
      * This returns a unique UUID string that should be unique to this device
      * just in case we need it at some point in the future
      */
-    static String getDeviceId()
+    public String getDeviceId()
     {
         final TelephonyManager tm = (TelephonyManager) mainContext
                 .getSystemService(Context.TELEPHONY_SERVICE);
@@ -86,7 +86,7 @@ public class Utilities
     /*
     Lets us show a toast message from any thread
     */
-    static void showToastMessage(final String message)
+    public void showToastMessage(final String message)
     {
         ((Activity)mainContext).runOnUiThread(new Runnable()
         {
@@ -95,5 +95,5 @@ public class Utilities
                 Toast.makeText(mainContext, message, Toast.LENGTH_LONG).show();
             }
         });
-    };
+    }
 }

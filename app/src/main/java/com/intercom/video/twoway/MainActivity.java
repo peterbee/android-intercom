@@ -142,16 +142,17 @@ public class MainActivity extends ActionBarActivity {
         smImageButtonBack = (ImageButton) findViewById(R.id.settings_menu_imagebutton_back);
 
         smImageButtonBack.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View arg0) {
-
                 // TODO: BUG: this does not work
                 setContentView(R.layout.activity_main);
             }
 
         });
+    }
 
+    public void settingsMenuBackButtonPressed(View view) {
+        setContentView(R.layout.activity_main);
     }
 
 
