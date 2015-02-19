@@ -17,7 +17,12 @@
         android:layout_marginTop="0dp"
         android:src="@drawable/ic_action_button_back"
         android:layout_toStartOf="@+id/textView"
-        android:layout_toLeftOf="@+id/textView" />
+        android:layout_toLeftOf="@+id/textView"
+        android:clickable="true"
+        android:cropToPadding="true"
+        android:focusable="false"
+        android:longClickable="false"
+        android:onClick="settingsMenuBackButtonPressed" />
 
     <CheckBox
         android:layout_width="wrap_content"
@@ -26,10 +31,10 @@
         android:id="@+id/settings_menu_checkBox_usecamaraview"
         android:layout_gravity="right"
         android:checked="false"
-        android:layout_marginTop="74dp"
+        android:layout_marginTop="75dp"
         android:layout_alignTop="@+id/imageView_device_avatar"
-        android:layout_alignRight="@+id/settings_menu_button_save"
-        android:layout_alignEnd="@+id/settings_menu_button_save" />
+        android:layout_toRightOf="@+id/imageView_device_avatar"
+        android:layout_toEndOf="@+id/imageView_device_avatar" />
 
     <ImageView
         android:layout_width="200dp"
