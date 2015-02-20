@@ -17,10 +17,6 @@ import android.view.WindowManager;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import net.majorkernelpanic.streaming.SessionBuilder;
-import net.majorkernelpanic.streaming.gl.SurfaceView;
-import net.majorkernelpanic.streaming.rtsp.RtspServer;
-
 import java.util.UUID;
 
 /*

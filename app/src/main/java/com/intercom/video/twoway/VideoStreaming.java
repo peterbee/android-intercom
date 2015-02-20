@@ -4,19 +4,26 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.VideoView;
 
-import net.majorkernelpanic.streaming.SessionBuilder;
-import net.majorkernelpanic.streaming.gl.SurfaceView;
-import net.majorkernelpanic.streaming.rtsp.RtspServer;
-import net.majorkernelpanic.streaming.video.VideoQuality;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 /*
 This class contains things that deal with transmitting and receiving video / audio streams
@@ -24,110 +31,290 @@ This class contains things that deal with transmitting and receiving video / aud
 
 public class VideoStreaming
 {
-    ControlConstants constants = new ControlConstants();
 
-    final int DEFAULT_STREAMING_PORT = 1234;
-    /*
-    hides the receiver VideoView and unhides the broadcaster SurfaceView
-    */
-    void showBroadcasterVideoSurface()
-    {
-        ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.transmitterVideoView).setVisibility(View.VISIBLE);
-        ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.receiverVideoView).setVisibility(View.GONE);
-    }
+    private int LISTENING_SERVICE_PORT = 2049;
 
     /*
-    shows the receiver VideoView and hides the broadcaster SurfaceView
-    */
-    void showReceiverVideoSurface()
-    {
-        ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.transmitterVideoView).setVisibility(View.GONE);
-        ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.receiverVideoView).setVisibility(View.VISIBLE);
-    }
-
-    /*
-    This code is taken from the libstreaming example1 with minor modifications
+    Used when we are the client
      */
-    void startVideoBroadcast()
+    private Socket tcpSocket;
+
+    /*
+   Used for accepting connections when we are the server
+    */
+    ServerSocket tcpServerSocket;
+
+    // Lower level streams
+    // good for transfering raw bytes of video data
+    InputStream tcpIn;
+    OutputStream tcpOut;
+
+    // higher level readers and writers
+    // good for transfering text
+    BufferedReader bufferedTcpIn;
+    BufferedWriter bufferedTcpOut;
+
+    int connectionState;
+    final int DISCONNECTED = 1;
+    final int CONNECTED = 2;
+
+    static Bitmap receivedBitmap;
+
+
+    VideoStreaming()
     {
-
-        SurfaceView mSurfaceView = (SurfaceView) ((Activity)MainActivity.utilities.mainContext).findViewById(R.id.transmitterVideoView);
-
-        // unhides the video surface we are broadcasting
-        showBroadcasterVideoSurface();
-
-        // Sets the port of the RTSP server to 1234
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(MainActivity.utilities.mainContext).edit();
-        editor.putString(RtspServer.KEY_PORT, String.valueOf(DEFAULT_STREAMING_PORT));
-        editor.commit();
+        connectionState = DISCONNECTED;
+    }
 
 
-        // Configures the SessionBuilder
-        SessionBuilder.getInstance()
+    public int getLISTENING_SERVICE_PORT()
+    {
+        return LISTENING_SERVICE_PORT;
+    }
 
-                .setSurfaceView(mSurfaceView)
-                .setPreviewOrientation(0)
-                .setContext(MainActivity.utilities.mainContext)
-                .setAudioEncoder(SessionBuilder.AUDIO_AAC)
-                .setVideoEncoder(SessionBuilder.VIDEO_H264)
-                .setVideoQuality(new VideoQuality(constants.X_RESOLUTION, constants.Y_RESOLUTION, constants.FRAMERATE, constants.BITRATE)).setCamera(Camera.CameraInfo.CAMERA_FACING_BACK)
-                .build();
-
-        // Starts the RTSP server
-        MainActivity.utilities.mainContext.startService(new Intent(MainActivity.utilities.mainContext, RtspServer.class));
+    public void setLISTENING_SERVICE_PORT(int LISTENING_SERVICE_PORT)
+    {
+        this.LISTENING_SERVICE_PORT = LISTENING_SERVICE_PORT;
     }
 
     /*
-    Sets up an android media player to stream rtsp from server at the given ip / port
-    */
-    void playVideoStream(String ip)
+    Close the streams and socket
+     */
+    void closeConnection()
     {
-        final int position = 0;
-        final ProgressDialog progressDialog;
-
-        final VideoView myVideoView = (VideoView) ((Activity) MainActivity.utilities.mainContext).findViewById(R.id.receiverVideoView);
-
-        // unhide the video surface we are receiving
-        showReceiverVideoSurface();
-
-        MediaController mediaControls = new MediaController(MainActivity.utilities.mainContext);
-
-        // create a progress bar while the video file is loading
-        progressDialog = new ProgressDialog(MainActivity.utilities.mainContext);
-        // set a title for the progress bar
-        progressDialog.setTitle("Loading...");
-        // set a message for the progress bar
-        progressDialog.setMessage("Loading...");
-        //set the progress bar not cancelable on users' touch
-        progressDialog.setCancelable(false);
-        // show the progress bar
-        progressDialog.show();
-
         try
         {
-            //set the media controller in the VideoView
-            myVideoView.setMediaController(mediaControls);
-
-            //set the uri of the video to be played
-            myVideoView.setVideoURI(Uri.parse("rtsp://"+ip+":"+DEFAULT_STREAMING_PORT));
-        }
-        catch (Exception e)
+            tcpIn.close();
+        } catch (Exception e)
         {
-            Log.e("Error", e.getMessage());
+            e.printStackTrace();
+        }
+        try
+        {
+            tcpOut.close();
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            bufferedTcpIn.close();
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            bufferedTcpOut.close();
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            tcpSocket.close();
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        try
+        {
+            tcpServerSocket.close();
+        } catch (Exception e)
+        {
             e.printStackTrace();
         }
 
-        myVideoView.requestFocus();
-        //we also set an setOnPreparedListener in order to know when the video file is ready for playback
-        myVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener()
+        connectionState = DISCONNECTED;
+    }
+
+    /*
+   Listen for a connection.  This should only be called from a seperate thread so the main thread isnt blocked
+    */
+    void listenForMJpegConnection(final ImageView jpegImageView)
+    {
+        Thread listenForConnectionThread = new Thread()
         {
-            public void onPrepared(MediaPlayer mediaPlayer)
+            public void run()
             {
-                // close the progress bar and play the video
-                progressDialog.dismiss();
-                myVideoView.start();
+                try
+                {
+                    System.out.println("Listening for MJpeg connection!");
+
+                    closeConnection();
+
+                    tcpServerSocket = new ServerSocket(getLISTENING_SERVICE_PORT());
+                    tcpSocket = tcpServerSocket.accept();
+                    tcpIn = tcpSocket.getInputStream();
+                    tcpOut = tcpSocket.getOutputStream();
+                    bufferedTcpOut = new BufferedWriter(new OutputStreamWriter(tcpOut));
+                    bufferedTcpIn = new BufferedReader(new InputStreamReader(tcpIn));
+
+                    // if we got here with no exception we can assume we are connected
+                    connectionState = CONNECTED;
+
+                    System.out.println("Connection has been established!  Now entering image capture loop, yay!");
+                    byte[] imageSizeData = new byte[4];
+                    long imageSize;
+                    while (connectionState == CONNECTED)
+                    {
+                        // read in an integer (4 bytes) of data to determine the size of the jpeg we are about to receive
+                        tcpIn.read(imageSizeData, 0, 4);
+
+                        // fancy bitshifting and ORing to put the 4 bytes we just read into an integer
+                        imageSize = pack(imageSizeData[3], imageSizeData[2], imageSizeData[1], imageSizeData[0]);
+
+
+                        System.out.println("Bytes = " + imageSizeData[3] + " " + imageSizeData[2] + " " + imageSizeData[1] + " " + imageSizeData[0]);
+                        System.out.println("Received image of size " + imageSize);
+
+                        int totalBytesReceived = 0;
+
+                        // one megabyte, no way a frame will be bigger than that
+                        byte[] receivedByteArray = new byte[1024 * 1024];
+
+                        // keep reading the stream until all bytes of this image have been read
+                        // reads in chunks of 1024 bytes at a time
+                        while (totalBytesReceived < imageSize)
+                        {
+                            if (imageSize - totalBytesReceived > 1024)
+                                totalBytesReceived += tcpIn.read(receivedByteArray, totalBytesReceived, 1024);
+                            else
+                                totalBytesReceived += tcpIn.read(receivedByteArray, totalBytesReceived, (int) imageSize - totalBytesReceived);
+                        }
+
+                        // send a single byte back to confirm we received a frame
+//                        tcpOut.write(0);
+//                        tcpOut.flush();
+
+                        receivedBitmap = BitmapFactory.decodeByteArray(receivedByteArray, 0, totalBytesReceived);
+                        ((Activity) (MainActivity.utilities.mainContext)).runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                jpegImageView.setImageBitmap(receivedBitmap);
+                            }
+                        });
+
+                    }
+
+                } catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
             }
-        });
+        };
+
+        listenForConnectionThread.start();
+    }
+
+    static boolean sending;
+    /*
+    sends the length of the jpeg data followed by the data
+     */
+
+    public static long pack(int c1, int c2, int c3, int c4)
+    {
+        return ((0xFFL & c1) << 24) | ((0xFFL & c2) << 16) | ((0xFFL & c3) << 8) | (0xFFL & c4);
+    }
+
+    void sendJpegFrame(final byte[] jpegDataByteArray)
+    {
+        if(!sending)
+        new Thread(new Runnable()
+        {
+            public void run()
+            {
+                sending=true;
+                int dataLength = jpegDataByteArray.length;
+
+                byte dataLengthBytes[] = new byte[4];
+
+                // pack the integer dataLength into 4 bytes
+                dataLengthBytes[3] = (byte) ((dataLength & 0xFF000000) >> 24);
+                dataLengthBytes[2] = (byte) ((dataLength & 0x00FF0000) >> 16);
+                dataLengthBytes[1] = (byte) ((dataLength & 0x0000FF00) >> 8);
+                dataLengthBytes[0] = (byte) ((dataLength & 0x000000FF) >> 0);
+
+
+                byte dataToSend[] = new byte[jpegDataByteArray.length + dataLengthBytes.length];
+
+                System.out.println("Bytes = " + dataLengthBytes[3] + " " + dataLengthBytes[2] + " " + dataLengthBytes[1] + " " + dataLengthBytes[0]);
+                System.out.println("size of actual jpeg data to send = " + jpegDataByteArray.length);
+                long unpacktest = pack(dataLengthBytes[3], dataLengthBytes[2], dataLengthBytes[1], dataLengthBytes[0]);
+                System.out.println("size of unpacked jpeg data to send = " + unpacktest);
+
+                // concatenate both arrays for sending
+                for (int i = 0; i < dataLengthBytes.length; i++)
+                    dataToSend[i] = dataLengthBytes[i];
+                for (int i = dataLengthBytes.length; i < jpegDataByteArray.length + dataLengthBytes.length; i++)
+                {
+                    dataToSend[i] = jpegDataByteArray[i - dataLengthBytes.length];
+                }
+
+                System.out.println("About to send jpeg of length = " + jpegDataByteArray.length + " total length = " + dataToSend.length);
+                try
+                {
+                    tcpOut.write(dataToSend);
+                    tcpOut.flush();
+                    // read a single byte confirming they received our frame before we continue
+//                    tcpIn.read();
+                } catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+
+                sending=false;
+            }
+        }).start();
 
     }
+
+    /*
+    Try to connect to the other device, this must be done before we send any Jpeg frames
+     */
+    void connectToDevice(final String ipAddress)
+    {
+        Thread openConnectionThread = new Thread()
+        {
+            public void run()
+            {
+                try
+                {
+                    closeConnection();
+
+                    System.out.println("Trying to connect to remote device for streaming");
+                    tcpSocket = new Socket(ipAddress, getLISTENING_SERVICE_PORT());
+                    tcpIn = tcpSocket.getInputStream();
+                    tcpOut = tcpSocket.getOutputStream();
+                    bufferedTcpOut = new BufferedWriter(new OutputStreamWriter(tcpOut));
+                    bufferedTcpIn = new BufferedReader(new InputStreamReader(tcpIn));
+
+
+                    // if we got here with no exception we can assume we are connected
+                    connectionState = CONNECTED;
+
+                    System.out.println("Connected to remote device for streaming!");
+                } catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        openConnectionThread.start();
+
+    }
+
+    /*
+    Returns the ip address of the remote device we are connected to
+     */
+    String getRemoteIpAddress()
+    {
+
+        return tcpSocket.getRemoteSocketAddress().toString();
+    }
+
+
 }
