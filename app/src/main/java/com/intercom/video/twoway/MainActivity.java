@@ -147,7 +147,6 @@ public class MainActivity extends ActionBarActivity {
                 // TODO: BUG: this does not work
                 setContentView(R.layout.activity_main);
             }
-
         });
     }
 
