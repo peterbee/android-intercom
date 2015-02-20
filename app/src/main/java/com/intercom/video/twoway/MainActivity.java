@@ -208,7 +208,7 @@ public class MainActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
 
         streamingEngine = new VideoStreaming();
-        utilities = new Utilities(this);
+        utilities = new Utilities(this); 
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 

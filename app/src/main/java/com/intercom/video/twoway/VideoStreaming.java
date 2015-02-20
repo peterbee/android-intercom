@@ -37,7 +37,7 @@ public class VideoStreaming
     /*
     Used when we are the client
      */
-    private Socket tcpSocket;
+    Socket tcpSocket;
 
     /*
    Used for accepting connections when we are the server
@@ -54,18 +54,16 @@ public class VideoStreaming
     BufferedReader bufferedTcpIn;
     BufferedWriter bufferedTcpOut;
 
-    int connectionState;
-    final int DISCONNECTED = 1;
-    final int CONNECTED = 2;
+    boolean connected;
 
     static Bitmap receivedBitmap;
 
+    static Object sendFrameLock = new Object();
 
     VideoStreaming()
     {
-        connectionState = DISCONNECTED;
+        connected = false;
     }
-
 
     public int getLISTENING_SERVICE_PORT()
     {
@@ -125,7 +123,7 @@ public class VideoStreaming
             e.printStackTrace();
         }
 
-        connectionState = DISCONNECTED;
+        connected = false;
     }
 
     /*
@@ -151,12 +149,12 @@ public class VideoStreaming
                     bufferedTcpIn = new BufferedReader(new InputStreamReader(tcpIn));
 
                     // if we got here with no exception we can assume we are connected
-                    connectionState = CONNECTED;
+                    connected = true;
 
                     System.out.println("Connection has been established!  Now entering image capture loop, yay!");
                     byte[] imageSizeData = new byte[4];
                     long imageSize;
-                    while (connectionState == CONNECTED)
+                    while (connected)
                     {
                         // read in an integer (4 bytes) of data to determine the size of the jpeg we are about to receive
                         tcpIn.read(imageSizeData, 0, 4);
@@ -221,51 +219,51 @@ public class VideoStreaming
 
     void sendJpegFrame(final byte[] jpegDataByteArray)
     {
-        if(!sending)
+
         new Thread(new Runnable()
         {
             public void run()
             {
-                sending=true;
-                int dataLength = jpegDataByteArray.length;
-
-                byte dataLengthBytes[] = new byte[4];
-
-                // pack the integer dataLength into 4 bytes
-                dataLengthBytes[3] = (byte) ((dataLength & 0xFF000000) >> 24);
-                dataLengthBytes[2] = (byte) ((dataLength & 0x00FF0000) >> 16);
-                dataLengthBytes[1] = (byte) ((dataLength & 0x0000FF00) >> 8);
-                dataLengthBytes[0] = (byte) ((dataLength & 0x000000FF) >> 0);
-
-
-                byte dataToSend[] = new byte[jpegDataByteArray.length + dataLengthBytes.length];
-
-                System.out.println("Bytes = " + dataLengthBytes[3] + " " + dataLengthBytes[2] + " " + dataLengthBytes[1] + " " + dataLengthBytes[0]);
-                System.out.println("size of actual jpeg data to send = " + jpegDataByteArray.length);
-                long unpacktest = pack(dataLengthBytes[3], dataLengthBytes[2], dataLengthBytes[1], dataLengthBytes[0]);
-                System.out.println("size of unpacked jpeg data to send = " + unpacktest);
-
-                // concatenate both arrays for sending
-                for (int i = 0; i < dataLengthBytes.length; i++)
-                    dataToSend[i] = dataLengthBytes[i];
-                for (int i = dataLengthBytes.length; i < jpegDataByteArray.length + dataLengthBytes.length; i++)
+                synchronized(this)
                 {
-                    dataToSend[i] = jpegDataByteArray[i - dataLengthBytes.length];
+
+                    int dataLength = jpegDataByteArray.length;
+
+                    byte dataLengthBytes[] = new byte[4];
+
+                    // pack the integer dataLength into 4 bytes
+                    dataLengthBytes[3] = (byte) ((dataLength & 0xFF000000) >> 24);
+                    dataLengthBytes[2] = (byte) ((dataLength & 0x00FF0000) >> 16);
+                    dataLengthBytes[1] = (byte) ((dataLength & 0x0000FF00) >> 8);
+                    dataLengthBytes[0] = (byte) ((dataLength & 0x000000FF) >> 0);
+
+
+                    byte dataToSend[] = new byte[jpegDataByteArray.length + dataLengthBytes.length];
+
+                    System.out.println("Bytes = " + dataLengthBytes[3] + " " + dataLengthBytes[2] + " " + dataLengthBytes[1] + " " + dataLengthBytes[0]);
+                    System.out.println("size of actual jpeg data to send = " + jpegDataByteArray.length);
+                    long unpacktest = pack(dataLengthBytes[3], dataLengthBytes[2], dataLengthBytes[1], dataLengthBytes[0]);
+                    System.out.println("size of unpacked jpeg data to send = " + unpacktest);
+
+                    // concatenate both arrays for sending
+                    for (int i = 0; i < dataLengthBytes.length; i++)
+                        dataToSend[i] = dataLengthBytes[i];
+                    for (int i = dataLengthBytes.length; i < jpegDataByteArray.length + dataLengthBytes.length; i++)
+                    {
+                        dataToSend[i] = jpegDataByteArray[i - dataLengthBytes.length];
+                    }
+
+                    System.out.println("About to send jpeg of length = " + jpegDataByteArray.length + " total length = " + dataToSend.length);
+                    try
+                    {
+                        tcpOut.write(dataToSend);
+                        tcpOut.flush();
+                    } catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+
                 }
-
-                System.out.println("About to send jpeg of length = " + jpegDataByteArray.length + " total length = " + dataToSend.length);
-                try
-                {
-                    tcpOut.write(dataToSend);
-                    tcpOut.flush();
-                    // read a single byte confirming they received our frame before we continue
-//                    tcpIn.read();
-                } catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-
-                sending=false;
             }
         }).start();
 
@@ -293,7 +291,7 @@ public class VideoStreaming
 
 
                     // if we got here with no exception we can assume we are connected
-                    connectionState = CONNECTED;
+                    connected = true;
 
                     System.out.println("Connected to remote device for streaming!");
                 } catch (Exception e)

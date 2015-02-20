@@ -1,7 +1,7 @@
 package com.intercom.video.twoway;
 
 /*
-This class deals with capturing camera data
+This class deals with capturing camera data in real time
  */
 
 import android.app.Activity;
@@ -21,8 +21,8 @@ import java.util.List;
 
 public class CameraJpegCapture
 {
-    static int pWidth=320;
-    static int pHeight=240;
+    int pWidth=320;
+    int pHeight=240;
     Camera.Parameters params;
 
     private Camera mCamera;
@@ -95,6 +95,9 @@ public class CameraJpegCapture
         System.out.println("Camera started");
     }
 
+    /*
+    This sets our callback tat is called on every single camera preview frame
+     */
     void setupPreviewJpegCaptureCallback(Camera c)
     {
         jpegImageView = (ImageView) ((Activity) (MainActivity.utilities.mainContext)).findViewById(R.id.jpegTestImageView);
@@ -118,9 +121,11 @@ public class CameraJpegCapture
 
                         System.out.println("About to send captured jpeg frame!");
 
-                        // dont try to send anything if we arent yet connected
-                        if(streamEngine.connectionState==streamEngine.CONNECTED)
+                        // dont try to send anything if we arent connected
+                        if(streamEngine.connected)
+                        {
                             streamEngine.sendJpegFrame(imageBytes);
+                        }
 
                         Bitmap temp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
                         jpegImageView.setImageBitmap(temp);
