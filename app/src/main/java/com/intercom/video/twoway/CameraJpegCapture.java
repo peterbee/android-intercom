@@ -23,13 +23,12 @@ public class CameraJpegCapture
 {
     int pWidth=320;
     int pHeight=240;
+    int jpegQuality = 30;
     Camera.Parameters params;
 
     private Camera mCamera;
     private CameraPreview mPreview;
     FrameLayout preview;
-
-    static ImageView jpegImageView;
     VideoStreaming streamEngine;
 
     static Camera.PreviewCallback previewCallback;
@@ -83,7 +82,7 @@ public class CameraJpegCapture
             params = mCamera.getParameters();
             params.setPreviewSize(pWidth, pHeight);
 
-	        mCamera.setDisplayOrientation(0);
+	        mCamera.setDisplayOrientation(90);
             mCamera.setParameters(params);
 			mCamera.setPreviewTexture(new SurfaceTexture(0));
         }
@@ -98,8 +97,6 @@ public class CameraJpegCapture
      */
     void setupPreviewJpegCaptureCallback(Camera c)
     {
-        jpegImageView = (ImageView) ((Activity) (MainActivity.utilities.mainContext)).findViewById(R.id.jpegTestImageView);
-
         try
         {
             previewCallback = new Camera.PreviewCallback()
@@ -114,10 +111,8 @@ public class CameraJpegCapture
 
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-                        img.compressToJpeg(new Rect(0, 0, pWidth, pHeight), 80, out);
+                        img.compressToJpeg(new Rect(0, 0, pWidth, pHeight), jpegQuality, out);
                         byte[] imageBytes = out.toByteArray();
-
-                        System.out.println("About to send captured jpeg frame!");
 
                         // dont try to send anything if we arent connected
                         if(streamEngine.connected)

@@ -22,18 +22,22 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"/>
 
-    <net.majorkernelpanic.streaming.gl.SurfaceView
-        android:id="@+id/transmitterVideoView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        />
+    <ImageView
+        android:id="@+id/jpegTestImageView"
+        android:layout_width="320dp"
+        android:layout_height="240dp"
+        android:layout_alignParentTop="true"
+        android:rotation="90"
+        android:layout_centerHorizontal="true"/>
 
-    <VideoView
-        android:id="@+id/receiverVideoView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone"
-        />
+    <FrameLayout
+        android:id="@+id/camera_preview"
+        android:layout_width="120dp"
+        android:layout_height="160dp"
+        android:layout_above="@+id/ipAddressEditText"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"/>
+
+
+
 </RelativeLayout>

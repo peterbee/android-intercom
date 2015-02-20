@@ -46,7 +46,10 @@ public class MainActivity extends ActionBarActivity
 
     /*
     Handles all the video and audio streaming stuff.
-    1 is for the first to initiaite the connection, 2 is for the 2nd
+    streamingEngine1 is used for the first device (that initiated the connection) to act as a server and streamingEngine2 to act as a client
+
+    streamingEngine1 is used for the second device (that did not initiate the connection) to act as a client and streamingEngine2 to act as a server
+
      */
     static VideoStreaming streamingEngine1;
 
@@ -189,9 +192,8 @@ public class MainActivity extends ActionBarActivity
 
         streamingEngine1.listenForMJpegConnection(jpegTestImageView);
 
-        // this just unlocks and turns on the other device via service
+        // this unlocks and turns on the other device via service
         tcpEngine.connectToDevice(ipAddress, 1);
-
     }
 
     /*
@@ -205,7 +207,6 @@ public class MainActivity extends ActionBarActivity
 
         // this just unlocks and turns on the other device via service
         tcpEngine.connectToDevice(ipAddress, 2);
-
     }
 
     /*
@@ -233,7 +234,6 @@ public class MainActivity extends ActionBarActivity
         setContentView(R.layout.activity_main);
         setupButtons();
         startListenerService();
-
     }
 
     /*
@@ -256,7 +256,8 @@ public class MainActivity extends ActionBarActivity
         }
 
         // tells us to connect to the remote server and start feeding it our video
-        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_TRANSMITTING))
+        // then start our own remote server and tel the other device to connect
+        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_FIRST))
         {
             utilities.forceWakeUpUnlock();
 
@@ -269,18 +270,16 @@ public class MainActivity extends ActionBarActivity
             establishConnectionOnIntent(intent.getExtras().getString("EXTRA_DATA"));
         }
 
-        // tells us to start our streaming server and inform the other device it can connect
-        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_RECEIVING))
+        // tells us to connect to the remote server, this happens second after we have already started our own server and told them to connect
+        // the difference between this and INTENT_COMMAND_START_STREAMING_FIRST is that we dont start a new server and tell the other to connect because we already did that
+        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_SECOND))
         {
-            /*
             utilities.forceWakeUpUnlock();
 
             // connect to the remote device and start streaming
-            streamingEngine.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
-            cameraJpegCapture = new CameraJpegCapture(streamingEngine);
+            streamingEngine2.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
+            cameraJpegCapture = new CameraJpegCapture(streamingEngine2);
             cameraJpegCapture.startCam();
-
-            */
         }
 
 

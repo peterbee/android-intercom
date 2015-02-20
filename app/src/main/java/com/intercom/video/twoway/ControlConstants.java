@@ -24,20 +24,14 @@ public class ControlConstants
 {
     // commands sent via intent to the activity from the service
     final String INTENT_COMMAND_START_ACTIVITY = "START_ACTIVITY";
-    final String INTENT_COMMAND_START_STREAMING_TRANSMITTING = "START_STREAMING_TRANSMITTING";
-    final String INTENT_COMMAND_START_STREAMING_RECEIVING = "START_STREAMING_RECEIVING";
+    final String INTENT_COMMAND_START_STREAMING_FIRST = "START_STREAMING_FIRST";
+    final String INTENT_COMMAND_START_STREAMING_SECOND = "START_STREAMING_SECOND";
 
     final String INTENT_COMMAND_STOP_STREAMING = "STOP_STREAMING";
 
     // commands sent over network from device to device
     final String NETWORK_COMMAND_START_STREAMING = "START_STREAMING";
     final String NETWORK_COMMAND_STOP_STREAMING = "STOP_STREAMING";
-
-    // stream settings
-    final int X_RESOLUTION = 320;
-    final int Y_RESOLUTION = 240;
-    final int FRAMERATE = 20;
-    final int BITRATE = 500000;
 
     ControlConstants()
     {

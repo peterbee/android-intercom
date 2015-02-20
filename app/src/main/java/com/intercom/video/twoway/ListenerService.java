@@ -110,9 +110,9 @@ public class ListenerService extends Service
 
                         // tell main activity to start streaming the remote video
                         if(connectionStage==1)
-                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_TRANSMITTING, newRemoteAddress);
-//                        if(connectionStage==2)
-//                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_RECEIVING, newRemoteAddress);
+                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_FIRST, newRemoteAddress);
+                        if(connectionStage==2)
+                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_SECOND, newRemoteAddress);
 
                         // now just close the connection since this is only proof of concept
                         serviceTcpEngine.closeConnection();

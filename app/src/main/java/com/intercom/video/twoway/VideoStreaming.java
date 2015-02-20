@@ -49,16 +49,11 @@ public class VideoStreaming
     InputStream tcpIn;
     OutputStream tcpOut;
 
-    // higher level readers and writers
-    // good for transfering text
-    BufferedReader bufferedTcpIn;
-    BufferedWriter bufferedTcpOut;
-
     boolean connected;
 
-    static Bitmap receivedBitmap;
+    Bitmap receivedBitmap;
 
-    static Object sendFrameLock = new Object();
+    Object sendFrameLock = new Object();
 
     VideoStreaming()
     {
@@ -90,20 +85,6 @@ public class VideoStreaming
         try
         {
             tcpOut.close();
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            bufferedTcpIn.close();
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        try
-        {
-            bufferedTcpOut.close();
         } catch (Exception e)
         {
             e.printStackTrace();
@@ -145,8 +126,6 @@ public class VideoStreaming
                     tcpSocket = tcpServerSocket.accept();
                     tcpIn = tcpSocket.getInputStream();
                     tcpOut = tcpSocket.getOutputStream();
-                    bufferedTcpOut = new BufferedWriter(new OutputStreamWriter(tcpOut));
-                    bufferedTcpIn = new BufferedReader(new InputStreamReader(tcpIn));
 
                     // if we got here with no exception we can assume we are connected
                     connected = true;
@@ -242,7 +221,7 @@ public class VideoStreaming
         {
             public void run()
             {
-                synchronized(this)
+                synchronized(sendFrameLock)
                 {
 
                     int dataLength = jpegDataByteArray.length;
@@ -281,9 +260,6 @@ public class VideoStreaming
                     tcpSocket = new Socket(ipAddress, getLISTENING_SERVICE_PORT());
                     tcpIn = tcpSocket.getInputStream();
                     tcpOut = tcpSocket.getOutputStream();
-                    bufferedTcpOut = new BufferedWriter(new OutputStreamWriter(tcpOut));
-                    bufferedTcpIn = new BufferedReader(new InputStreamReader(tcpIn));
-
 
                     // if we got here with no exception we can assume we are connected
                     connected = true;
