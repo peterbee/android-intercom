@@ -91,8 +91,6 @@ public class CameraJpegCapture
         {
             e.printStackTrace();
         }
-
-        System.out.println("Camera started");
     }
 
     /*
@@ -126,9 +124,6 @@ public class CameraJpegCapture
                         {
                             streamEngine.sendJpegFrame(imageBytes);
                         }
-
-                        Bitmap temp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-                        jpegImageView.setImageBitmap(temp);
                     }
                 }
 

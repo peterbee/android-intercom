@@ -45,9 +45,12 @@ public class MainActivity extends ActionBarActivity
     static Utilities utilities;
 
     /*
-    Handles all the video and audio streaming stuff
+    Handles all the video and audio streaming stuff.
+    1 is for the first to initiaite the connection, 2 is for the 2nd
      */
-    static VideoStreaming streamingEngine;
+    static VideoStreaming streamingEngine1;
+
+    static VideoStreaming streamingEngine2;
 
     /*
     Used to attempt to connect to another device
@@ -174,22 +177,35 @@ public class MainActivity extends ActionBarActivity
 
 
     /*
+    This is called when we click the establish connection button
     Attempts to establish the tcp connection to another device
+    This starts our streaming server and tells the other device to connect to us
      */
     void establishConnection()
     {
         String ipAddress = ipAddressEditText.getText().toString();
 
+        ImageView jpegTestImageView = (ImageView)findViewById(R.id.jpegTestImageView);
+
+        streamingEngine1.listenForMJpegConnection(jpegTestImageView);
+
         // this just unlocks and turns on the other device via service
-//        tcpEngine.connectToDevice(ipAddress);
+        tcpEngine.connectToDevice(ipAddress, 1);
 
-        // and this starts transmitting our video
-//        streamingEngine.startVideoBroadcast();
+    }
 
+    /*
+    This is like establishConnection() except is run when when a connection intent is received
+     */
+    void establishConnectionOnIntent(String ipAddress)
+    {
+        ImageView jpegTestImageView = (ImageView)findViewById(R.id.jpegTestImageView);
 
-        streamingEngine.connectToDevice(ipAddress);
-        cameraJpegCapture = new CameraJpegCapture(streamingEngine);
-        cameraJpegCapture.startCam();
+        streamingEngine2.listenForMJpegConnection(jpegTestImageView);
+
+        // this just unlocks and turns on the other device via service
+        tcpEngine.connectToDevice(ipAddress, 2);
+
     }
 
     /*
@@ -207,8 +223,10 @@ public class MainActivity extends ActionBarActivity
     {
         super.onCreate(savedInstanceState);
 
-        streamingEngine = new VideoStreaming();
-        utilities = new Utilities(this); 
+        streamingEngine1 = new VideoStreaming();
+        streamingEngine2 = new VideoStreaming();
+
+        utilities = new Utilities(this);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -216,8 +234,6 @@ public class MainActivity extends ActionBarActivity
         setupButtons();
         startListenerService();
 
-        ImageView jpegTestImageView = (ImageView)findViewById(R.id.jpegTestImageView);
-        streamingEngine.listenForMJpegConnection(jpegTestImageView);
     }
 
     /*
@@ -239,12 +255,37 @@ public class MainActivity extends ActionBarActivity
             utilities.forceWakeUpUnlock();
         }
 
-        // tells us to start streaming a remote video source
-        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING))
+        // tells us to connect to the remote server and start feeding it our video
+        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_TRANSMITTING))
         {
             utilities.forceWakeUpUnlock();
-//            MainActivity.streamingEngine.playVideoStream(intent.getExtras().getString("EXTRA_DATA"));
+
+            // connect to the remote device and start streaming
+            streamingEngine1.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
+            cameraJpegCapture = new CameraJpegCapture(streamingEngine1);
+            cameraJpegCapture.startCam();
+
+            // now start our server and tell the other to connect to us
+            establishConnectionOnIntent(intent.getExtras().getString("EXTRA_DATA"));
         }
+
+        // tells us to start our streaming server and inform the other device it can connect
+        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_RECEIVING))
+        {
+            /*
+            utilities.forceWakeUpUnlock();
+
+            // connect to the remote device and start streaming
+            streamingEngine.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
+            cameraJpegCapture = new CameraJpegCapture(streamingEngine);
+            cameraJpegCapture.startCam();
+
+            */
+        }
+
+
+
+
     }
 
     @Override

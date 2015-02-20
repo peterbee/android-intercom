@@ -160,11 +160,7 @@ public class VideoStreaming
                         tcpIn.read(imageSizeData, 0, 4);
 
                         // fancy bitshifting and ORing to put the 4 bytes we just read into an integer
-                        imageSize = pack(imageSizeData[3], imageSizeData[2], imageSizeData[1], imageSizeData[0]);
-
-
-                        System.out.println("Bytes = " + imageSizeData[3] + " " + imageSizeData[2] + " " + imageSizeData[1] + " " + imageSizeData[0]);
-                        System.out.println("Received image of size " + imageSize);
+                        imageSize = packBytes(imageSizeData[3], imageSizeData[2], imageSizeData[1], imageSizeData[0]);
 
                         int totalBytesReceived = 0;
 
@@ -180,10 +176,6 @@ public class VideoStreaming
                             else
                                 totalBytesReceived += tcpIn.read(receivedByteArray, totalBytesReceived, (int) imageSize - totalBytesReceived);
                         }
-
-                        // send a single byte back to confirm we received a frame
-//                        tcpOut.write(0);
-//                        tcpOut.flush();
 
                         receivedBitmap = BitmapFactory.decodeByteArray(receivedByteArray, 0, totalBytesReceived);
                         ((Activity) (MainActivity.utilities.mainContext)).runOnUiThread(new Runnable()
@@ -207,14 +199,40 @@ public class VideoStreaming
         listenForConnectionThread.start();
     }
 
-    static boolean sending;
-    /*
-    sends the length of the jpeg data followed by the data
-     */
 
-    public static long pack(int c1, int c2, int c3, int c4)
+    // packs 4 bytes into a long
+    long packBytes(int b4, int b3, int b2, int b1)
     {
-        return ((0xFFL & c1) << 24) | ((0xFFL & c2) << 16) | ((0xFFL & c3) << 8) | (0xFFL & c4);
+        return ((0xFFL & b4) << 24) | ((0xFFL & b3) << 16) | ((0xFFL & b2) << 8) | (0xFFL & b1);
+    }
+
+    // unpack first 4 bytes of a long into a byte array
+    byte[] unPackBytes(long value)
+    {
+        byte bytes[] = new byte[4];
+
+        bytes[3] = (byte) ((value & 0xFF000000) >> 24);
+        bytes[2] = (byte) ((value & 0x00FF0000) >> 16);
+        bytes[1] = (byte) ((value & 0x0000FF00) >> 8);
+        bytes[0] = (byte) ((value & 0x000000FF) >> 0);
+
+        return bytes;
+    }
+
+    byte[] combineByteArrays(byte a1[], byte[] a2)
+    {
+        byte dataCombined[] = new byte[a1.length + a2.length ];
+
+
+        // concatenate both arrays for sending
+        for (int i = 0; i < a1.length; i++)
+            dataCombined[i] = a1[i];
+        for (int i = a1.length; i < a1.length + a2.length; i++)
+        {
+            dataCombined[i] = a2[i - a1.length];
+        }
+
+        return dataCombined;
     }
 
     void sendJpegFrame(final byte[] jpegDataByteArray)
@@ -228,32 +246,10 @@ public class VideoStreaming
                 {
 
                     int dataLength = jpegDataByteArray.length;
+                    byte dataLengthBytes[] = unPackBytes(dataLength);
 
-                    byte dataLengthBytes[] = new byte[4];
+                    byte dataToSend[] = combineByteArrays(dataLengthBytes, jpegDataByteArray);
 
-                    // pack the integer dataLength into 4 bytes
-                    dataLengthBytes[3] = (byte) ((dataLength & 0xFF000000) >> 24);
-                    dataLengthBytes[2] = (byte) ((dataLength & 0x00FF0000) >> 16);
-                    dataLengthBytes[1] = (byte) ((dataLength & 0x0000FF00) >> 8);
-                    dataLengthBytes[0] = (byte) ((dataLength & 0x000000FF) >> 0);
-
-
-                    byte dataToSend[] = new byte[jpegDataByteArray.length + dataLengthBytes.length];
-
-                    System.out.println("Bytes = " + dataLengthBytes[3] + " " + dataLengthBytes[2] + " " + dataLengthBytes[1] + " " + dataLengthBytes[0]);
-                    System.out.println("size of actual jpeg data to send = " + jpegDataByteArray.length);
-                    long unpacktest = pack(dataLengthBytes[3], dataLengthBytes[2], dataLengthBytes[1], dataLengthBytes[0]);
-                    System.out.println("size of unpacked jpeg data to send = " + unpacktest);
-
-                    // concatenate both arrays for sending
-                    for (int i = 0; i < dataLengthBytes.length; i++)
-                        dataToSend[i] = dataLengthBytes[i];
-                    for (int i = dataLengthBytes.length; i < jpegDataByteArray.length + dataLengthBytes.length; i++)
-                    {
-                        dataToSend[i] = jpegDataByteArray[i - dataLengthBytes.length];
-                    }
-
-                    System.out.println("About to send jpeg of length = " + jpegDataByteArray.length + " total length = " + dataToSend.length);
                     try
                     {
                         tcpOut.write(dataToSend);
@@ -262,7 +258,6 @@ public class VideoStreaming
                     {
                         e.printStackTrace();
                     }
-
                 }
             }
         }).start();

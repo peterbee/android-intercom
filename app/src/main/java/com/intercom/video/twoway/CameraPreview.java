@@ -79,7 +79,9 @@ public void surfaceChanged(SurfaceHolder holder, int format, int w, int h)
         mCamera.setPreviewDisplay(mHolder);
         mCamera.startPreview();
 
-    } catch (Exception e){
+    }
+    catch (Exception e)
+    {
         Log.d("TAG", "Error starting camera preview: " + e.getMessage());
     }
 }

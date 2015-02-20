@@ -101,15 +101,18 @@ public class ListenerService extends Service
                 {
                     while (listeningForConnections)
                     {
-                        serviceTcpEngine.listenForConnection();
+                        int connectionStage=serviceTcpEngine.listenForConnection();
 
                         // extract just the ip address from ip address and prot combo string
                         // this would be cooler if done with regular expressions
-                        String RemoteAddress = serviceTcpEngine.getRemoteIpAddress();
+                        String RemoteAddress = serviceTcpEngine.lastRemoteIpAddress;
                         String newRemoteAddress = RemoteAddress.substring(1, RemoteAddress.indexOf(":"));
 
                         // tell main activity to start streaming the remote video
-                        sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING, newRemoteAddress);
+                        if(connectionStage==1)
+                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_TRANSMITTING, newRemoteAddress);
+//                        if(connectionStage==2)
+//                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_RECEIVING, newRemoteAddress);
 
                         // now just close the connection since this is only proof of concept
                         serviceTcpEngine.closeConnection();

@@ -24,7 +24,9 @@ public class ControlConstants
 {
     // commands sent via intent to the activity from the service
     final String INTENT_COMMAND_START_ACTIVITY = "START_ACTIVITY";
-    final String INTENT_COMMAND_START_STREAMING = "START_STREAMING";
+    final String INTENT_COMMAND_START_STREAMING_TRANSMITTING = "START_STREAMING_TRANSMITTING";
+    final String INTENT_COMMAND_START_STREAMING_RECEIVING = "START_STREAMING_RECEIVING";
+
     final String INTENT_COMMAND_STOP_STREAMING = "STOP_STREAMING";
 
     // commands sent over network from device to device

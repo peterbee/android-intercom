@@ -16,6 +16,9 @@ public class Tcp
 {
     private int LISTENING_SERVICE_PORT = 1025;
 
+    // the remote address of the last device we connected to
+    String lastRemoteIpAddress;
+
     /*
     Used when we are the client
      */
@@ -116,8 +119,9 @@ public class Tcp
     /*
    Listen for a connection.  This should only be called from a seperate thread so the main thread isnt blocked
     */
-    void listenForConnection()
+    int listenForConnection()
     {
+        int connectionStage=0;
         try
         {
             System.out.println("Listening for connection!");
@@ -134,18 +138,26 @@ public class Tcp
 
             // if we got here with no exception we can assume we are connected
             connectionState = CONNECTED;
+            lastRemoteIpAddress=getRemoteIpAddress();
+
+            connectionStage=tcpIn.read();
+
+            // just disconnect now, no use for keeping this connection open
+            closeConnection();
 
         } catch (Exception e)
         {
             e.printStackTrace();
         }
 
+
+        return connectionStage;
     }
 
     /*
-    Connect to a device.  This is done in a seperate thread so we do not block the main UI thread
+    Informs the remote device that we have started a streaming server and are read to be connected to
      */
-    void connectToDevice(final String ipAddress)
+    void connectToDevice(final String ipAddress, final int connectionStage)
     {
         Thread openConnectionThread = new Thread()
         {
@@ -161,14 +173,22 @@ public class Tcp
                     bufferedTcpOut=new BufferedWriter(new OutputStreamWriter(tcpOut));
                     bufferedTcpIn=new BufferedReader(new InputStreamReader(tcpIn));
 
-
                     // if we got here with no exception we can assume we are connected
                     connectionState=CONNECTED;
+                    lastRemoteIpAddress=getRemoteIpAddress();
+
+                    // inform the remote device whether we initiaited the connection
+                    // or are starting our server in response to the connection being initiated
+                    tcpOut.write(connectionStage);
                 }
                 catch(Exception e)
                 {
                     e.printStackTrace();
                 }
+
+                // just disconnect now, no use for keeping this connection open
+                closeConnection();
+
 
             }
         };
@@ -185,6 +205,5 @@ public class Tcp
 
         return tcpSocket.getRemoteSocketAddress().toString();
     }
-
 
 }
