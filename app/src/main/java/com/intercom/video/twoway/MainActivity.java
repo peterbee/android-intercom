@@ -51,14 +51,14 @@ public class MainActivity extends ActionBarActivity
     streamingEngine1 is used for the second device (that did not initiate the connection) to act as a client and streamingEngine2 to act as a server
 
      */
-    static VideoStreaming streamingEngine1;
+    VideoStreaming streamingEngine1;
 
-    static VideoStreaming streamingEngine2;
+    VideoStreaming streamingEngine2;
 
     /*
     Used to attempt to connect to another device
      */
-    static Button connectButton;
+    Button connectButton;
 
     /*
     These buttons and checkbox are present in settings_menu layout
@@ -74,11 +74,6 @@ public class MainActivity extends ActionBarActivity
     Keeps track of what current layout id is
      */
     int currentLayoutId;
-
-    /*
-    Opens and closes video link between devices
-     */
-    static Button videoLinkButton;
 
     /*
     Used to enter ip address of other device for connecting

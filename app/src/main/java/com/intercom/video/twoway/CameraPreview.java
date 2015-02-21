@@ -35,7 +35,7 @@ public CameraPreview(Context context, Camera camera) {
     mHolder.addCallback(this);
     // deprecated setting, but required on Android versions prior to 3.0
     mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-} 
+}
 
 public void surfaceCreated(SurfaceHolder holder) {
     // The Surface has been created, now tell the camera where to draw the preview.
@@ -74,7 +74,7 @@ public void surfaceChanged(SurfaceHolder holder, int format, int w, int h)
 
     // start preview with new settings
     try
-    {
+    { 
         mCamera.setPreviewCallback(CameraJpegCapture.previewCallback);
         mCamera.setPreviewDisplay(mHolder);
         mCamera.startPreview();
