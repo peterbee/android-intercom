@@ -11,7 +11,6 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.nio.ByteOrder;
 import java.util.Date;
 
 public class NetworkDiscovery extends Thread {
@@ -23,15 +22,16 @@ public class NetworkDiscovery extends Thread {
     private String myIp;
     private String remoteIp;
 
-    public String getRemoteIp(){
-        return remoteIp;
-    }
-
     public NetworkDiscovery(WifiManager wifi) {
         this.wifi = wifi;
     }
 
+    public String getRemoteIp() {
+        return remoteIp;
+    }
+
     public void run() {
+        remoteIp = null;
         while (remoteIp == null) {
             try {
                 myIp = getMyIp();
@@ -57,20 +57,14 @@ public class NetworkDiscovery extends Thread {
                 socket.close();
             }
         }
-
     }
 
     private InetAddress getBroadcastAddress(WifiManager wifi) throws UnknownHostException {
         DhcpInfo dhcp = wifi.getDhcpInfo();
         int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
-        byte[] quads = new byte[4];
-        for (int k = 0; k < 4; k++) {
-            quads[k] = (byte) ((broadcast >> k * 8) & 0xFF);
-        }
-        InetAddress inetAddress = InetAddress.getByAddress(quads);
+        InetAddress inetAddress = ipIntToInet(broadcast);
         System.out.println("host address: " + inetAddress.getHostAddress());
         return inetAddress;
-
     }
 
     private void sendBroadCast() throws IOException {
@@ -105,19 +99,22 @@ public class NetworkDiscovery extends Thread {
 
     private String getMyIp() {
         int ipAddress = wifi.getConnectionInfo().getIpAddress();
-
-        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
-            ipAddress = Integer.reverseBytes(ipAddress);
-        }
-
-        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
-
-        String ipAddressString;
-        try {
-            ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
-        } catch (UnknownHostException ex) {
-            ipAddressString = null;
-        }
+        InetAddress inetAddress = ipIntToInet(ipAddress);
+        String ipAddressString = inetAddress.getHostAddress();
         return ipAddressString;
     }
+
+    private InetAddress ipIntToInet(int ipAddress) {
+        InetAddress inetAddress;
+        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
+        try {
+            inetAddress = InetAddress.getByAddress(ipByteArray);
+        } catch (UnknownHostException ex) {
+            inetAddress = null;
+        }
+        return inetAddress;
+    }
+
+
 }
+

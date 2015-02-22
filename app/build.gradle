@@ -22,4 +22,33 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:21.0.3'
+
+// Unit tests
+
+    sourceSets {
+        unitTest {
+            java.srcDir file('test')
+            resources.srcDir file('test/resources')
+        }
+    }
+
+    dependencies {
+        unitTestCompile files("$project.buildDir/classes/debug")
+        unitTestCompile 'junit:junit:4.11'
+        unitTestCompile 'org.robolectric:robolectric:2.1.1'
+        unitTestCompile 'com.google.android:android:4.0.1.2'
+    }
+
+    configurations {
+        unitTestCompile.extendsFrom runtime
+        unitTestRuntime.extendsFrom unitTestCompile
+    }
+
+    task unitTest(type: Test, dependsOn: assemble) {
+        description = "run unit tests"
+        testClassesDir = project.sourceSets.unitTest.output.classesDir
+        classpath = project.sourceSets.unitTest.runtimeClasspath
+    }
+
+    build.dependsOn unitTest
 }
