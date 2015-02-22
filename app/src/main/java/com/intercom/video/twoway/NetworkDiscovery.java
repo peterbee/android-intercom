@@ -4,36 +4,49 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.nio.ByteOrder;
 import java.util.Date;
 
 public class NetworkDiscovery extends Thread {
 
     private static final int DISCOVERY_PORT = 44444;
     private static final int TIMEOUT_MS = 500;
-    private String data = "payload" + new Date().toString();
     private WifiManager wifi;
     private DatagramSocket socket;
+    private String myIp;
+    private String remoteIp;
+
+    public String getRemoteIp(){
+        return remoteIp;
+    }
 
     public NetworkDiscovery(WifiManager wifi) {
         this.wifi = wifi;
     }
 
     public void run() {
-        while (true) {
+        while (remoteIp == null) {
             try {
+                myIp = getMyIp();
                 socket = new DatagramSocket(DISCOVERY_PORT);
                 socket.setBroadcast(true);
                 socket.setSoTimeout(TIMEOUT_MS);
 
                 try {
-                    sendBroadCast(wifi);
-                    listenForResponses(socket);
+                    sendBroadCast();
+                    try {
+                        this.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    remoteIp = listenForResponses(socket);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -43,16 +56,11 @@ public class NetworkDiscovery extends Thread {
             } finally {
                 socket.close();
             }
-            try {
-                this.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
+
     }
 
-    //gets broadcast address from router's DHCP
-    public InetAddress getBroadcastAddress(WifiManager wifi) throws UnknownHostException {
+    private InetAddress getBroadcastAddress(WifiManager wifi) throws UnknownHostException {
         DhcpInfo dhcp = wifi.getDhcpInfo();
         int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
         byte[] quads = new byte[4];
@@ -65,25 +73,51 @@ public class NetworkDiscovery extends Thread {
 
     }
 
-    public void sendBroadCast(WifiManager wifi) throws IOException {
+    private void sendBroadCast() throws IOException {
+        String data = new Date().toString();
         socket.setBroadcast(true);
         DatagramPacket packet = new DatagramPacket(data.getBytes(), data.length(),
                 getBroadcastAddress(wifi), DISCOVERY_PORT);
         socket.send(packet);
     }
 
-    private void listenForResponses(DatagramSocket socket) throws IOException {
+    private String listenForResponses(DatagramSocket socket) throws IOException {
         byte[] buf = new byte[1024];
-        String s = "";
+        String payload;
         try {
             while (true) {
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet);
-                s = new String(packet.getData(), 0, packet.getLength());
-                System.out.println("received: " + s + " Inet: " + packet.getAddress().getHostAddress());
+                String ip = packet.getAddress().getHostAddress();
+                if (ip.equals(myIp)) {
+                    System.out.println("received my packet");
+                    return null;
+                }
+                payload = new String(packet.getData(), 0, packet.getLength());
+                System.out.println("received: " + payload + " ip: " + ip);
+                return ip;
             }
         } catch (SocketTimeoutException e) {
             System.out.println("timed out");
         }
+        return null;
+    }
+
+    private String getMyIp() {
+        int ipAddress = wifi.getConnectionInfo().getIpAddress();
+
+        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            ipAddress = Integer.reverseBytes(ipAddress);
+        }
+
+        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
+
+        String ipAddressString;
+        try {
+            ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
+        } catch (UnknownHostException ex) {
+            ipAddressString = null;
+        }
+        return ipAddressString;
     }
 }

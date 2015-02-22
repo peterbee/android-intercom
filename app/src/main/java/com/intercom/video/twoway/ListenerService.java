@@ -67,34 +67,20 @@ public class ListenerService extends Service {
     start listening for connections from other devices
      */
     public void startListeningForConnections() {
-        NetworkDiscovery networkDiscovery = new NetworkDiscovery((WifiManager) getSystemService(Context.WIFI_SERVICE));
-        networkDiscovery.start();
-        Thread listenForConnectionThread;
-        if (!listeningForConnections) {
-            listeningForConnections = true;
-            listenForConnectionThread = new Thread() {
-                public void run() {
-                    while (listeningForConnections) {
-                        int connectionStage = serviceTcpEngine.listenForConnection();
+        Thread t = new Thread() {
+            public void run() {
+                String remoteIp = null;
+                NetworkDiscovery networkDiscovery = new NetworkDiscovery((WifiManager) getSystemService(Context.WIFI_SERVICE));
+                networkDiscovery.start();
+                while (remoteIp == null)
+                    remoteIp = networkDiscovery.getRemoteIp();
 
-                        // extract just the ip address from ip address and prot combo string
-                        // this would be cooler if done with regular expressions
-                        String RemoteAddress = serviceTcpEngine.lastRemoteIpAddress;
-                        String newRemoteAddress = RemoteAddress.substring(1, RemoteAddress.indexOf(":"));
+                sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_FIRST, remoteIp);
 
-                        // tell main activity to start streaming the remote video
-                        if (connectionStage == 1)
-                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_FIRST, newRemoteAddress);
-                        if (connectionStage == 2)
-                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_SECOND, newRemoteAddress);
-
-                        // now just close the connection since this is only proof of concept
-                        serviceTcpEngine.closeConnection();
-                    }
-                }
-            };
-            listenForConnectionThread.start();
-        }
+                sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_SECOND, remoteIp);
+            }
+        };
+        t.start();
     }
 
     /*
