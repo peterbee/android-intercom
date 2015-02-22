@@ -25,20 +25,29 @@ public class NetworkDiscovery extends Thread {
     }
 
     public void run() {
-        try {
-            socket = new DatagramSocket(DISCOVERY_PORT);
-            socket.setBroadcast(true);
-            socket.setSoTimeout(TIMEOUT_MS);
-
+        while (true) {
             try {
-                sendBroadCast(wifi);
-                listenForResponses(socket);
-            } catch (IOException e) {
+                socket = new DatagramSocket(DISCOVERY_PORT);
+                socket.setBroadcast(true);
+                socket.setSoTimeout(TIMEOUT_MS);
+
+                try {
+                    sendBroadCast(wifi);
+                    listenForResponses(socket);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (SocketException e) {
+                e.printStackTrace();
+            } finally {
+                socket.close();
+            }
+            try {
+                this.sleep(500);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-        } catch (SocketException e) {
-            e.printStackTrace();
         }
     }
 
