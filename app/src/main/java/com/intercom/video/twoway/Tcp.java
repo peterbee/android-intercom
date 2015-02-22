@@ -12,118 +12,87 @@ import java.net.Socket;
 /*
 This class does all the tcp and networking stuff
  */
-public class Tcp
-{
-    private int LISTENING_SERVICE_PORT = 1025;
+public class Tcp {
 
+    final int DISCONNECTED = 1;
+    final int CONNECTED = 2;
     // the remote address of the last device we connected to
     String lastRemoteIpAddress;
-
+    /*
+   Used for accepting connections when we are the server
+    */
+    ServerSocket tcpServerSocket;
+    // Lower level streams
+    // good for transfering raw bytes of video data
+    InputStream tcpIn;
+    OutputStream tcpOut;
+    // higher level readers and writers
+    // good for transfering text
+    BufferedReader bufferedTcpIn;
+    BufferedWriter bufferedTcpOut;
+    int connectionState;
+    private int LISTENING_SERVICE_PORT = 1025;
     /*
     Used when we are the client
      */
     private Socket tcpSocket;
 
-     /*
-    Used for accepting connections when we are the server
-     */
-    ServerSocket tcpServerSocket;
-
-    // Lower level streams
-    // good for transfering raw bytes of video data
-    InputStream tcpIn;
-    OutputStream tcpOut;
-
-    // higher level readers and writers
-    // good for transfering text
-    BufferedReader bufferedTcpIn;
-    BufferedWriter bufferedTcpOut;
-
-    int connectionState;
-    final int DISCONNECTED = 1;
-    final int CONNECTED = 2;
-
-    Tcp()
-    {
-        connectionState=DISCONNECTED;
+    Tcp() {
+        connectionState = DISCONNECTED;
     }
 
-
-    public int getLISTENING_SERVICE_PORT()
-    {
+    public int getLISTENING_SERVICE_PORT() {
         return LISTENING_SERVICE_PORT;
     }
 
-    public void setLISTENING_SERVICE_PORT(int LISTENING_SERVICE_PORT)
-    {
+    public void setLISTENING_SERVICE_PORT(int LISTENING_SERVICE_PORT) {
         this.LISTENING_SERVICE_PORT = LISTENING_SERVICE_PORT;
     }
 
     /*
     Close the streams and socket
      */
-    void closeConnection()
-    {
-        try
-        {
+    void closeConnection() {
+        try {
             tcpIn.close();
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try
-        {
+        try {
             tcpOut.close();
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try
-        {
+        try {
             bufferedTcpIn.close();
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try
-        {
+        try {
             bufferedTcpOut.close();
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try
-        {
+        try {
             tcpSocket.close();
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        try
-        {
+        try {
             tcpServerSocket.close();
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        connectionState=DISCONNECTED;
+        connectionState = DISCONNECTED;
     }
 
     /*
    Listen for a connection.  This should only be called from a seperate thread so the main thread isnt blocked
     */
-    int listenForConnection()
-    {
-        int connectionStage=0;
-        try
-        {
+    public int listenForConnection() {
+        int connectionStage = 0;
+        try {
             System.out.println("Listening for connection!");
 
             closeConnection();
@@ -138,15 +107,14 @@ public class Tcp
 
             // if we got here with no exception we can assume we are connected
             connectionState = CONNECTED;
-            lastRemoteIpAddress=getRemoteIpAddress();
+            lastRemoteIpAddress = getRemoteIpAddress();
 
-            connectionStage=tcpIn.read();
+            connectionStage = tcpIn.read();
 
             // just disconnect now, no use for keeping this connection open
             closeConnection();
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -157,32 +125,26 @@ public class Tcp
     /*
     Informs the remote device that we have started a streaming server and are read to be connected to
      */
-    void connectToDevice(final String ipAddress, final int connectionStage)
-    {
-        Thread openConnectionThread = new Thread()
-        {
-            public void run()
-            {
-                try
-                {
+    void connectToDevice(final String ipAddress, final int connectionStage) {
+        Thread openConnectionThread = new Thread() {
+            public void run() {
+                try {
                     closeConnection();
 
                     tcpSocket = new Socket(ipAddress, getLISTENING_SERVICE_PORT());
-                    tcpIn= tcpSocket.getInputStream();
-                    tcpOut= tcpSocket.getOutputStream();
-                    bufferedTcpOut=new BufferedWriter(new OutputStreamWriter(tcpOut));
-                    bufferedTcpIn=new BufferedReader(new InputStreamReader(tcpIn));
+                    tcpIn = tcpSocket.getInputStream();
+                    tcpOut = tcpSocket.getOutputStream();
+                    bufferedTcpOut = new BufferedWriter(new OutputStreamWriter(tcpOut));
+                    bufferedTcpIn = new BufferedReader(new InputStreamReader(tcpIn));
 
                     // if we got here with no exception we can assume we are connected
-                    connectionState=CONNECTED;
-                    lastRemoteIpAddress=getRemoteIpAddress();
+                    connectionState = CONNECTED;
+                    lastRemoteIpAddress = getRemoteIpAddress();
 
                     // inform the remote device whether we initiaited the connection
                     // or are starting our server in response to the connection being initiated
                     tcpOut.write(connectionStage);
-                }
-                catch(Exception e)
-                {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -200,8 +162,7 @@ public class Tcp
     /*
     Returns the ip address of the remote device we are connected to
      */
-    String getRemoteIpAddress()
-    {
+    String getRemoteIpAddress() {
 
         return tcpSocket.getRemoteSocketAddress().toString();
     }

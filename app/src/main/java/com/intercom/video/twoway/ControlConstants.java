@@ -1,16 +1,5 @@
 package com.intercom.video.twoway;
 
-import android.app.Activity;
-import android.app.KeyguardManager;
-import android.content.Context;
-import android.os.PowerManager;
-import android.telephony.TelephonyManager;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Toast;
-
-import java.util.UUID;
-
 /*
 This class contains constants used for controlling stuff throughout the app
 includes:
@@ -20,8 +9,7 @@ includes:
 - Stream setting constants (bitrate, resolution etc)
 
  */
-public class ControlConstants
-{
+public class ControlConstants {
     // commands sent via intent to the activity from the service
     final String INTENT_COMMAND_START_ACTIVITY = "START_ACTIVITY";
     final String INTENT_COMMAND_START_STREAMING_FIRST = "START_STREAMING_FIRST";
@@ -33,8 +21,7 @@ public class ControlConstants
     final String NETWORK_COMMAND_START_STREAMING = "START_STREAMING";
     final String NETWORK_COMMAND_STOP_STREAMING = "STOP_STREAMING";
 
-    ControlConstants()
-    {
+    ControlConstants() {
 
     }
 }

@@ -20,46 +20,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
-public class MainActivity extends ActionBarActivity
-{
-
-    ControlConstants constants = new ControlConstants();
-
-    // used in logcat logging
-    String TAG = "Two-Way:";
-
-    /*
-    Handles all networking stuff
-     */
-    Tcp tcpEngine = new Tcp();
-
-    /*
-    captures jpeg frames from camera and converts them to bytes for transmission
-     */
-    CameraJpegCapture cameraJpegCapture;
-
+public class MainActivity extends ActionBarActivity {
 
     /*
     Some helpful things (screen unlock, etc) that shouldn't go in main activity because it will be too much and messy
      */
     static Utilities utilities;
-
-    /*
-    Handles all the video and audio streaming stuff.
-    streamingEngine1 is used for the first device (that initiated the connection) to act as a server and streamingEngine2 to act as a client
-
-    streamingEngine1 is used for the second device (that did not initiate the connection) to act as a client and streamingEngine2 to act as a server
-
-     */
-    VideoStreaming streamingEngine1;
-
-    VideoStreaming streamingEngine2;
-
-    /*
-    Used to attempt to connect to another device
-     */
-    Button connectButton;
-
     /*
     These buttons and checkbox are present in settings_menu layout
     sm = Settings Menu
@@ -69,28 +35,18 @@ public class MainActivity extends ActionBarActivity
     static CheckBox smCheckBoxUseCamaraView;
     static ImageView smDeviceAvatar;
     static TextView smDeviceNic, smLableDeviceNicL;
-
-    /*
-    Keeps track of what current layout id is
-     */
-    int currentLayoutId;
-
     /*
     Used to enter ip address of other device for connecting
      */
     static EditText ipAddressEditText;
-
     volatile static ListenerService listenerService;
     volatile static boolean serviceIsBoundToActivity = false;
-
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
-    private ServiceConnection listenerServiceConnection = new ServiceConnection()
-    {
+    private ServiceConnection listenerServiceConnection = new ServiceConnection() {
         @Override
-        public void onServiceConnected(ComponentName className, IBinder service)
-        {
+        public void onServiceConnected(ComponentName className, IBinder service) {
             utilities.showToastMessage("Connected to service");
             // We've bound to LocalService, cast the IBinder and get
             // LocalService instance
@@ -104,27 +60,50 @@ public class MainActivity extends ActionBarActivity
         }
 
         @Override
-        public void onServiceDisconnected(ComponentName arg0)
-        {
+        public void onServiceDisconnected(ComponentName arg0) {
             utilities.showToastMessage("Disconnected from service");
             serviceIsBoundToActivity = false;
         }
     };
+    ControlConstants constants = new ControlConstants();
+    // used in logcat logging
+    String TAG = "Two-Way:";
+    /*
+    Handles all networking stuff
+     */
+    Tcp tcpEngine = new Tcp();
+    /*
+    captures jpeg frames from camera and converts them to bytes for transmission
+     */
+    CameraJpegCapture cameraJpegCapture;
+    /*
+    Handles all the video and audio streaming stuff.
+    streamingEngine1 is used for the first device (that initiated the connection) to act as a server and streamingEngine2 to act as a client
 
-    public void startListenerService()
-    {
+    streamingEngine1 is used for the second device (that did not initiate the connection) to act as a client and streamingEngine2 to act as a server
+
+     */
+    VideoStreaming streamingEngine1;
+    VideoStreaming streamingEngine2;
+    /*
+    Used to attempt to connect to another device
+     */
+    Button connectButton;
+    /*
+    Keeps track of what current layout id is
+     */
+    int currentLayoutId;
+
+    public void startListenerService() {
         Intent service = new Intent(utilities.mainContext, ListenerService.class);
         startService(service);
     }
 
-    void setupButtons()
-    {
+    void setupButtons() {
         connectButton = (Button) findViewById(R.id.connectButton);
         ipAddressEditText = (EditText) findViewById(R.id.ipAddressEditText);
-        connectButton.setOnClickListener(new View.OnClickListener()
-        {
-            public void onClick(View v)
-            {
+        connectButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                 establishConnection();
             }
         });
@@ -153,23 +132,19 @@ public class MainActivity extends ActionBarActivity
 
     // attach listener to imageButton
     // used in settings menu
-    public void addListenerToImageButton()
-    {
+    public void addListenerToImageButton() {
         smImageButtonBack = (ImageButton) findViewById(R.id.settings_menu_imagebutton_back);
 
-        smImageButtonBack.setOnClickListener(new View.OnClickListener()
-        {
+        smImageButtonBack.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View arg0)
-            {
+            public void onClick(View arg0) {
                 // TODO: BUG: this does not work
                 setContentView(R.layout.activity_main);
             }
         });
     }
 
-    public void settingsMenuBackButtonPressed(View view)
-    {
+    public void settingsMenuBackButtonPressed(View view) {
         setContentView(R.layout.activity_main);
     }
 
@@ -179,11 +154,10 @@ public class MainActivity extends ActionBarActivity
     Attempts to establish the tcp connection to another device
     This starts our streaming server and tells the other device to connect to us
      */
-    void establishConnection()
-    {
+    void establishConnection() {
         String ipAddress = ipAddressEditText.getText().toString();
 
-        ImageView jpegTestImageView = (ImageView)findViewById(R.id.jpegTestImageView);
+        ImageView jpegTestImageView = (ImageView) findViewById(R.id.jpegTestImageView);
 
         streamingEngine1.listenForMJpegConnection(jpegTestImageView);
 
@@ -194,9 +168,8 @@ public class MainActivity extends ActionBarActivity
     /*
     This is like establishConnection() except is run when when a connection intent is received
      */
-    void establishConnectionOnIntent(String ipAddress)
-    {
-        ImageView jpegTestImageView = (ImageView)findViewById(R.id.jpegTestImageView);
+    void establishConnectionOnIntent(String ipAddress) {
+        ImageView jpegTestImageView = (ImageView) findViewById(R.id.jpegTestImageView);
 
         streamingEngine2.listenForMJpegConnection(jpegTestImageView);
 
@@ -208,15 +181,13 @@ public class MainActivity extends ActionBarActivity
     keeps track of current layout id as Int
      */
     @Override
-    public void setContentView(int layoutResID)
-    {
+    public void setContentView(int layoutResID) {
         this.currentLayoutId = layoutResID;
         super.setContentView(layoutResID);
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         streamingEngine1 = new VideoStreaming();
@@ -235,8 +206,7 @@ public class MainActivity extends ActionBarActivity
     This is where we handle messages (as intents) from the service
      */
     @Override
-    protected void onNewIntent(Intent intent)
-    {
+    protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
 
@@ -245,15 +215,13 @@ public class MainActivity extends ActionBarActivity
         utilities.showToastMessage("Intent Received - " + intent.getExtras().getString("COMMAND"));
 
         // simply start the activity and turn on the screen, nothing more
-        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_ACTIVITY))
-        {
+        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_ACTIVITY)) {
             utilities.forceWakeUpUnlock();
         }
 
         // tells us to connect to the remote server and start feeding it our video
         // then start our own remote server and tel the other device to connect
-        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_FIRST))
-        {
+        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_FIRST)) {
             utilities.forceWakeUpUnlock();
 
             // connect to the remote device and start streaming
@@ -267,8 +235,7 @@ public class MainActivity extends ActionBarActivity
 
         // tells us to connect to the remote server, this happens second after we have already started our own server and told them to connect
         // the difference between this and INTENT_COMMAND_START_STREAMING_FIRST is that we dont start a new server and tell the other to connect because we already did that
-        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_SECOND))
-        {
+        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_SECOND)) {
             utilities.forceWakeUpUnlock();
 
             // connect to the remote device and start streaming
@@ -278,13 +245,10 @@ public class MainActivity extends ActionBarActivity
         }
 
 
-
-
     }
 
     @Override
-    public void onResume()
-    {
+    public void onResume() {
         super.onResume();
 
         Intent theService = new Intent(this, ListenerService.class);
@@ -293,20 +257,17 @@ public class MainActivity extends ActionBarActivity
 
 
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
     }
 
     @Override
-    public void onStop()
-    {
+    public void onStop() {
         super.onStop();
     }
 
     @Override
-    public void onDestroy()
-    {
+    public void onDestroy() {
         // if we wanted to not destroy the service on activity destroy we could comment this out
         listenerService.stopListeningForConnections();
         stopService(new Intent(this, ListenerService.class));
@@ -314,29 +275,24 @@ public class MainActivity extends ActionBarActivity
     }
 
     @Override
-    public void onBackPressed()
-    {
+    public void onBackPressed() {
         //back from settings is main screen
-        if (this.currentLayoutId == R.layout.settings_menu)
-        {
+        if (this.currentLayoutId == R.layout.settings_menu) {
             setContentView(R.layout.activity_main);
         }
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
+    public boolean onCreateOptionsMenu(Menu menu) {
 // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
+    public boolean onOptionsItemSelected(MenuItem item) {
 // Handle item selection
-        switch (item.getItemId())
-        {
+        switch (item.getItemId()) {
             case R.id.action_view_profile:
                 setContentView(R.layout.settings_menu);
                 return true;
