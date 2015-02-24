@@ -10,7 +10,7 @@
         <item
             android:id="@+id/action_find_peers"
             android:icon="@drawable/ic_action_find_peers"
-            android:orderInCategory="1"
+            android:orderInCategory="3"
             app:showAsAction="always"
             android:title="@string/action_find_peers"
             android:enabled="true"/>
@@ -26,7 +26,7 @@
     <item
         android:id="@+id/action_home"
         android:icon="@drawable/ic_action_home"
-        android:orderInCategory="3"
+        android:orderInCategory="1"
         app:showAsAction="always"
         android:title="@string/action_home"
         android:enabled="true"/>

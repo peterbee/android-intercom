@@ -38,7 +38,7 @@
             android:label="listener_service"
             />
 
-        <service android:name="net.majorkernelpanic.streaming.rtsp.RtspServer" />
+
     </application>
 
 </manifest>

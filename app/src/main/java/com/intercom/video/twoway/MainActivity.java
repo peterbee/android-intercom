@@ -7,6 +7,8 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,7 +20,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
+import android.content.SharedPreferences;
 
 public class MainActivity extends ActionBarActivity
 {
@@ -155,23 +157,6 @@ public class MainActivity extends ActionBarActivity
 
     }
 
-
-    // attach listener to imageButton
-    // used in settings menu
-    public void addListenerToImageButton()
-    {
-        smImageButtonBack = (ImageButton) findViewById(R.id.settings_menu_imagebutton_back);
-
-        smImageButtonBack.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View arg0)
-            {
-                // TODO: BUG: this does not work
-                setContentView(R.layout.activity_main);
-            }
-        });
-    }
 
     public void settingsMenuBackButtonPressed(View view)
     {
@@ -344,6 +329,9 @@ public class MainActivity extends ActionBarActivity
         {
             case R.id.action_view_profile:
                 setContentView(R.layout.settings_menu);
+                // TODO: test settings menu listeners
+                activateSettingsMenuListeners();
+                doRememberDeviceNic();
                 return true;
 
             case R.id.action_home:
@@ -365,4 +353,57 @@ public class MainActivity extends ActionBarActivity
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    public void activateSettingsMenuListeners()
+        {
+            /*
+            auto-triggered when device nic is changed
+             */
+        EditText deviceNIC =(EditText)findViewById(R.id.settings_menu_editText_deviceNic);
+
+        // auto-save on text change for deviceNIC in settings menu
+            deviceNIC.addTextChangedListener(new TextWatcher() {
+                public void afterTextChanged(Editable s) {}
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void onTextChanged(CharSequence s, int start, int before, int count)
+                {
+                    //TODO : create variable and save new nic
+                    // note: task refactored into setDeviceNic
+                   setDeviceNic(s.toString());
+                }
+
+            });
+        }
+
+        public void setDeviceNic (String newDeviceNic)
+        {
+            //TODO: test store device nic as a settings variable
+            Log.i(TAG,"Device NIC stored --> "+ newDeviceNic);
+            String PREFS_NAME="SETTINGS MENU";
+            SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("device_nic", newDeviceNic);
+            // Apply the edits!
+            editor.apply();
+        }
+
+        public String getDeviceNic ()
+        {
+            //TODO: test pull from settings variable
+            Log.i(TAG,"getDeviceNic Called ");
+            String PREFS_NAME="SETTINGS MENU";
+            SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
+            Log.i(TAG,"DeviceNic recovered: "+settings.getString("device_nic","0"));
+            return settings.getString("device_nic","0");
+        }
+
+        public void doRememberDeviceNic()
+        {
+            String mDeviceNic=getDeviceNic ();
+            EditText mEditText=(EditText)findViewById(R.id.settings_menu_editText_deviceNic);
+            mEditText.setText(mDeviceNic);
+            return;
+        }
+
+
 }
