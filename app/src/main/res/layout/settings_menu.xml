@@ -1,97 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
     android:id="@+id/settings_menu"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
     android:weightSum="1">
 
     <ImageButton
+        android:id="@+id/settings_menu_imagebutton_back"
         android:layout_width="160dp"
         android:layout_height="100dp"
-        android:text="Back"
-        android:id="@+id/settings_menu_imagebutton_back"
-        android:layout_weight="0.07"
         android:layout_alignParentLeft="true"
-        android:layout_marginLeft="0dp"
         android:layout_alignParentTop="true"
+        android:layout_marginLeft="0dp"
         android:layout_marginTop="0dp"
-        android:src="@drawable/ic_action_button_back"
-        android:layout_toStartOf="@+id/textView"
         android:layout_toLeftOf="@+id/textView"
+        android:layout_toStartOf="@+id/textView"
+        android:layout_weight="0.07"
         android:clickable="true"
         android:cropToPadding="true"
         android:focusable="false"
         android:longClickable="false"
-        android:onClick="settingsMenuBackButtonPressed" />
+        android:onClick="settingsMenuBackButtonPressed"
+        android:src="@drawable/ic_action_button_back"
+        android:text="Back" />
 
     <CheckBox
+        android:id="@+id/settings_menu_checkBox_usecamaraview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Use Camera View"
-        android:id="@+id/settings_menu_checkBox_usecamaraview"
-        android:layout_gravity="right"
-        android:checked="false"
-        android:layout_marginTop="75dp"
         android:layout_alignTop="@+id/imageView_device_avatar"
+        android:layout_gravity="right"
+        android:layout_marginTop="75dp"
+        android:layout_toEndOf="@+id/imageView_device_avatar"
         android:layout_toRightOf="@+id/imageView_device_avatar"
-        android:layout_toEndOf="@+id/imageView_device_avatar" />
+        android:checked="false"
+        android:text="Use Camera View" />
 
     <ImageView
+        android:id="@+id/imageView_device_avatar"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:id="@+id/imageView_device_avatar"
-        android:layout_weight="0.31"
-        android:src="@drawable/ic_action_view_profile"
-        android:layout_below="@+id/settings_menu_imagebutton_back"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/settings_menu_imagebutton_back"
+        android:layout_weight="0.31"
+        android:src="@drawable/ic_action_view_profile" />
 
     <TextView
+        android:id="@+id/settings_menu_textfield_deviceNic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Two-Way"
-        android:id="@+id/settings_menu_textfield_deviceNic"
-        android:layout_gravity="center_horizontal"
-        android:layout_weight="0.07"
-        android:layout_alignTop="@+id/textView"
-        android:layout_toRightOf="@+id/textView"
+        android:layout_alignEnd="@+id/settings_menu_checkBox_usecamaraview"
         android:layout_alignRight="@+id/settings_menu_checkBox_usecamaraview"
-        android:layout_alignEnd="@+id/settings_menu_checkBox_usecamaraview" />
+        android:layout_alignTop="@+id/textView"
+        android:layout_gravity="center_horizontal"
+        android:layout_toRightOf="@+id/textView"
+        android:layout_weight="0.07"
+        android:text="Two-Way"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Button
+        android:id="@+id/settings_menu_button_save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Save"
-        android:id="@+id/settings_menu_button_save"
-        android:layout_weight="0.07"
+        android:layout_alignParentBottom="true"
         android:layout_gravity="right"
         android:layout_marginBottom="58dp"
-        android:layout_alignParentBottom="true"
-        android:layout_toRightOf="@+id/textView"
-        android:layout_toEndOf="@+id/textView"
         android:layout_marginLeft="42dp"
-        android:layout_marginStart="42dp" />
+        android:layout_marginStart="42dp"
+        android:layout_toEndOf="@+id/textView"
+        android:layout_toRightOf="@+id/textView"
+        android:layout_weight="0.07"
+        android:text="Save" />
 
     <Button
+        android:id="@+id/settings_menu_button_cancel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Cancel"
-        android:id="@+id/settings_menu_button_cancel"
-        android:layout_weight="0.07"
-        android:layout_alignTop="@+id/settings_menu_button_save"
         android:layout_alignLeft="@+id/textView"
-        android:layout_alignStart="@+id/textView" />
+        android:layout_alignStart="@+id/textView"
+        android:layout_alignTop="@+id/settings_menu_button_save"
+        android:layout_weight="0.07"
+        android:text="Cancel" />
 
     <TextView
+        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Nickname:   "
-        android:id="@+id/textView"
-        android:layout_below="@+id/imageView_device_avatar"
-        android:layout_alignRight="@+id/imageView_device_avatar"
         android:layout_alignEnd="@+id/imageView_device_avatar"
-        android:layout_marginTop="56dp" />
+        android:layout_alignRight="@+id/imageView_device_avatar"
+        android:layout_below="@+id/imageView_device_avatar"
+        android:layout_marginTop="56dp"
+        android:text="Nickname:   "
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </RelativeLayout>

@@ -16,11 +16,13 @@ import java.util.Date;
 public class NetworkDiscovery extends Thread {
 
     private static final int DISCOVERY_PORT = 44444;
-    private static final int TIMEOUT_MS = 500;
+    private static final int LISTENING_TIMEOUT_MS = 500;
+    private static final int OPPORTUNITY_TIMEOUT_MS = 200;
     private WifiManager wifi;
     private DatagramSocket socket;
     private String myIp;
     private String remoteIp;
+    private boolean stop = false;
 
     public NetworkDiscovery(WifiManager wifi) {
         this.wifi = wifi;
@@ -32,17 +34,17 @@ public class NetworkDiscovery extends Thread {
 
     public void run() {
         remoteIp = null;
-        while (remoteIp == null) {
+        while (remoteIp == null && !stop) {
             try {
                 myIp = getMyIp();
                 socket = new DatagramSocket(DISCOVERY_PORT);
                 socket.setBroadcast(true);
-                socket.setSoTimeout(TIMEOUT_MS);
+                socket.setSoTimeout(LISTENING_TIMEOUT_MS);
 
                 try {
                     sendBroadCast();
                     try {
-                        this.sleep(200);
+                        this.sleep(OPPORTUNITY_TIMEOUT_MS);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -57,6 +59,7 @@ public class NetworkDiscovery extends Thread {
                 socket.close();
             }
         }
+
     }
 
     private InetAddress getBroadcastAddress(WifiManager wifi) throws UnknownHostException {

@@ -1,35 +1,42 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
 
-        <item android:id="@+id/action_listen" android:title="Test Menu Item 1"
-              android:orderInCategory="100" app:showAsAction="never" />
-        <item android:id="@+id/action_connect" android:title="Test Menu Item 2"
-              android:orderInCategory="100" app:showAsAction="never" />
+    <item
+        android:id="@+id/action_listen"
+        android:orderInCategory="100"
+        android:title="Test Menu Item 1"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_connect"
+        android:orderInCategory="100"
+        android:title="Test Menu Item 2"
+        app:showAsAction="never" />
 
-        <item
-            android:id="@+id/action_find_peers"
-            android:icon="@drawable/ic_action_find_peers"
-            android:orderInCategory="1"
-            app:showAsAction="always"
-            android:title="@string/action_find_peers"
-            android:enabled="true"/>
+    <item
+        android:id="@+id/action_find_peers"
+        android:enabled="true"
+        android:icon="@drawable/ic_action_find_peers"
+        android:orderInCategory="1"
+        android:title="@string/action_find_peers"
+        app:showAsAction="always" />
 
-          <item
-            android:id="@+id/action_view_profile"
-            android:icon="@drawable/ic_action_view_profile"
-            android:orderInCategory="2"
-            app:showAsAction="always"
-            android:title="@string/action_view_profile"
-            android:enabled="true"/>
+    <item
+        android:id="@+id/action_view_profile"
+        android:enabled="true"
+        android:icon="@drawable/ic_action_view_profile"
+        android:orderInCategory="2"
+        android:title="@string/action_view_profile"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/action_home"
+        android:enabled="true"
         android:icon="@drawable/ic_action_home"
         android:orderInCategory="3"
-        app:showAsAction="always"
         android:title="@string/action_home"
-        android:enabled="true"/>
+        app:showAsAction="always" />
 
 
 </menu>

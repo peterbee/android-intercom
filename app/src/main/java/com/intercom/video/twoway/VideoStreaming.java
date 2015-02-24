@@ -197,7 +197,7 @@ public class VideoStreaming {
         Thread openConnectionThread = new Thread() {
             public void run() {
                 try {
-               //     closeConnection();
+                    //     closeConnection();
 
                     System.out.println("Trying to connect to remote device for streaming");
                     tcpSocket = new Socket(ipAddress, getLISTENING_SERVICE_PORT());
