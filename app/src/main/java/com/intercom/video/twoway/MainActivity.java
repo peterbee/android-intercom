@@ -137,26 +137,6 @@ public class MainActivity extends ActionBarActivity
                 establishConnection();
             }
         });
-
-        // Settings Menu Controls
-
-
-        //smSave=(Button)findViewById(R.id.settings_menu_button_save);
-        /*
-        smCancel=(Button)findViewById(R.id.settings_menu_button_cancel);
-        smCancel.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v)
-            {
-                // TODO: get stakeholder definition on what this does
-                // cancel =?
-                // setting up to return to main screen
-                // possible other implementation = revert all values to what they were
-                setContentView(R.layout.activity_main);
-            }
-        });
-        */
-
-
     }
 
 
@@ -164,8 +144,6 @@ public class MainActivity extends ActionBarActivity
     {
         setContentView(R.layout.activity_main);
     }
-
-
     /*
     This is called when we click the establish connection button
     Attempts to establish the tcp connection to another device
@@ -331,7 +309,6 @@ public class MainActivity extends ActionBarActivity
         {
             case R.id.action_view_profile:
                 setContentView(R.layout.settings_menu);
-                // TODO: test settings menu listeners
                 activateSettingsMenuListeners();
                 doRememberDeviceNic();
                 doRememberCameraViewFlag();
@@ -380,7 +357,6 @@ public class MainActivity extends ActionBarActivity
             useCameraView.setOnCheckedChangeListener(new OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    // TODO Auto-generated method stub
                     setUseCameraViewFlag(isChecked);
 
                 }
@@ -390,7 +366,7 @@ public class MainActivity extends ActionBarActivity
 
 
     public void setUseCameraViewFlag(boolean isChecked)
-        {//TODO: test.me
+        {
         String PREFS_NAME="SETTINGS MENU";
         SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 1);
         SharedPreferences.Editor editor = settings.edit();
@@ -399,15 +375,14 @@ public class MainActivity extends ActionBarActivity
         }
 
     public boolean getUseCameraViewFlag()
-        {//TODO: test.me
-
+        {
         String PREFS_NAME="SETTINGS MENU";
         SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 1);
             return settings.getBoolean("use_camera_view",false);
         }
 
     public void doRememberCameraViewFlag()
-        {//TODO: test.me
+        {
             boolean mCameraFlag=getUseCameraViewFlag();
             CheckBox useCameraView = (CheckBox)findViewById(R.id.settings_menu_checkBox_usecamaraview);
             useCameraView.setChecked(mCameraFlag);
