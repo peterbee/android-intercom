@@ -16,11 +16,13 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.content.SharedPreferences;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 
 public class MainActivity extends ActionBarActivity
 {
@@ -332,6 +334,7 @@ public class MainActivity extends ActionBarActivity
                 // TODO: test settings menu listeners
                 activateSettingsMenuListeners();
                 doRememberDeviceNic();
+                doRememberCameraViewFlag();
                 return true;
 
             case R.id.action_home:
@@ -367,37 +370,71 @@ public class MainActivity extends ActionBarActivity
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
                 public void onTextChanged(CharSequence s, int start, int before, int count)
                 {
-                    //TODO : create variable and save new nic
-                    // note: task refactored into setDeviceNic
                    setDeviceNic(s.toString());
                 }
-
             });
+
+
+        CheckBox useCameraView = (CheckBox)findViewById(R.id.settings_menu_checkBox_usecamaraview);
+        // auto-save on checkbox flag change
+            useCameraView.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    // TODO Auto-generated method stub
+                    setUseCameraViewFlag(isChecked);
+
+                }
+            });
+
+            }
+
+
+    public void setUseCameraViewFlag(boolean isChecked)
+        {//TODO: test.me
+        String PREFS_NAME="SETTINGS MENU";
+        SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 1);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean("use_camera_view",isChecked);
+        editor.apply();  // Apply the edits!
         }
 
-        public void setDeviceNic (String newDeviceNic)
+    public boolean getUseCameraViewFlag()
+        {//TODO: test.me
+
+        String PREFS_NAME="SETTINGS MENU";
+        SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 1);
+            return settings.getBoolean("use_camera_view",false);
+        }
+
+    public void doRememberCameraViewFlag()
+        {//TODO: test.me
+            boolean mCameraFlag=getUseCameraViewFlag();
+            CheckBox useCameraView = (CheckBox)findViewById(R.id.settings_menu_checkBox_usecamaraview);
+            useCameraView.setChecked(mCameraFlag);
+            return;
+        }
+
+
+    public void setDeviceNic (String newDeviceNic)
         {
-            //TODO: test store device nic as a settings variable
-            Log.i(TAG,"Device NIC stored --> "+ newDeviceNic);
+            //Log.i(TAG,"Device NIC stored --> "+ newDeviceNic);
             String PREFS_NAME="SETTINGS MENU";
             SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
             SharedPreferences.Editor editor = settings.edit();
             editor.putString("device_nic", newDeviceNic);
-            // Apply the edits!
-            editor.apply();
+            editor.apply(); // Apply the edits!
         }
 
-        public String getDeviceNic ()
+    public String getDeviceNic ()
         {
-            //TODO: test pull from settings variable
-            Log.i(TAG,"getDeviceNic Called ");
+            // Log.i(TAG,"getDeviceNic Called ");
             String PREFS_NAME="SETTINGS MENU";
             SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
-            Log.i(TAG,"DeviceNic recovered: "+settings.getString("device_nic","0"));
+            // Log.i(TAG,"DeviceNic recovered: "+settings.getString("device_nic","0"));
             return settings.getString("device_nic","0");
         }
 
-        public void doRememberDeviceNic()
+    public void doRememberDeviceNic()
         {
             String mDeviceNic=getDeviceNic ();
             EditText mEditText=(EditText)findViewById(R.id.settings_menu_editText_deviceNic);
