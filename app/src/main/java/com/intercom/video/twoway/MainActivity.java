@@ -7,6 +7,8 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,11 +16,13 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
+import android.content.SharedPreferences;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 
 public class MainActivity extends ActionBarActivity
 {
@@ -128,52 +132,13 @@ public class MainActivity extends ActionBarActivity
                 establishConnection();
             }
         });
-
-        // Settings Menu Controls
-
-
-        //smSave=(Button)findViewById(R.id.settings_menu_button_save);
-        /*
-        smCancel=(Button)findViewById(R.id.settings_menu_button_cancel);
-        smCancel.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v)
-            {
-                // TODO: get stakeholder definition on what this does
-                // cancel =?
-                // setting up to return to main screen
-                // possible other implementation = revert all values to what they were
-                setContentView(R.layout.activity_main);
-            }
-        });
-        */
-
-
     }
 
-
-    // attach listener to imageButton
-    // used in settings menu
-    public void addListenerToImageButton()
-    {
-        smImageButtonBack = (ImageButton) findViewById(R.id.settings_menu_imagebutton_back);
-
-        smImageButtonBack.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View arg0)
-            {
-                // TODO: BUG: this does not work
-                setContentView(R.layout.activity_main);
-            }
-        });
-    }
 
     public void settingsMenuBackButtonPressed(View view)
     {
         setContentView(R.layout.activity_main);
     }
-
-
     /*
     This is called when we click the establish connection button
     Attempts to establish the tcp connection to another device
@@ -339,6 +304,9 @@ public class MainActivity extends ActionBarActivity
         {
             case R.id.action_view_profile:
                 setContentView(R.layout.settings_menu);
+                activateSettingsMenuListeners();
+                doRememberDeviceNic();
+                doRememberCameraViewFlag();
                 return true;
 
             case R.id.action_home:
@@ -360,4 +328,89 @@ public class MainActivity extends ActionBarActivity
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    public void activateSettingsMenuListeners()
+        {
+            /*
+            auto-triggered when device nic is changed
+             */
+        EditText deviceNIC =(EditText)findViewById(R.id.settings_menu_editText_deviceNic);
+
+        // auto-save on text change for deviceNIC in settings menu
+            deviceNIC.addTextChangedListener(new TextWatcher() {
+                public void afterTextChanged(Editable s) {}
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void onTextChanged(CharSequence s, int start, int before, int count)
+                {
+                   setDeviceNic(s.toString());
+                }
+            });
+
+
+        CheckBox useCameraView = (CheckBox)findViewById(R.id.settings_menu_checkBox_usecamaraview);
+        // auto-save on checkbox flag change
+            useCameraView.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    setUseCameraViewFlag(isChecked);
+
+                }
+            });
+
+            }
+
+
+    public void setUseCameraViewFlag(boolean isChecked)
+        {
+        String PREFS_NAME="SETTINGS MENU";
+        SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 1);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean("use_camera_view",isChecked);
+        editor.apply();  // Apply the edits!
+        }
+
+    public boolean getUseCameraViewFlag()
+        {
+        String PREFS_NAME="SETTINGS MENU";
+        SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 1);
+            return settings.getBoolean("use_camera_view",false);
+        }
+
+    public void doRememberCameraViewFlag()
+        {
+            boolean mCameraFlag=getUseCameraViewFlag();
+            CheckBox useCameraView = (CheckBox)findViewById(R.id.settings_menu_checkBox_usecamaraview);
+            useCameraView.setChecked(mCameraFlag);
+            return;
+        }
+
+
+    public void setDeviceNic (String newDeviceNic)
+        {
+            //Log.i(TAG,"Device NIC stored --> "+ newDeviceNic);
+            String PREFS_NAME="SETTINGS MENU";
+            SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("device_nic", newDeviceNic);
+            editor.apply(); // Apply the edits!
+        }
+
+    public String getDeviceNic ()
+        {
+            // Log.i(TAG,"getDeviceNic Called ");
+            String PREFS_NAME="SETTINGS MENU";
+            SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
+            // Log.i(TAG,"DeviceNic recovered: "+settings.getString("device_nic","0"));
+            return settings.getString("device_nic","0");
+        }
+
+    public void doRememberDeviceNic()
+        {
+            String mDeviceNic=getDeviceNic ();
+            EditText mEditText=(EditText)findViewById(R.id.settings_menu_editText_deviceNic);
+            mEditText.setText(mDeviceNic);
+            return;
+        }
+
+
 }
