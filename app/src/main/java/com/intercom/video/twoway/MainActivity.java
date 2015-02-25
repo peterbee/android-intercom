@@ -1,5 +1,9 @@
 package com.intercom.video.twoway;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.app.ListFragment;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -13,24 +17,35 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.content.SharedPreferences;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.view.LayoutInflater;
+import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity
 {
+    // fragment variables here
+    // TODO: fragment code starts here
+    public static FragmentTransaction ft=null;
+    MyListFrag frag0=null;
+    //
+    // frag variables ^^^
 
     ControlConstants constants = new ControlConstants();
 
     // used in logcat logging
-    String TAG = "Two-Way:";
+    static String TAG = "Two-Way:";
 
     /*
     Handles all networking stuff
@@ -191,9 +206,17 @@ public class MainActivity extends ActionBarActivity
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        setContentView(R.layout.activity_main);
-        setupButtons();
+        setContentView(R.layout.fragment_main);
+        // TODO: disabled this line as switching to fragments and a new implementation of this was made
+        //setupButtons();
         startListenerService();
+
+        // TODO: frag code
+        frag0 = new MyListFrag();
+        ft = getFragmentManager().beginTransaction();
+        ft.add(R.id.fragment_container, frag0, "MAIN_FRAGMENT");
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.commit();
     }
 
     /*
@@ -314,8 +337,7 @@ public class MainActivity extends ActionBarActivity
                 return true;
 
             case R.id.action_find_peers:
-                Log.i(TAG, " wifiPeerDiscovery button pushed ( step 1) \n"); //debug
-                // TODO:do wifi peer discovery
+                showDeviceList();
                 return true;
 
             case R.id.action_listen:
@@ -411,6 +433,100 @@ public class MainActivity extends ActionBarActivity
             mEditText.setText(mDeviceNic);
             return;
         }
+
+// method to call list fragment to screen from fragment_mail layout
+    public void showDeviceList()
+        {
+        setContentView(R.layout.fragment_main);
+        frag0 = new MyListFrag();
+        ft = getFragmentManager().beginTransaction();
+        ft.add(R.id.fragment_container, frag0, "MAIN_FRAGMENT");
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.commit();
+        }
+
+
+
+// <--- List fragment code for device list menu ---> //
+//TODO: marker
+//TODO: marker
+//TODO: marker
+
+    public static class MyListFrag extends ListFragment {
+        String[] values;
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+            return super.onCreateView( inflater,  container, savedInstanceState);
+        }
+
+
+        @Override
+        public void onActivityCreated(Bundle b) {
+            super.onActivityCreated(b);
+
+            //TODO: plug in call to get real IP list instead of test string "values"
+            values = new String[] { "10.1.1.0", "10.1.1.1", "10.1.1.2", "10.1.1.3","10.1.1.4","10.1.1.5","10.1.1.6","10.1.1.7",
+                                    "10.1.1.8", "10.1.1.9", "10.1.1.10","10.1.1.11","10.1.1.12","10.1.1.13","10.1.1.14"  };
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
+                    android.R.layout.simple_list_item_1, values);
+            setListAdapter(adapter);
+        } //onActivityCreated close bracket
+
+
+        //////////////////////////
+
+        @Override
+        public void onListItemClick(ListView l, View v, int position, long id) {
+            Log.i(TAG, "Position " +position + " was clicked\n" + v);
+            String deviceIP = ((TextView)l.getChildAt(position)).getText().toString();
+            Log.i("ListItemSelected: ", deviceIP);
+            Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
+
+            selectDetail(deviceIP);
+        }
+
+
+        private void selectDetail(String deviceIP) {
+            //TODO: go to screen 3 and start 2-way stream from selected device
+        }
+
+
+
+        public static class MyImageFragment extends Fragment {
+
+            @Override
+            public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                     Bundle savedInstanceState) {
+                //TODO: insert video layout here
+                View myFragmentView = inflater.inflate(R.layout.fragment_main, container, false);
+
+                return myFragmentView;
+            }
+
+        }
+
+
+    }
+
+////////	//////////// list fragment code ends here
+
+    /**
+     * A placeholder fragment containing a simple view.
+     */
+    public static class PlaceholderFragment extends Fragment {
+
+        public PlaceholderFragment() {
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_main, container,
+                    false);
+            return rootView;
+        }
+    }
 
 
 }
