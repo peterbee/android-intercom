@@ -8,8 +8,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteOrder;
 
-import static junit.framework.Assert.assertEquals;
-
 public class NetworkDiscoveryTest {
 
     @Test

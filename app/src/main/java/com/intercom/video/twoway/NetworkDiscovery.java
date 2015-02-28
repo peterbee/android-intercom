@@ -11,6 +11,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class NetworkDiscovery extends Thread {
@@ -21,20 +22,30 @@ public class NetworkDiscovery extends Thread {
     private WifiManager wifi;
     private DatagramSocket socket;
     private String myIp;
-    private String remoteIp;
     private boolean stop = false;
+    private ArrayList<String> urlList = new ArrayList<String>();
 
     public NetworkDiscovery(WifiManager wifi) {
         this.wifi = wifi;
     }
-
-    public String getRemoteIp() {
-        return remoteIp;
+    //get list here
+    public ArrayList<String> getUrlList() {
+        return urlList;
+    }
+    //stop me here
+    public void stopNetworkDiscovery() {
+        super.interrupt();
+        this.stop = true;
+    }
+    //start me here
+    public void startNetworkDiscovery() {
+        super.start();
+        this.stop = false;
     }
 
+
     public void run() {
-        remoteIp = null;
-        while (remoteIp == null && !stop) {
+        while (!stop) {
             try {
                 myIp = getMyIp();
                 socket = new DatagramSocket(DISCOVERY_PORT);
@@ -48,7 +59,9 @@ public class NetworkDiscovery extends Thread {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    remoteIp = listenForResponses(socket);
+                    String url = listenForResponses(socket);
+                    if (url != null)
+                        urlList.add(url);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
