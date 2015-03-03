@@ -36,7 +36,6 @@ import android.widget.Toast;
 public class MainActivity extends ActionBarActivity
 {
     // fragment variables here
-    // TODO: fragment code starts here
     public static FragmentTransaction ft=null;
     MyListFrag frag0=null;
     //
@@ -211,9 +210,11 @@ public class MainActivity extends ActionBarActivity
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        // TODO: this will not be needed when UI is changed and NSD + list + video are integrated
+        setContentView(R.layout.activity_main);
+        setupButtons();
+
         setContentView(R.layout.fragment_main);
-        // TODO: disabled this line as switching to fragments and a new implementation of this was made
-        //setupButtons();
         startListenerService();
 
         // TODO: frag code
