@@ -12,6 +12,7 @@
         android:id="@+id/ipAddressEditText"
         android:hint="@string/ip_address_hint"
         android:layout_above="@+id/connectButton"
+        android:inputType="phone"
         android:layout_centerHorizontal="true"/>
 
     <Button
