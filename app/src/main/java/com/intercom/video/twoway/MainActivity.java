@@ -544,8 +544,6 @@ public class MainActivity extends ActionBarActivity
         @Override
         public void onListItemClick(ListView l, View v, int position, long id) {
             Log.i(TAG, "Position " +position + " was clicked\n" + v);
-            //todo: there is a bug here when click happens for item that was originally off screen
-            //String deviceIP = ((TextView)l.getChildAt(position)).getText().toString();
             String deviceIP = ((TextView) v).getText().toString();
             Log.i("ListItemSelected: ", deviceIP);
             Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
@@ -565,7 +563,6 @@ public class MainActivity extends ActionBarActivity
             @Override
             public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                      Bundle savedInstanceState) {
-                //TODO: insert video layout here
                 View myFragmentView = inflater.inflate(R.layout.fragment_main, container, false);
 
                 return myFragmentView;
