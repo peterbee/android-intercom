@@ -1,13 +1,13 @@
 package com.intercom.video.twoway;
 
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ListFragment;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
@@ -32,6 +32,8 @@ import android.content.SharedPreferences;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.view.LayoutInflater;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity
 {
@@ -82,8 +84,6 @@ public class MainActivity extends ActionBarActivity
     These buttons and checkbox are present in settings_menu layout
     sm = Settings Menu
      */
-    static Button smSave, smCancel;
-    static ImageButton smImageButtonBack;
     static CheckBox smCheckBoxUseCamaraView;
     static ImageView smDeviceAvatar;
     static TextView smDeviceNic, smLableDeviceNicL;
@@ -105,6 +105,18 @@ public class MainActivity extends ActionBarActivity
 
     volatile static ListenerService listenerService;
     volatile static boolean serviceIsBoundToActivity = false;
+
+    /*
+    list of all discovered IP adresses
+    used in fragment_main to populate list
+     */
+    ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
+    public static String[] mUrlList_as_StringArray= new String[] { "default.1.1.0",
+        "default.1.1.1", "10.1.1.2", "10.1.1.3","10.1.1.4","10.1.1.5","10.1.1.6","10.1.1.7",
+        "10.1.1.8", "10.1.1.9", "10.1.1.10","10.1.1.11","10.1.1.12","10.1.1.13","10.1.1.14"  };
+
+    //TODO remember to remove these default values after testing^^^
+
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -217,12 +229,60 @@ public class MainActivity extends ActionBarActivity
         setContentView(R.layout.fragment_main);
         startListenerService();
 
-        // TODO: frag code
+        // TODO: NetworkDiscovery integration
+        setupNetworkDiscovery();
+
+        // TODO: fragment code
         frag0 = new MyListFrag();
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, frag0, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
+    }
+
+    /*
+    triggers network discovery
+    gets ArrayList with IPs and pushed to list in fragment main.
+     */
+    public void setupNetworkDiscovery()
+    {
+        //TODO: move this into NetworkDiscovery class
+    //WifiManager mWifi= (WifiManager) getSystemService(Context.WIFI_SERVICE);
+    //NetworkDiscovery mNetworkDiscovery=new NetworkDiscovery(mWifi);
+    //mNetworkDiscovery.startNetworkDiscovery();
+    //mUrlList_asArrayList = mNetworkDiscovery.getUrlList();
+
+    //    ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
+    // update initial list of discovered IPs
+    // also need to happen every time the view is called
+    //    mUrlList_as_StringArray=convertArrayListToStringArray(mUrlList_asArrayList);
+
+   }
+
+
+    // gets latest list of discovered IPs from network discovery and sets teh global variable
+    public void setIpList(String[] newIpList)
+    {
+    mUrlList_as_StringArray=newIpList;
+    }
+
+    public void setIpList (ArrayList mArrayList)
+    {
+    String[] mStringArrayIpList= convertArrayListToStringArray(mArrayList);
+    setIpList(mStringArrayIpList);
+    }
+
+    //todo: can have NetworkDiscovery return string list instead
+    //todo: can also move this to utilities
+    public String[] convertArrayListToStringArray (ArrayList mArrayList)
+    {
+        String[] mStringArray= new String[]{};
+        for (int i=0; i<mArrayList.size();i++)
+        {
+            mStringArray[i]=(String)mArrayList.get(i);
+        }
+
+        return mStringArray;
     }
 
     /*
@@ -454,9 +514,6 @@ public class MainActivity extends ActionBarActivity
 
 
 // <--- List fragment code for device list menu ---> //
-//TODO: marker
-//TODO: marker
-//TODO: marker
 
     public static class MyListFrag extends ListFragment {
         String[] values;
@@ -471,13 +528,15 @@ public class MainActivity extends ActionBarActivity
         public void onActivityCreated(Bundle b) {
             super.onActivityCreated(b);
 
-            //TODO: plug in call to get real IP list instead of test string "values"
-            values = new String[] { "10.1.1.0", "10.1.1.1", "10.1.1.2", "10.1.1.3","10.1.1.4","10.1.1.5","10.1.1.6","10.1.1.7",
-                                    "10.1.1.8", "10.1.1.9", "10.1.1.10","10.1.1.11","10.1.1.12","10.1.1.13","10.1.1.14"  };
+            //TODO: call update IP list here
+            values = mUrlList_as_StringArray;
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-                    android.R.layout.simple_list_item_1, values);
+                    android.R.layout.simple_list_item_1, mUrlList_as_StringArray);
             setListAdapter(adapter);
         } //onActivityCreated close bracket
+
+
+
 
 
         //////////////////////////
@@ -485,7 +544,9 @@ public class MainActivity extends ActionBarActivity
         @Override
         public void onListItemClick(ListView l, View v, int position, long id) {
             Log.i(TAG, "Position " +position + " was clicked\n" + v);
-            String deviceIP = ((TextView)l.getChildAt(position)).getText().toString();
+            //todo: there is a bug here when click happens for item that was originally off screen
+            //String deviceIP = ((TextView)l.getChildAt(position)).getText().toString();
+            String deviceIP = ((TextView) v).getText().toString();
             Log.i("ListItemSelected: ", deviceIP);
             Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
 
