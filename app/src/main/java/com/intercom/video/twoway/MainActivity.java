@@ -406,12 +406,6 @@ public class MainActivity extends ActionBarActivity
                 showDeviceList();
                 return true;
 
-            case R.id.action_listen:
-                return true;
-
-            case R.id.action_connect:
-                return true;
-
             default:
                 return super.onOptionsItemSelected(item);
         }
