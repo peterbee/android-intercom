@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 /*
 This class contains things that deal with transmitting and receiving video / audio streams
@@ -54,10 +55,12 @@ public class VideoStreaming
     Bitmap receivedBitmap;
 
     Object sendFrameLock = new Object();
+    Audio audioEngine;
 
-    VideoStreaming()
+    VideoStreaming(Audio a)
     {
         connected = false;
+        audioEngine=a;
     }
 
     public int getLISTENING_SERVICE_PORT()
@@ -132,40 +135,68 @@ public class VideoStreaming
 
                     System.out.println("Connection has been established!  Now entering image capture loop, yay!");
                     byte[] imageSizeData = new byte[4];
+                    byte[] audioSizeData = new byte[4];
+
                     long imageSize;
+                    long audioSize;
                     while (connected)
                     {
                         // read in an integer (4 bytes) of data to determine the size of the jpeg we are about to receive
                         tcpIn.read(imageSizeData, 0, 4);
+                        // read in an integer (4 bytes) of data to determine the size of the jpeg we are about to receive
+                        tcpIn.read(audioSizeData, 0, 4);
 
                         // fancy bitshifting and ORing to put the 4 bytes we just read into an integer
                         imageSize = packBytes(imageSizeData[3], imageSizeData[2], imageSizeData[1], imageSizeData[0]);
+                        audioSize = packBytes(audioSizeData[3], audioSizeData[2], audioSizeData[1], audioSizeData[0]);
 
-                        int totalBytesReceived = 0;
+                        int totalJpegBytesReceived = 0;
+                        int totalAudioBytesReceived = 0;
 
                         // one megabyte, no way a frame will be bigger than that
-                        byte[] receivedByteArray = new byte[1024 * 1024];
+                        byte[] receivedJpegByteArray = new byte[1024 * 1024];
+                        byte[] receivedAudioByteArray = new byte[1024 * 1024];
 
+                        // read the jpeg portion of the message
                         // keep reading the stream until all bytes of this image have been read
                         // reads in chunks of 1024 bytes at a time
-                        while (totalBytesReceived < imageSize)
+                        while (totalJpegBytesReceived < imageSize)
                         {
-                            if (imageSize - totalBytesReceived > 1024)
-                                totalBytesReceived += tcpIn.read(receivedByteArray, totalBytesReceived, 1024);
+                            if (imageSize - totalJpegBytesReceived > 1024)
+                                totalJpegBytesReceived += tcpIn.read(receivedJpegByteArray, totalJpegBytesReceived, 1024);
                             else
-                                totalBytesReceived += tcpIn.read(receivedByteArray, totalBytesReceived, (int) imageSize - totalBytesReceived);
+                                totalJpegBytesReceived += tcpIn.read(receivedJpegByteArray, totalJpegBytesReceived, (int) imageSize - totalJpegBytesReceived);
                         }
 
-                        receivedBitmap = BitmapFactory.decodeByteArray(receivedByteArray, 0, totalBytesReceived);
+                        // read the audio portion of the message
+                        // keep reading the stream until all bytes of this audio have been read
+                        // reads in chunks of 1024 bytes at a time
+                        while (totalAudioBytesReceived < audioSize)
+                        {
+                            if (audioSize - totalAudioBytesReceived > 1024)
+                                totalAudioBytesReceived += tcpIn.read(receivedAudioByteArray, totalAudioBytesReceived, 1024);
+                            else
+                                totalAudioBytesReceived += tcpIn.read(receivedAudioByteArray, totalAudioBytesReceived, (int) audioSize - totalAudioBytesReceived);
+                        }
+
+                        receivedBitmap = BitmapFactory.decodeByteArray(receivedJpegByteArray, 0, totalJpegBytesReceived);
                         ((Activity) (MainActivity.utilities.mainContext)).runOnUiThread(new Runnable()
                         {
                             @Override
                             public void run()
                             {
-                                jpegImageView.setImageBitmap(receivedBitmap);
+                                try
+                                {
+                                    jpegImageView.setImageBitmap(receivedBitmap);
+                                }
+                                catch(Exception e)
+                                {
+                                    e.printStackTrace();
+                                }
                             }
                         });
 
+                        audioEngine.playAudioChunk(Arrays.copyOf(receivedAudioByteArray, totalAudioBytesReceived));
                     }
 
                 } catch (Exception e)
@@ -214,7 +245,7 @@ public class VideoStreaming
         return dataCombined;
     }
 
-    void sendJpegFrame(final byte[] jpegDataByteArray)
+    void sendJpegFrame(final byte[] jpegDataByteArray, final byte[] audioDataByteArray)
     {
 
         new Thread(new Runnable()
@@ -224,10 +255,16 @@ public class VideoStreaming
                 synchronized(sendFrameLock)
                 {
 
-                    int dataLength = jpegDataByteArray.length;
-                    byte dataLengthBytes[] = unPackBytes(dataLength);
+                    int jpegDataLength = jpegDataByteArray.length;
+                    int audioDataLength = audioDataByteArray.length;
+                    byte jpegDataLengthBytes[] = unPackBytes(jpegDataLength);
+                    byte audioDataLengthBytes[] = unPackBytes(audioDataLength);
 
-                    byte dataToSend[] = combineByteArrays(dataLengthBytes, jpegDataByteArray);
+                    byte packetSizePrefixBytes[] = combineByteArrays(jpegDataLengthBytes, audioDataLengthBytes);
+
+                    byte audioAndJpegDataCombined[] = combineByteArrays(jpegDataByteArray, audioDataByteArray);
+
+                    byte dataToSend[] = combineByteArrays(packetSizePrefixBytes, audioAndJpegDataCombined);
 
                     try
                     {

@@ -79,6 +79,9 @@ public class MainActivity extends ActionBarActivity
 
     static VideoStreaming streamingEngine2;
 
+
+    Audio audioEngine;
+
     /*
     Used to attempt to connect to another device
      */
@@ -214,15 +217,37 @@ public class MainActivity extends ActionBarActivity
         super.setContentView(layoutResID);
     }
 
+    static boolean mic=true;
+
+    public void onCheckboxClicked(View view) {
+
+        boolean checked = ((CheckBox) view).isChecked();
+
+
+        switch(view.getId())
+        {
+            case R.id.checkBox:
+                if (checked)
+                mic=true;
+                else
+                mic=false;
+                break;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
 
-        streamingEngine1 = new VideoStreaming();
-        streamingEngine2 = new VideoStreaming();
+        audioEngine = new Audio();
+
+        streamingEngine1 = new VideoStreaming(audioEngine);
+        streamingEngine2 = new VideoStreaming(audioEngine);
 
         utilities = new Utilities(this);
+
+
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -234,7 +259,7 @@ public class MainActivity extends ActionBarActivity
         startListenerService();
 
         // TODO: NetworkDiscovery integration
-        setupNetworkDiscovery();
+//        setupNetworkDiscovery();
 
         // TODO: fragment code
         frag0 = new MyListFrag();
@@ -271,7 +296,7 @@ public class MainActivity extends ActionBarActivity
     mUrlList_as_StringArray=newIpList;
     }
 
-    public void setIpList (ArrayList mArrayList)
+    public void setIpList (ArrayList<String> mArrayList)
     {
     String[] mStringArrayIpList= convertArrayListToStringArray(mArrayList);
     setIpList(mStringArrayIpList);
@@ -279,12 +304,18 @@ public class MainActivity extends ActionBarActivity
 
     //todo: can have NetworkDiscovery return string list instead
     //todo: can also move this to utilities
-    public String[] convertArrayListToStringArray (ArrayList mArrayList)
+    public String[] convertArrayListToStringArray (ArrayList<String> mArrayList)
     {
-        String[] mStringArray= new String[]{};
+        String[] mStringArray= new String[mArrayList.size()];
+
+//        System.out.println("size of this shit = "+mArrayList.size());
+
+        System.err.println("pre for loop");
         for (int i=0; i<mArrayList.size();i++)
         {
-            mStringArray[i]=(String)mArrayList.get(i);
+            System.err.println("what the fuck for loop");
+
+            mStringArray[i]=mArrayList.get(i);
         }
 
         return mStringArray;
@@ -315,9 +346,11 @@ public class MainActivity extends ActionBarActivity
         {
             utilities.forceWakeUpUnlock();
 
+            audioEngine.startAudioCapture();
+
             // connect to the remote device and start streaming
             streamingEngine1.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
-            cameraJpegCapture = new CameraJpegCapture(streamingEngine1);
+            cameraJpegCapture = new CameraJpegCapture(streamingEngine1, audioEngine);
             cameraJpegCapture.startCam();
 
             // now start our server and tell the other to connect to us
@@ -330,9 +363,11 @@ public class MainActivity extends ActionBarActivity
         {
             utilities.forceWakeUpUnlock();
 
+            audioEngine.startAudioCapture();
+
             // connect to the remote device and start streaming
             streamingEngine2.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
-            cameraJpegCapture = new CameraJpegCapture(streamingEngine2);
+            cameraJpegCapture = new CameraJpegCapture(streamingEngine2, audioEngine);
             cameraJpegCapture.startCam();
         }
 
@@ -394,6 +429,7 @@ public class MainActivity extends ActionBarActivity
     public boolean onOptionsItemSelected(MenuItem item)
     {
 // Handle item selection
+
         switch (item.getItemId())
         {
             case R.id.action_view_profile:
@@ -405,14 +441,19 @@ public class MainActivity extends ActionBarActivity
 
             case R.id.action_home:
                 setContentView(R.layout.activity_main);
+                setupButtons();
                 return true;
 
             case R.id.action_find_peers:
+                System.out.println("About to run network discovery getIpList");
                 mUrlList_asArrayList = mNetworkDiscovery.getIpList();
 
-                ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
+//                ArrayList<String> mUrlList_asArrayList =  fnew ArrayList<String>();
+
+
                 // update initial list of discovered IPs
                 // also need to happen every time the view is called
+                System.err.println("about to return array list");
                 mUrlList_as_StringArray=convertArrayListToStringArray(mUrlList_asArrayList);
                 setIpList(mUrlList_as_StringArray);
                 showDeviceList();
@@ -433,12 +474,19 @@ public class MainActivity extends ActionBarActivity
         EditText deviceNIC =(EditText)findViewById(R.id.settings_menu_editText_deviceNic);
 
         // auto-save on text change for deviceNIC in settings menu
-            deviceNIC.addTextChangedListener(new TextWatcher() {
-                public void afterTextChanged(Editable s) {}
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            deviceNIC.addTextChangedListener(new TextWatcher()
+            {
+                public void afterTextChanged(Editable s)
+                {
+                }
+
+                public void beforeTextChanged(CharSequence s, int start, int count, int after)
+                {
+                }
+
                 public void onTextChanged(CharSequence s, int start, int before, int count)
                 {
-                   setDeviceNic(s.toString());
+                    setDeviceNic(s.toString());
                 }
             });
 

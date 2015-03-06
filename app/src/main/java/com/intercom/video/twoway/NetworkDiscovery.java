@@ -3,6 +3,7 @@ package com.intercom.video.twoway;
 import android.content.Context;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
+import android.util.Log;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -92,7 +93,10 @@ public class NetworkDiscovery extends Thread {
         int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
         //TODO null handleing
         InetAddress inetAddress = ipIntToInet(broadcast);
-        System.out.println("host address: " + inetAddress.getHostAddress());
+//        System.err.println("host address: " + inetAddress.getHostAddress());
+//        Log.e("blah", inetAddress.toString());
+
+
         return inetAddress;
     }
 
@@ -113,15 +117,15 @@ public class NetworkDiscovery extends Thread {
                 socket.receive(packet);
                 String ip = packet.getAddress().getHostAddress();
                 if (ip.equals(myIp)) {
-                    System.out.println("received my packet");
+//                    System.err.println("received my packet");
                     return null;
                 }
                 payload = new String(packet.getData(), 0, packet.getLength());
-                System.out.println("received: " + payload + " ip: " + ip);
+                System.err.println("received: " + payload + " ip: " + ip);
                 return ip;
             }
         } catch (SocketTimeoutException e) {
-            System.out.println("timed out");
+            System.err.println("timed out");
         }
         return null;
     }

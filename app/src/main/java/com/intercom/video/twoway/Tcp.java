@@ -1,5 +1,7 @@
 package com.intercom.video.twoway;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStream;
@@ -70,6 +72,7 @@ public class Tcp
         }
         catch(Exception e)
         {
+            System.err.println("error println");
             e.printStackTrace();
         }
         try
