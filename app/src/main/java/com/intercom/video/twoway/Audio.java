@@ -26,17 +26,26 @@ public class Audio
 
     AudioTrack audioTrackPlayer;
 
-    // stores our built up audio data, this grows as more data is read and shrinks down when audio data is transmitted
-    ByteArrayOutputStream audioDataStorageStream;
+    static Object audioThreadPlaybackLock = new Object();
 
+    // stores our built up audio data, this grows as more data is read and shrinks down when audio data is transmitted
+    ByteArrayOutputStream audioDataStorageStream = new ByteArrayOutputStream();
+
+    Audio()
+    {
+        setupAudioPlayer();
+
+    }
     /*
     this returns all bytes in audioDataStorageStream and clears it
     */
     byte[] consumeAudioBytes()
     {
+
         byte[] audioData = audioDataStorageStream.toByteArray();
 
         audioDataStorageStream = new ByteArrayOutputStream();
+
         return audioData;
     }
 
@@ -52,11 +61,21 @@ public class Audio
     /*
     feeds the audio player a chunk of data to play
      */
-    void playAudioChunk(byte[] audioDataBuffer)
+    void playAudioChunk(final byte[] audioDataBuffer)
     {
-        audioTrackPlayer.write(audioDataBuffer, 0, audioDataBuffer.length);
+        Thread audioPlaybackThread = new Thread(new Runnable()
+        {
+            public void run()
+            {
+                synchronized(audioThreadPlaybackLock)
+                {
+                    audioTrackPlayer.write(audioDataBuffer, 0, audioDataBuffer.length);
+                }
+            }});
 
-        System.err.println("playing audio chunk of size" + audioDataBuffer.length);
+
+        audioPlaybackThread.start();
+//        System.err.println("playing audio chunk of size" + audioDataBuffer.length);
     }
 
     /*
@@ -64,6 +83,7 @@ public class Audio
      */
     void startAudioCapture()
     {
+
         Thread audioCaptureThread = new Thread(new Runnable()
         {
             public void run()
@@ -77,7 +97,6 @@ public class Audio
                 capturingAudio=true;
 
                 audioRecorder.startRecording();
-                setupAudioPlayer();
 
 
                 while (capturingAudio)
@@ -93,11 +112,19 @@ public class Audio
 
                             audioDataStorageStream.write(audioDataBuffer);
 
-                            Thread.sleep(10);
                         } catch (Exception e)
                         {
                             e.printStackTrace();
                         }
+                    }
+
+                    try
+                    {
+                        Thread.sleep(100);
+                    }
+                    catch(Exception e)
+                    {
+
                     }
 
 
@@ -109,6 +136,8 @@ public class Audio
 
         System.err.println("About to start audio");
         audioCaptureThread.start();
+
+
     }
 
 }
