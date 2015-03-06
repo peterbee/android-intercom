@@ -37,6 +37,10 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity
 {
+    // Connct to network discovery
+    NetworkDiscovery mNetworkDiscovery;
+
+
     // fragment variables here
     public static FragmentTransaction ft=null;
     MyListFrag frag0=null;
@@ -248,14 +252,15 @@ public class MainActivity extends ActionBarActivity
     {
         //TODO: move this into NetworkDiscovery class
     //WifiManager mWifi= (WifiManager) getSystemService(Context.WIFI_SERVICE);
-    //NetworkDiscovery mNetworkDiscovery=new NetworkDiscovery(mWifi);
-    //mNetworkDiscovery.startNetworkDiscovery();
-    //mUrlList_asArrayList = mNetworkDiscovery.getUrlList();
+    mNetworkDiscovery=new NetworkDiscovery();
+    mNetworkDiscovery.start();
+    mUrlList_asArrayList = mNetworkDiscovery.getIpList();
 
-    //    ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
+    ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
     // update initial list of discovered IPs
     // also need to happen every time the view is called
-    //    mUrlList_as_StringArray=convertArrayListToStringArray(mUrlList_asArrayList);
+    mUrlList_as_StringArray=convertArrayListToStringArray(mUrlList_asArrayList);
+    setIpList(mUrlList_as_StringArray);
 
    }
 
@@ -403,7 +408,16 @@ public class MainActivity extends ActionBarActivity
                 return true;
 
             case R.id.action_find_peers:
+                mUrlList_asArrayList = mNetworkDiscovery.getIpList();
+
+                ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
+                // update initial list of discovered IPs
+                // also need to happen every time the view is called
+                mUrlList_as_StringArray=convertArrayListToStringArray(mUrlList_asArrayList);
+                setIpList(mUrlList_as_StringArray);
                 showDeviceList();
+                for (String ip :mUrlList_as_StringArray)
+                    Log.i(TAG, "loading to ui IP: "+ ip);
                 return true;
 
             default:
@@ -505,8 +519,6 @@ public class MainActivity extends ActionBarActivity
         ft.commit();
         }
 
-
-
 // <--- List fragment code for device list menu ---> //
 
     public static class MyListFrag extends ListFragment {
@@ -528,9 +540,6 @@ public class MainActivity extends ActionBarActivity
                     android.R.layout.simple_list_item_1, mUrlList_as_StringArray);
             setListAdapter(adapter);
         } //onActivityCreated close bracket
-
-
-
 
 
         //////////////////////////
