@@ -109,6 +109,7 @@ public class VideoStreaming
 
         connected = false;
     }
+    static int receivedcount=0;
 
     /*
    Listen for a connection.  This should only be called from a seperate thread so the main thread isnt blocked
@@ -139,8 +140,10 @@ public class VideoStreaming
 
                     long imageSize;
                     long audioSize;
+
                     while (connected)
                     {
+
                         // read in an integer (4 bytes) of data to determine the size of the jpeg we are about to receive
                         tcpIn.read(imageSizeData, 0, 4);
                         // read in an integer (4 bytes) of data to determine the size of the jpeg we are about to receive
@@ -168,6 +171,7 @@ public class VideoStreaming
                                 totalJpegBytesReceived += tcpIn.read(receivedJpegByteArray, totalJpegBytesReceived, (int) imageSize - totalJpegBytesReceived);
                         }
 
+                        /*
                         // read the audio portion of the message
                         // keep reading the stream until all bytes of this audio have been read
                         // reads in chunks of 1024 bytes at a time
@@ -179,7 +183,10 @@ public class VideoStreaming
                                 totalAudioBytesReceived += tcpIn.read(receivedAudioByteArray, totalAudioBytesReceived, (int) audioSize - totalAudioBytesReceived);
                         }
 
+                        */
                         receivedBitmap = BitmapFactory.decodeByteArray(receivedJpegByteArray, 0, totalJpegBytesReceived);
+
+                        receivedcount++;
                         ((Activity) (MainActivity.utilities.mainContext)).runOnUiThread(new Runnable()
                         {
                             @Override
@@ -188,6 +195,7 @@ public class VideoStreaming
                                 try
                                 {
                                     jpegImageView.setImageBitmap(receivedBitmap);
+                                    MainActivity.framesReceived.setText("received = "+receivedcount);
                                 }
                                 catch(Exception e)
                                 {
@@ -196,7 +204,7 @@ public class VideoStreaming
                             }
                         });
 
-                        audioEngine.playAudioChunk(Arrays.copyOf(receivedAudioByteArray, totalAudioBytesReceived));
+//                        audioEngine.playAudioChunk(Arrays.copyOf(receivedAudioByteArray, totalAudioBytesReceived));
                     }
 
                 } catch (Exception e)
@@ -244,7 +252,7 @@ public class VideoStreaming
 
         return dataCombined;
     }
-
+    static int sentcount=0;
     void sendJpegFrame(final byte[] jpegDataByteArray, final byte[] audioDataByteArray)
     {
 
@@ -252,9 +260,6 @@ public class VideoStreaming
         {
             public void run()
             {
-                synchronized(sendFrameLock)
-                {
-
                     int jpegDataLength = jpegDataByteArray.length;
                     int audioDataLength = audioDataByteArray.length;
                     byte jpegDataLengthBytes[] = unPackBytes(jpegDataLength);
@@ -262,11 +267,14 @@ public class VideoStreaming
 
                     byte packetSizePrefixBytes[] = combineByteArrays(jpegDataLengthBytes, audioDataLengthBytes);
 
-                    byte audioAndJpegDataCombined[] = combineByteArrays(jpegDataByteArray, audioDataByteArray);
+                // these 2 work
+//                    byte audioAndJpegDataCombined[] = combineByteArrays(jpegDataByteArray, audioDataByteArray);
+//                    byte dataToSend[] = combineByteArrays(packetSizePrefixBytes, audioAndJpegDataCombined);
 
-                    byte dataToSend[] = combineByteArrays(packetSizePrefixBytes, audioAndJpegDataCombined);
 
-                    try
+                byte dataToSend[] = combineByteArrays(packetSizePrefixBytes, jpegDataByteArray);
+
+                try
                     {
                         tcpOut.write(dataToSend);
                         tcpOut.flush();
@@ -274,7 +282,24 @@ public class VideoStreaming
                     {
                         e.printStackTrace();
                     }
-                }
+                sentcount++;
+
+                ((Activity) (MainActivity.utilities.mainContext)).runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        try
+                        {
+                            MainActivity.framesSent.setText("sent = "+sentcount);
+                        }
+                        catch(Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
             }
         }).start();
 

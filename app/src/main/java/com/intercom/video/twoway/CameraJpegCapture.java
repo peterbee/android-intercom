@@ -120,6 +120,7 @@ public class CameraJpegCapture
                         if(streamEngine.connected)
                         {
                             streamEngine.sendJpegFrame(imageBytes, audioEngine.consumeAudioBytes());
+
                         }
                     }
                 }

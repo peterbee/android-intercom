@@ -79,6 +79,8 @@ public class MainActivity extends ActionBarActivity
 
     static VideoStreaming streamingEngine2;
 
+    static TextView framesSent;
+    static TextView framesReceived;
 
     Audio audioEngine;
 
@@ -441,6 +443,8 @@ public class MainActivity extends ActionBarActivity
 
             case R.id.action_home:
                 setContentView(R.layout.activity_main);
+                framesSent=(TextView)findViewById(R.id.framesSent);
+                framesReceived=(TextView)findViewById(R.id.framesReceived);
                 setupButtons();
                 return true;
 
