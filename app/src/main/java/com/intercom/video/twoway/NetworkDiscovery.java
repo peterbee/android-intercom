@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -89,6 +90,7 @@ public class NetworkDiscovery extends Thread {
     private InetAddress getBroadcastAddress(WifiManager wifi) throws UnknownHostException {
         DhcpInfo dhcp = wifi.getDhcpInfo();
         int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
+        //TODO null handleing
         InetAddress inetAddress = ipIntToInet(broadcast);
         System.out.println("host address: " + inetAddress.getHostAddress());
         return inetAddress;
@@ -133,6 +135,10 @@ public class NetworkDiscovery extends Thread {
 
     private InetAddress ipIntToInet(int ipAddress) {
         InetAddress inetAddress;
+        // Convert little-endian to big-endianif needed
+        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            ipAddress = Integer.reverseBytes(ipAddress);
+        }
         byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
         try {
             inetAddress = InetAddress.getByAddress(ipByteArray);
