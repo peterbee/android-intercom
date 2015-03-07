@@ -35,7 +35,8 @@
         android:layout_gravity="center_horizontal"
         android:layout_above="@+id/settings_menu_checkBox_usecamaraview"
         android:layout_toRightOf="@+id/settings_menu_checkBox_usecamaraview"
-        android:layout_toEndOf="@+id/settings_menu_checkBox_usecamaraview" />
+        android:layout_toEndOf="@+id/settings_menu_checkBox_usecamaraview"
+        android:inputType="textPersonName"/>
 
     <TextView
         android:layout_width="wrap_content"

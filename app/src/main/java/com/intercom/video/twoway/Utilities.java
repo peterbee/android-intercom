@@ -47,7 +47,7 @@ public class Utilities
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP
                 | PowerManager.ON_AFTER_RELEASE, "MyWakeLock");
         wakeLock.acquire();
-
+ 
 
         Window window = ((Activity)mainContext).getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);

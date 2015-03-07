@@ -1,13 +1,13 @@
 package com.intercom.video.twoway;
 
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ListFragment;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
@@ -33,10 +33,15 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.view.LayoutInflater;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class MainActivity extends ActionBarActivity
 {
+    // Connct to network discovery
+    NetworkDiscovery mNetworkDiscovery;
+
+
     // fragment variables here
-    // TODO: fragment code starts here
     public static FragmentTransaction ft=null;
     MyListFrag frag0=null;
     //
@@ -74,6 +79,9 @@ public class MainActivity extends ActionBarActivity
 
     VideoStreaming streamingEngine2;
 
+
+    Audio audioEngine;
+
     /*
     Used to attempt to connect to another device
      */
@@ -83,8 +91,6 @@ public class MainActivity extends ActionBarActivity
     These buttons and checkbox are present in settings_menu layout
     sm = Settings Menu
      */
-    static Button smSave, smCancel;
-    static ImageButton smImageButtonBack;
     static CheckBox smCheckBoxUseCamaraView;
     static ImageView smDeviceAvatar;
     static TextView smDeviceNic, smLableDeviceNicL;
@@ -101,6 +107,18 @@ public class MainActivity extends ActionBarActivity
 
     volatile static ListenerService listenerService;
     volatile static boolean serviceIsBoundToActivity = false;
+
+    /*
+    list of all discovered IP adresses
+    used in fragment_main to populate list
+     */
+    ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
+    public static String[] mUrlList_as_StringArray= new String[] { "default.1.1.0",
+        "default.1.1.1", "10.1.1.2", "10.1.1.3","10.1.1.4","10.1.1.5","10.1.1.6","10.1.1.7",
+        "10.1.1.8", "10.1.1.9", "10.1.1.10","10.1.1.11","10.1.1.12","10.1.1.13","10.1.1.14"  };
+
+    //TODO remember to remove these default values after testing^^^
+
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -194,29 +212,108 @@ public class MainActivity extends ActionBarActivity
         super.setContentView(layoutResID);
     }
 
+    static boolean mic=true;
+
+    public void onCheckboxClicked(View view) {
+
+        boolean checked = ((CheckBox) view).isChecked();
+
+
+        switch(view.getId())
+        {
+            case R.id.checkBox:
+                if (checked)
+                mic=true;
+                else
+                mic=false;
+                break;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
 
-        streamingEngine1 = new VideoStreaming();
-        streamingEngine2 = new VideoStreaming();
+        audioEngine = new Audio();
+
+        streamingEngine1 = new VideoStreaming(audioEngine);
+        streamingEngine2 = new VideoStreaming(audioEngine);
 
         utilities = new Utilities(this);
 
+
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        // TODO: this will not be needed when UI is changed and NSD + list + video are integrated
+        setContentView(R.layout.activity_main);
+        setupButtons();
+
         setContentView(R.layout.fragment_main);
-        // TODO: disabled this line as switching to fragments and a new implementation of this was made
-        //setupButtons();
         startListenerService();
 
-        // TODO: frag code
+        // TODO: NetworkDiscovery integration
+//        setupNetworkDiscovery();
+
+        // TODO: fragment code
         frag0 = new MyListFrag();
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, frag0, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
+    }
+
+    /*
+    triggers network discovery
+    gets ArrayList with IPs and pushed to list in fragment main.
+     */
+    public void setupNetworkDiscovery()
+    {
+        //TODO: move this into NetworkDiscovery class
+    //WifiManager mWifi= (WifiManager) getSystemService(Context.WIFI_SERVICE);
+    mNetworkDiscovery=new NetworkDiscovery();
+    mNetworkDiscovery.start();
+    mUrlList_asArrayList = mNetworkDiscovery.getIpList();
+
+    ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
+    // update initial list of discovered IPs
+    // also need to happen every time the view is called
+    mUrlList_as_StringArray=convertArrayListToStringArray(mUrlList_asArrayList);
+    setIpList(mUrlList_as_StringArray);
+
+   }
+
+
+    // gets latest list of discovered IPs from network discovery and sets teh global variable
+    public void setIpList(String[] newIpList)
+    {
+    mUrlList_as_StringArray=newIpList;
+    }
+
+    public void setIpList (ArrayList<String> mArrayList)
+    {
+    String[] mStringArrayIpList= convertArrayListToStringArray(mArrayList);
+    setIpList(mStringArrayIpList);
+    }
+
+    //todo: can have NetworkDiscovery return string list instead
+    //todo: can also move this to utilities
+    public String[] convertArrayListToStringArray (ArrayList<String> mArrayList)
+    {
+        String[] mStringArray= new String[mArrayList.size()];
+
+//        System.out.println("size of this shit = "+mArrayList.size());
+
+        System.err.println("pre for loop");
+        for (int i=0; i<mArrayList.size();i++)
+        {
+            System.err.println("what the fuck for loop");
+
+            mStringArray[i]=mArrayList.get(i);
+        }
+
+        return mStringArray;
     }
 
     /*
@@ -244,9 +341,11 @@ public class MainActivity extends ActionBarActivity
         {
             utilities.forceWakeUpUnlock();
 
+            audioEngine.startAudioCapture();
+
             // connect to the remote device and start streaming
             streamingEngine1.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
-            cameraJpegCapture = new CameraJpegCapture(streamingEngine1);
+            cameraJpegCapture = new CameraJpegCapture(streamingEngine1, audioEngine);
             cameraJpegCapture.startCam();
 
             // now start our server and tell the other to connect to us
@@ -259,9 +358,11 @@ public class MainActivity extends ActionBarActivity
         {
             utilities.forceWakeUpUnlock();
 
+            audioEngine.startAudioCapture();
+
             // connect to the remote device and start streaming
             streamingEngine2.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
-            cameraJpegCapture = new CameraJpegCapture(streamingEngine2);
+            cameraJpegCapture = new CameraJpegCapture(streamingEngine2, audioEngine);
             cameraJpegCapture.startCam();
         }
 
@@ -323,6 +424,7 @@ public class MainActivity extends ActionBarActivity
     public boolean onOptionsItemSelected(MenuItem item)
     {
 // Handle item selection
+
         switch (item.getItemId())
         {
             case R.id.action_view_profile:
@@ -334,16 +436,24 @@ public class MainActivity extends ActionBarActivity
 
             case R.id.action_home:
                 setContentView(R.layout.activity_main);
+                setupButtons();
                 return true;
 
             case R.id.action_find_peers:
+                System.out.println("About to run network discovery getIpList");
+                mUrlList_asArrayList = mNetworkDiscovery.getIpList();
+
+//                ArrayList<String> mUrlList_asArrayList =  fnew ArrayList<String>();
+
+
+                // update initial list of discovered IPs
+                // also need to happen every time the view is called
+                System.err.println("about to return array list");
+                mUrlList_as_StringArray=convertArrayListToStringArray(mUrlList_asArrayList);
+                setIpList(mUrlList_as_StringArray);
                 showDeviceList();
-                return true;
-
-            case R.id.action_listen:
-                return true;
-
-            case R.id.action_connect:
+                for (String ip :mUrlList_as_StringArray)
+                    Log.i(TAG, "loading to ui IP: "+ ip);
                 return true;
 
             default:
@@ -359,12 +469,19 @@ public class MainActivity extends ActionBarActivity
         EditText deviceNIC =(EditText)findViewById(R.id.settings_menu_editText_deviceNic);
 
         // auto-save on text change for deviceNIC in settings menu
-            deviceNIC.addTextChangedListener(new TextWatcher() {
-                public void afterTextChanged(Editable s) {}
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            deviceNIC.addTextChangedListener(new TextWatcher()
+            {
+                public void afterTextChanged(Editable s)
+                {
+                }
+
+                public void beforeTextChanged(CharSequence s, int start, int count, int after)
+                {
+                }
+
                 public void onTextChanged(CharSequence s, int start, int before, int count)
                 {
-                   setDeviceNic(s.toString());
+                    setDeviceNic(s.toString());
                 }
             });
 
@@ -445,12 +562,7 @@ public class MainActivity extends ActionBarActivity
         ft.commit();
         }
 
-
-
 // <--- List fragment code for device list menu ---> //
-//TODO: marker
-//TODO: marker
-//TODO: marker
 
     public static class MyListFrag extends ListFragment {
         String[] values;
@@ -465,11 +577,10 @@ public class MainActivity extends ActionBarActivity
         public void onActivityCreated(Bundle b) {
             super.onActivityCreated(b);
 
-            //TODO: plug in call to get real IP list instead of test string "values"
-            values = new String[] { "10.1.1.0", "10.1.1.1", "10.1.1.2", "10.1.1.3","10.1.1.4","10.1.1.5","10.1.1.6","10.1.1.7",
-                                    "10.1.1.8", "10.1.1.9", "10.1.1.10","10.1.1.11","10.1.1.12","10.1.1.13","10.1.1.14"  };
+            //TODO: call update IP list here
+            values = mUrlList_as_StringArray;
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-                    android.R.layout.simple_list_item_1, values);
+                    android.R.layout.simple_list_item_1, mUrlList_as_StringArray);
             setListAdapter(adapter);
         } //onActivityCreated close bracket
 
@@ -479,7 +590,7 @@ public class MainActivity extends ActionBarActivity
         @Override
         public void onListItemClick(ListView l, View v, int position, long id) {
             Log.i(TAG, "Position " +position + " was clicked\n" + v);
-            String deviceIP = ((TextView)l.getChildAt(position)).getText().toString();
+            String deviceIP = ((TextView) v).getText().toString();
             Log.i("ListItemSelected: ", deviceIP);
             Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
 
@@ -498,7 +609,6 @@ public class MainActivity extends ActionBarActivity
             @Override
             public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                      Bundle savedInstanceState) {
-                //TODO: insert video layout here
                 View myFragmentView = inflater.inflate(R.layout.fragment_main, container, false);
 
                 return myFragmentView;

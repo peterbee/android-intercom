@@ -30,12 +30,14 @@ public class CameraJpegCapture
     private CameraPreview mPreview;
     FrameLayout preview;
     VideoStreaming streamEngine;
+    Audio audioEngine;
 
     static Camera.PreviewCallback previewCallback;
 
-    CameraJpegCapture(VideoStreaming streamer)
+    CameraJpegCapture(VideoStreaming streamer, Audio audio)
     {
         streamEngine = streamer;
+        audioEngine = audio;
     }
 
     //returns list of supported preview sizes.  this will be useful later for determining video reslution
@@ -117,7 +119,8 @@ public class CameraJpegCapture
                         // dont try to send anything if we arent connected
                         if(streamEngine.connected)
                         {
-                            streamEngine.sendJpegFrame(imageBytes);
+                            streamEngine.sendJpegFrame(imageBytes, audioEngine.consumeAudioBytes());
+
                         }
                     }
                 }
