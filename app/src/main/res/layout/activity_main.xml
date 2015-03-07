@@ -39,6 +39,16 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"/>
 
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mic"
+        android:id="@+id/checkBox"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/ipAddressEditText"
+        android:layout_alignEnd="@+id/ipAddressEditText"
+        android:onClick="onCheckboxClicked"
+        android:checked="true"/>
 
 
 </RelativeLayout>
