@@ -113,7 +113,7 @@ public class MainActivity extends ActionBarActivity
     used in fragment_main to populate list
      */
     ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
-    public static String[] mUrlList_as_StringArray= new String[] { "default.1.1.0",
+    public static String[] mUrlList_as_StringArray= new String[] { "Original initialized",
         "default.1.1.1", "10.1.1.2", "10.1.1.3","10.1.1.4","10.1.1.5","10.1.1.6","10.1.1.7",
         "10.1.1.8", "10.1.1.9", "10.1.1.10","10.1.1.11","10.1.1.12","10.1.1.13","10.1.1.14"  };
 
@@ -254,7 +254,7 @@ public class MainActivity extends ActionBarActivity
         startListenerService();
 
         // TODO: NetworkDiscovery integration
-//        setupNetworkDiscovery();
+         setupNetworkDiscovery();
 
         // TODO: fragment code
         frag0 = new MyListFrag();
@@ -561,82 +561,5 @@ public class MainActivity extends ActionBarActivity
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
         }
-
-// <--- List fragment code for device list menu ---> //
-
-    public static class MyListFrag extends ListFragment {
-        String[] values;
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
-            return super.onCreateView( inflater,  container, savedInstanceState);
-        }
-
-
-        @Override
-        public void onActivityCreated(Bundle b) {
-            super.onActivityCreated(b);
-
-            //TODO: call update IP list here
-            values = mUrlList_as_StringArray;
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-                    android.R.layout.simple_list_item_1, mUrlList_as_StringArray);
-            setListAdapter(adapter);
-        } //onActivityCreated close bracket
-
-
-        //////////////////////////
-
-        @Override
-        public void onListItemClick(ListView l, View v, int position, long id) {
-            Log.i(TAG, "Position " +position + " was clicked\n" + v);
-            String deviceIP = ((TextView) v).getText().toString();
-            Log.i("ListItemSelected: ", deviceIP);
-            Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
-
-            selectDetail(deviceIP);
-        }
-
-
-        private void selectDetail(String deviceIP) {
-            //TODO: go to screen 3 and start 2-way stream from selected device
-        }
-
-
-
-        public static class MyImageFragment extends Fragment {
-
-            @Override
-            public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                     Bundle savedInstanceState) {
-                View myFragmentView = inflater.inflate(R.layout.fragment_main, container, false);
-
-                return myFragmentView;
-            }
-
-        }
-
-
-    }
-
-////////	//////////// list fragment code ends here
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container,
-                    false);
-            return rootView;
-        }
-    }
-
 
 }
