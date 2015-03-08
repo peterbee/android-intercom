@@ -46,6 +46,7 @@ public class Audio
 
         audioDataStorageStream = new ByteArrayOutputStream();
 
+        System.out.println("Consumed bytes for sending: "+audioData.length);
         return audioData;
     }
 
@@ -75,7 +76,6 @@ public class Audio
 
 
         audioPlaybackThread.start();
-//        System.err.println("playing audio chunk of size" + audioDataBuffer.length);
     }
 
     /*

@@ -23,7 +23,7 @@ public class CameraJpegCapture
 {
     int pWidth=320;
     int pHeight=240;
-    int jpegQuality = 30;
+    int jpegQuality = 10;
     Camera.Parameters params;
 
     private Camera mCamera;
@@ -120,7 +120,6 @@ public class CameraJpegCapture
                         if(streamEngine.connected)
                         {
                             streamEngine.sendJpegFrame(imageBytes, audioEngine.consumeAudioBytes());
-
                         }
                     }
                 }
