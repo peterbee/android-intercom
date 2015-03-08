@@ -55,6 +55,8 @@ public class VideoStreaming
     Bitmap receivedBitmap;
 
     Object sendFrameLock = new Object();
+    Object decodeFrameLock = new Object();
+
     Audio audioEngine;
 
     VideoStreaming(Audio a)
@@ -183,30 +185,12 @@ public class VideoStreaming
                                 totalAudioBytesReceived += tcpIn.read(receivedAudioByteArray, totalAudioBytesReceived, (int) audioSize - totalAudioBytesReceived);
                         }
 
-
-                        receivedBitmap = BitmapFactory.decodeByteArray(receivedJpegByteArray, 0, totalJpegBytesReceived);
-
-                        receivedcount++;
-                        ((Activity) (MainActivity.utilities.mainContext)).runOnUiThread(new Runnable()
-                        {
-                            @Override
-                            public void run()
-                            {
-                                try
-                                {
-                                    jpegImageView.setImageBitmap(receivedBitmap);
-                                }
-                                catch(Exception e)
-                                {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-
-                        audioEngine.playAudioChunk(Arrays.copyOf(receivedAudioByteArray, totalAudioBytesReceived));
+                        // asynchronously decode the audio and video so that shit doesnt back up and cause increasing delays
+                        decodeFrameAndAudioAsynch(totalJpegBytesReceived, receivedJpegByteArray, totalAudioBytesReceived, receivedAudioByteArray, jpegImageView);
                     }
 
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     e.printStackTrace();
                 }
@@ -214,6 +198,60 @@ public class VideoStreaming
         };
 
         listenForConnectionThread.start();
+    }
+
+
+
+    // this is used to so that we dont run multiple decode threads at once
+    // this is better than a synchronized section because synchonized sections will stack up and wait for others to finish
+    // this simple returns the method so nothing gets backed up
+    boolean currentlyDecodingFrame;
+
+    // asynchronously decode a frame of video and audio so that we don't cause tcp stack to get backed up with data
+    // during the decode process
+    void decodeFrameAndAudioAsynch(final int jpegLength, final byte[] jpegData, final int audioLength, final byte[] audioData, final ImageView jpegImageView)
+    {
+        Thread decodeFrameThread = new Thread()
+        {
+            public void run()
+            {
+                if (!currentlyDecodingFrame)
+                {
+                    currentlyDecodingFrame = true;
+                    try
+                    {
+                        receivedBitmap = BitmapFactory.decodeByteArray(jpegData, 0, jpegLength);
+                    } catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                    ((Activity) (MainActivity.utilities.mainContext)).runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            try
+                            {
+                                jpegImageView.setImageBitmap(receivedBitmap);
+                            } catch (Exception e)
+                            {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    try
+                    {
+                        audioEngine.playAudioChunk(Arrays.copyOf(audioData, audioLength));
+                    } catch (Exception e)
+                    {
+
+                    }
+                }
+                currentlyDecodingFrame=false;
+            }
+        };
+
+        decodeFrameThread.start();
     }
 
 
@@ -266,12 +304,8 @@ public class VideoStreaming
 
                     byte packetSizePrefixBytes[] = combineByteArrays(jpegDataLengthBytes, audioDataLengthBytes);
 
-                // these 2 work
                     byte audioAndJpegDataCombined[] = combineByteArrays(jpegDataByteArray, audioDataByteArray);
                     byte dataToSend[] = combineByteArrays(packetSizePrefixBytes, audioAndJpegDataCombined);
-
-
-//                byte dataToSend[] = combineByteArrays(packetSizePrefixBytes, jpegDataByteArray);
 
                 try
                     {
@@ -281,9 +315,6 @@ public class VideoStreaming
                     {
                         e.printStackTrace();
                     }
-                sentcount++;
-
-
             }
         }).start();
 
