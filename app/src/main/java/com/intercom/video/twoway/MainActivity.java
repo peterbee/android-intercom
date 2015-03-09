@@ -35,8 +35,11 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-public class MainActivity extends ActionBarActivity
+public class MainActivity extends ActionBarActivity implements MyListFrag.onListItemSelectedListener
 {
+    //used with callback from list fragment
+    EditText mText;
+
     // app verions
     String appVersion="1.0.0";
 
@@ -557,5 +560,28 @@ public class MainActivity extends ActionBarActivity
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
         }
+
+    // official android code
+    // TODO: not sure if this is implemented right
+    // Container Activity must implement this interface
+
+    public void onListItemSelectedListener(String deviceIP)
+        {
+            setContentView(R.layout.activity_main);
+            mText = (EditText) findViewById(R.id.ipAddressEditText);
+            mText.setText(deviceIP);
+            establishConnection();
+            Log.i(TAG," <---===establish connection called from listener ===--->");
+        }
+    // This method is executed when list item is clicked and ip selected
+    public void onListItemSelected(String deviceIP)
+    {
+        setContentView(R.layout.activity_main);
+        mText = (EditText) findViewById(R.id.ipAddressEditText);
+        mText.setText(deviceIP);
+        establishConnection();
+        Log.i(TAG," <---===establish connection called from selected===--->");
+    }
+
 
 }

@@ -1,5 +1,6 @@
 package com.intercom.video.twoway;
 
+import android.app.Activity;
 import android.app.ListFragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,13 +16,15 @@ import android.widget.Toast;
 
 public class MyListFrag extends ListFragment {
     String[] values;
-    Button connectButton;
+    //Button connectButton;
+
+    // Used to pass action back to MainActivity
+    onListItemSelectedListener mListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
         return super.onCreateView( inflater,  container, savedInstanceState);
     }
-
 
     @Override
     public void onActivityCreated(Bundle b) {
@@ -32,10 +35,7 @@ public class MyListFrag extends ListFragment {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
                 android.R.layout.simple_list_item_1, MainActivity.mUrlList_as_StringArray);
         setListAdapter(adapter);
-    } //onActivityCreated close bracket
-
-
-    //////////////////////////
+    }
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
@@ -48,24 +48,32 @@ public class MyListFrag extends ListFragment {
 
 
     private void selectDetail(String deviceIP) {
-        //TODO:I'm sure there is a better way to do this
-        // I'm simulating a button click after setting ip Address in an Edit Text
+        // set layout and populate acquired IP in editText
+        // TODO:will set edit text to not editable from UI later
+//        getActivity().setContentView(R.layout.activity_main);
+//        EditText mText = (EditText) getActivity().findViewById(R.id.ipAddressEditText);
+//        mText.setText(deviceIP);
 
-        getActivity().setContentView(R.layout.activity_main);
+        // TODO: this sends a call to MainActivity with IP info
+        mListener.onListItemSelected(deviceIP);
+        }
 
-        EditText mText = (EditText) getActivity().findViewById(R.id.ipAddressEditText);
-        mText.setText(deviceIP);
-
-       // not sure how to make this work
-       // MainActivity.establishConnection();
-
-        connectButton = (Button) getActivity().findViewById(R.id.connectButton);
-        connectButton.performClick();
-        connectButton.setPressed(true);
-        connectButton.invalidate();
-        connectButton.setPressed(false);
-        connectButton.invalidate();
-
+    // official android code:
+    // Container Activity ( MainActivity in this case )must implement this interface
+    public interface onListItemSelectedListener {
+        public void onListItemSelected(String deviceIP);
     }
 
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (onListItemSelectedListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString() + "CUSTOM ERROR: must implement onListItemSelectedListener");
+        }
+    }
+
+
 }
+

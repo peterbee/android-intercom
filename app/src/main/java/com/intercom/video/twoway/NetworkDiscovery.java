@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -37,7 +38,13 @@ public class NetworkDiscovery extends Thread {
     private ArrayList<String> ipList;
 
     public NetworkDiscovery() {
-        this.wifi = (WifiManager) MainActivity.utilities.mainContext.getSystemService(Context.WIFI_SERVICE);
+        try {
+            this.wifi = (WifiManager) MainActivity.utilities.mainContext.getSystemService(Context.WIFI_SERVICE);
+            }
+        catch (NullPointerException e)
+            {
+                Log.i("NetworkDiscovery"," Not Connected to WIFI"); // TODO: fix BUG-0001
+            }
         ipList = new ArrayList<String>();
     }
 
