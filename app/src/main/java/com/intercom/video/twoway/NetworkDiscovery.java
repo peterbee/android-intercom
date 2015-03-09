@@ -73,8 +73,10 @@ public class NetworkDiscovery extends Thread {
                         e.printStackTrace();
                     }
                     String url = listenForResponses(socket);
+
                     if (url != null)
-                        ipList.add(url);
+                        if(!ipList.contains(url)) //TODO:verify this as fix for BUG-0007
+                            ipList.add(url);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {

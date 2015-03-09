@@ -49,15 +49,17 @@ public class MyListFrag extends ListFragment {
 
     private void selectDetail(String deviceIP) {
         //TODO:I'm sure there is a better way to do this
-        // I'm simulating a button click after setting ip Address
+        // I'm simulating a button click after setting ip Address in an Edit Text
 
         getActivity().setContentView(R.layout.activity_main);
 
         EditText mText = (EditText) getActivity().findViewById(R.id.ipAddressEditText);
         mText.setText(deviceIP);
 
-        connectButton = (Button) getActivity().findViewById(R.id.connectButton);
+       // not sure how to make this work
+       // MainActivity.establishConnection();
 
+        connectButton = (Button) getActivity().findViewById(R.id.connectButton);
         connectButton.performClick();
         connectButton.setPressed(true);
         connectButton.invalidate();

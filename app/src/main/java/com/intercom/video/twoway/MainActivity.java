@@ -37,9 +37,11 @@ import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity
 {
+    // app verions
+    String appVersion="1.0.0";
+
     // Connct to network discovery
     NetworkDiscovery mNetworkDiscovery;
-
 
     // fragment variables here
     public static FragmentTransaction ft=null;
@@ -62,7 +64,6 @@ public class MainActivity extends ActionBarActivity
      */
     CameraJpegCapture cameraJpegCapture;
 
-
     /*
     Some helpful things (screen unlock, etc) that shouldn't go in main activity because it will be too much and messy
      */
@@ -75,11 +76,7 @@ public class MainActivity extends ActionBarActivity
     streamingEngine1 is used for the second device (that did not initiate the connection) to act as a client and streamingEngine2 to act as a server
 
      */
-    VideoStreaming streamingEngine1;
-
-    VideoStreaming streamingEngine2;
-
-
+    VideoStreaming streamingEngine1, streamingEngine2;
     Audio audioEngine;
 
     /*
@@ -93,7 +90,7 @@ public class MainActivity extends ActionBarActivity
      */
     static CheckBox smCheckBoxUseCamaraView;
     static ImageView smDeviceAvatar;
-    static TextView smDeviceNic, smLableDeviceNicL;
+    static TextView smDeviceNic, smLableDeviceNic;
 
     /*
     Keeps track of what current layout id is
@@ -162,7 +159,7 @@ public class MainActivity extends ActionBarActivity
         {
             public void onClick(View v)
             {
-                System.err.println("Connect Button clicked");
+                Log.i(TAG,"Connect Button clicked");
                 establishConnection();
             }
         });
@@ -181,7 +178,7 @@ public class MainActivity extends ActionBarActivity
     void establishConnection()
     {
         String ipAddress = ipAddressEditText.getText().toString();
-
+        Log.i(TAG," <---===establish connection called ===--->");
         ImageView jpegTestImageView = (ImageView)findViewById(R.id.jpegTestImageView);
 
         streamingEngine1.listenForMJpegConnection(jpegTestImageView);
@@ -247,17 +244,15 @@ public class MainActivity extends ActionBarActivity
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        // TODO: this will not be needed when UI is changed and NSD + list + video are integrated
         setContentView(R.layout.activity_main);
+        //getActionBar().setTitle(appVersion);
         setupButtons();
 
         setContentView(R.layout.fragment_main);
         startListenerService();
+        setupNetworkDiscovery();
 
-        // TODO: NetworkDiscovery integration
-         setupNetworkDiscovery();
-
-        // TODO: fragment code
+        // fragment code
         frag0 = new MyListFrag();
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, frag0, "MAIN_FRAGMENT");
