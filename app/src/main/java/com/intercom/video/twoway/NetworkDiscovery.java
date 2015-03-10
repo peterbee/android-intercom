@@ -109,12 +109,20 @@ public class NetworkDiscovery extends Thread {
         return inetAddress;
     }
 
-    private void sendBroadCast() throws IOException {
-        String data = new Date().toString();
-        socket.setBroadcast(true);
-        DatagramPacket packet = new DatagramPacket(data.getBytes(), data.length(),
-                getBroadcastAddress(wifi), DISCOVERY_PORT);
-        socket.send(packet);
+    private void sendBroadCast()
+    {
+        try
+        {
+            String data = new Date().toString();
+            socket.setBroadcast(true);
+            DatagramPacket packet = new DatagramPacket(data.getBytes(), data.length(),
+                    getBroadcastAddress(wifi), DISCOVERY_PORT);
+            socket.send(packet);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private String listenForResponses(DatagramSocket socket) throws IOException {
