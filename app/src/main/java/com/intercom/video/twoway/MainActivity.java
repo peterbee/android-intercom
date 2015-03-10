@@ -20,7 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.Button; 
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -83,11 +83,6 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
     Audio audioEngine;
 
     /*
-    Used to attempt to connect to another device
-     */
-    Button connectButton;
-
-    /*
     These buttons and checkbox are present in settings_menu layout
     sm = Settings Menu
      */
@@ -100,10 +95,6 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
      */
     int currentLayoutId;
 
-    /*
-    Used to enter ip address of other device for connecting
-     */
-    static EditText ipAddressEditText;
 
     volatile static ListenerService listenerService;
     volatile static boolean serviceIsBoundToActivity = false;
@@ -154,19 +145,6 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
         startService(service);
     }
 
-    void setupButtons()
-    {
-        connectButton = (Button) findViewById(R.id.connectButton);
-        ipAddressEditText = (EditText) findViewById(R.id.ipAddressEditText);
-        connectButton.setOnClickListener(new View.OnClickListener()
-        {
-            public void onClick(View v)
-            {
-                Log.i(TAG,"Connect Button clicked");
-                establishConnection();
-            }
-        });
-    }
 
 
     public void settingsMenuBackButtonPressed(View view)
@@ -178,9 +156,9 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
     Attempts to establish the tcp connection to another device
     This starts our streaming server and tells the other device to connect to us
      */
-    void establishConnection()
+    void establishConnection(String ipAddress)
     {
-        String ipAddress = ipAddressEditText.getText().toString();
+//        String ipAddress = ipAddressEditText.getText().toString();
         Log.i(TAG," <---===establish connection called ===--->");
         ImageView jpegTestImageView = (ImageView)findViewById(R.id.jpegTestImageView);
 
@@ -249,7 +227,6 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
 
         setContentView(R.layout.activity_main);
         //getActionBar().setTitle(appVersion);
-        setupButtons();
 
         setContentView(R.layout.fragment_main);
         startListenerService();
@@ -435,7 +412,6 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
 
             case R.id.action_home:
                 setContentView(R.layout.activity_main);
-                setupButtons();
                 return true;
 
             case R.id.action_find_peers:
@@ -568,18 +544,16 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
     public void onListItemSelectedListener(String deviceIP)
         {
             setContentView(R.layout.activity_main);
-            mText = (EditText) findViewById(R.id.ipAddressEditText);
-            mText.setText(deviceIP);
-            establishConnection();
+            establishConnection(deviceIP);
             Log.i(TAG," <---===establish connection called from listener ===--->");
         }
     // This method is executed when list item is clicked and ip selected
     public void onListItemSelected(String deviceIP)
     {
         setContentView(R.layout.activity_main);
-        mText = (EditText) findViewById(R.id.ipAddressEditText);
-        mText.setText(deviceIP);
-        establishConnection();
+//        mText = (EditText) findViewById(R.id.ipAddressEditText);
+//        mText.setText(deviceIP);
+        establishConnection(deviceIP);
         Log.i(TAG," <---===establish connection called from selected===--->");
     }
 
