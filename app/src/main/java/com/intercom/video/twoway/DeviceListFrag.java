@@ -8,13 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MyListFrag extends ListFragment {
+public class DeviceListFrag extends ListFragment {
     String[] values;
     //Button connectButton;
 
@@ -22,8 +20,8 @@ public class MyListFrag extends ListFragment {
     onListItemSelectedListener mListener;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
-        return super.onCreateView( inflater,  container, savedInstanceState);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
@@ -56,7 +54,7 @@ public class MyListFrag extends ListFragment {
 
         // TODO: this sends a call to MainActivity with IP info
         mListener.onListItemSelected(deviceIP);
-        }
+    }
 
     // official android code:
     // Container Activity ( MainActivity in this case )must implement this interface

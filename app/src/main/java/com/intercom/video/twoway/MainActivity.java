@@ -1,67 +1,38 @@
 package com.intercom.video.twoway;
 
-import android.app.Activity;
-import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.app.ListFragment;
 import android.content.ComponentName;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
-import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.content.SharedPreferences;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.view.LayoutInflater;
-import android.widget.Toast;
 
-import com.intercom.video.twoway.Models.ContactsEntity;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
-public class MainActivity extends ActionBarActivity implements MyListFrag.onListItemSelectedListener {
-    Uri mCurrentPhotoPath;
-    final int UPDATE_PROFILE_PICTURE = 445;
+public class MainActivity extends ActionBarActivity implements DeviceListFrag.onListItemSelectedListener {
+    public SharedPreferenceAccessor sharedPreferenceAccessor;
     //used with callback from list fragment
-    EditText mText;
 
-    // app verions
+    // app versions
     String appVersion = "1.0.0";
 
-    // Connct to network discovery
+    // Connect to network discovery
     NetworkDiscovery mNetworkDiscovery;
 
     // fragment variables here
     public static FragmentTransaction ft = null;
-    MyListFrag frag0 = null;
+    DeviceListFrag deviceListFrag = null;
+    SettingsFragment settingsFrag = null;
     //
     // frag variables ^^^
 
@@ -96,14 +67,6 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
     Audio audioEngine;
 
     /*
-    These buttons and checkbox are present in settings_menu layout
-    sm = Settings Menu
-     */
-    static CheckBox smCheckBoxUseCamaraView;
-    static ImageView smDeviceAvatar;
-    static TextView smDeviceNic, smLableDeviceNic;
-
-    /*
     Keeps track of what current layout id is
      */
     int currentLayoutId;
@@ -123,6 +86,35 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
 
     //TODO remember to remove these default values after testing^^^
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        sharedPreferenceAccessor = new SharedPreferenceAccessor(this);
+
+        audioEngine = new Audio();
+
+        streamingEngine1 = new VideoStreaming(audioEngine);
+        streamingEngine2 = new VideoStreaming(audioEngine);
+
+        utilities = new Utilities(this);
+
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        setContentView(R.layout.activity_main);
+        //getActionBar().setTitle(appVersion);
+
+        setContentView(R.layout.fragment_main);
+        startListenerService();
+        setupNetworkDiscovery();
+
+        // fragment code
+        deviceListFrag = new DeviceListFrag();
+        ft = getFragmentManager().beginTransaction();
+        ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.commit();
+    }
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -152,11 +144,6 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
     public void startListenerService() {
         Intent service = new Intent(utilities.mainContext, ListenerService.class);
         startService(service);
-    }
-
-
-    public void settingsMenuBackButtonPressed(View view) {
-        setContentView(R.layout.activity_main);
     }
 
     /*
@@ -205,42 +192,12 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
 
         switch (view.getId()) {
             case R.id.checkBox:
-                if (checked)
-                    mic = true;
-                else
-                    mic = false;
+                mic = checked;
                 break;
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
-        audioEngine = new Audio();
-
-        streamingEngine1 = new VideoStreaming(audioEngine);
-        streamingEngine2 = new VideoStreaming(audioEngine);
-
-        utilities = new Utilities(this);
-
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        setContentView(R.layout.activity_main);
-        //getActionBar().setTitle(appVersion);
-
-        setContentView(R.layout.fragment_main);
-        startListenerService();
-        setupNetworkDiscovery();
-
-        // fragment code
-        frag0 = new MyListFrag();
-        ft = getFragmentManager().beginTransaction();
-        ft.add(R.id.fragment_container, frag0, "MAIN_FRAGMENT");
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        ft.commit();
-    }
 
     /*
     triggers network discovery
@@ -386,11 +343,7 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
 
         switch (item.getItemId()) {
             case R.id.action_view_profile:
-                setContentView(R.layout.settings_menu);
-                activateSettingsMenuListeners();
-                loadProfilePictureFromPreferences();
-                doRememberDeviceNic();
-                doRememberCameraViewFlag();
+                showSettings();
                 return true;
 
             case R.id.action_home:
@@ -419,98 +372,22 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
         }
     }
 
-    public void activateSettingsMenuListeners() {
-            /*
-            auto-triggered when device nic is changed
-             */
-        EditText deviceNIC = (EditText) findViewById(R.id.settings_menu_editText_deviceNic);
-
-        // auto-save on text change for deviceNIC in settings menu
-        deviceNIC.addTextChangedListener(new TextWatcher() {
-            public void afterTextChanged(Editable s) {
-            }
-
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                setDeviceNic(s.toString());
-            }
-        });
-
-
-        CheckBox useCameraView = (CheckBox) findViewById(R.id.settings_menu_checkBox_usecamaraview);
-        // auto-save on checkbox flag change
-        useCameraView.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                setUseCameraViewFlag(isChecked);
-
-            }
-        });
-
-        final ImageView profilePic = (ImageView) findViewById(R.id.imageView_device_avatar);
-        profilePic.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                takeProfilePicture();
-            }
-        });
-
-    }
-
-
-    public void setUseCameraViewFlag(boolean isChecked) {
-        String PREFS_NAME = "SETTINGS MENU";
-        SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 1);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean("use_camera_view", isChecked);
-        editor.apply();  // Apply the edits!
-    }
-
-    public boolean getUseCameraViewFlag() {
-        String PREFS_NAME = "SETTINGS MENU";
-        SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 1);
-        return settings.getBoolean("use_camera_view", false);
-    }
-
-    public void doRememberCameraViewFlag() {
-        boolean mCameraFlag = getUseCameraViewFlag();
-        CheckBox useCameraView = (CheckBox) findViewById(R.id.settings_menu_checkBox_usecamaraview);
-        useCameraView.setChecked(mCameraFlag);
-    }
-
-
-    public void setDeviceNic(String newDeviceNic) {
-        //Log.i(TAG,"Device NIC stored --> "+ newDeviceNic);
-        String PREFS_NAME = "SETTINGS MENU";
-        SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString("device_nic", newDeviceNic);
-        editor.apply(); // Apply the edits!
-    }
-
-    public String getDeviceNic() {
-        // Log.i(TAG,"getDeviceNic Called ");
-        String PREFS_NAME = "SETTINGS MENU";
-        SharedPreferences settings = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
-        // Log.i(TAG,"DeviceNic recovered: "+settings.getString("device_nic","0"));
-        return settings.getString("device_nic", "0");
-    }
-
-    public void doRememberDeviceNic() {
-        String mDeviceNic = getDeviceNic();
-        EditText mEditText = (EditText) findViewById(R.id.settings_menu_editText_deviceNic);
-        mEditText.setText(mDeviceNic);
-        return;
-    }
-
     // method to call list fragment to screen from fragment_mail layout
     public void showDeviceList() {
         setContentView(R.layout.fragment_main);
-        frag0 = new MyListFrag();
+        deviceListFrag = new DeviceListFrag();
         ft = getFragmentManager().beginTransaction();
-        ft.add(R.id.fragment_container, frag0, "MAIN_FRAGMENT");
+        ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.commit();
+    }
+
+    public void showSettings()
+    {
+        setContentView(R.layout.fragment_main);
+        settingsFrag = new SettingsFragment();
+        ft = getFragmentManager().beginTransaction();
+        ft.add(R.id.fragment_container, settingsFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
     }
@@ -532,127 +409,5 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
 //        mText.setText(deviceIP);
         establishConnection(deviceIP);
         Log.i(TAG, " <---===establish connection called from selected===--->");
-    }
-
-    //These were just in the main method in my old repository... should have been a little bit smarter
-    //With how i handled that, but oh well
-
-    //Method called from settings fragment to take a profile picture for you device
-    public void takeProfilePicture(){
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.TITLE, "ProfilePicture");
-        values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera");
-        mCurrentPhotoPath = getContentResolver().insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, mCurrentPhotoPath);
-        startActivityForResult(intent, UPDATE_PROFILE_PICTURE);
-    }
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String imageFileName = "ProfilePicture";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-//        mCurrentPhotoPath = new Uri.Builder("file:" + image.getAbsolutePath());
-        return image;
-    }
-
-    private String loadFromSharedPreferences(String prefsName, String settingsTitle)
-    {
-        // Log.i(TAG,"getDeviceNic Called ");
-        String preferencesToReturn;
-        SharedPreferences settings = getApplicationContext().getSharedPreferences(prefsName, 0);
-        // Log.i(TAG,"DeviceNic recovered: "+settings.getString("device_nic","0"));
-        preferencesToReturn = settings.getString(settingsTitle, "0");
-        return preferencesToReturn;
-
-    }
-
-    //Called when going to settings layout, or when a device wants the contacts entity
-    private void setProfilePicture() {
-        // Returns the Uri for a photo stored on disk given the fileName
-        ImageView profilePic = (ImageView) findViewById(R.id.imageView_device_avatar);
-        try {
-//            File f = new File(mCurrentPhotoPath);
-//            Uri contentUri = Uri.fromFile(f);
-            Bitmap bitmap = BitmapFactory.decodeFile(getRealPathFromURI(mCurrentPhotoPath));
-            //Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentUri);
-            profilePic.setImageBitmap(bitmap);
-            saveProfilePictures(bitmap);
-        }
-        catch(Exception e)
-        {
-            Log.d("No Image", "Profile Image does not exist");
-        }
-    }
-
-    private void loadProfilePictureFromPreferences()
-    {
-        String picture = loadFromSharedPreferences("SETTINGS MENU", "Profile Picture");
-
-        if(picture.equals("0"))
-        {
-            Log.d("No Profile Picture", "There is no saved Profile picture");
-        }
-        else
-        {
-            // Returns the Uri for a photo stored on disk given the fileName
-            ImageView profilePic = (ImageView) findViewById(R.id.imageView_device_avatar);
-            try {
-                Bitmap bitmap = ContactsEntity.decodePictureFromBase64(picture);
-                profilePic.setImageBitmap(bitmap);
-            }
-            catch(Exception e)
-            {
-                Log.d("No Image", "Profile Image does not exist");
-            }
-        }
-    }
-
-    //Returns the actual path that can be used to grab the picture.
-    public String getRealPathFromURI(Uri contentUri) {
-        String res = null;
-        String[] proj = {MediaStore.Images.Media.DATA};
-        Cursor cursor = this.getContentResolver().query(contentUri, proj, null, null, null);
-        if (cursor.moveToFirst())
-        {
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            res = cursor.getString(column_index);
-        }
-        cursor.close();
-        return res;
-    }
-
-    private void saveProfilePictures(Bitmap picture)
-    {
-        writeToSharedPrefs("Profile Picture", ContactsEntity.encodePictureToBase64(picture), "SETTINGS MENU");
-    }
-
-    public void writeToSharedPrefs(String title, String toWrite, String preferenceName)
-    {
-        SharedPreferences settings = getApplicationContext().getSharedPreferences(preferenceName, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString(title, toWrite);
-        editor.apply();
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent)
-    {
-        if(resultCode == Activity.RESULT_OK)
-        {
-            if(requestCode == UPDATE_PROFILE_PICTURE)
-            {
-                setProfilePicture();
-            }
-        }
     }
 }
