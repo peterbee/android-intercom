@@ -35,11 +35,16 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-public class MainActivity extends ActionBarActivity
+public class MainActivity extends ActionBarActivity implements MyListFrag.onListItemSelectedListener
 {
+    //used with callback from list fragment
+    EditText mText;
+
+    // app verions
+    String appVersion="1.0.0";
+
     // Connct to network discovery
     NetworkDiscovery mNetworkDiscovery;
-
 
     // fragment variables here
     public static FragmentTransaction ft=null;
@@ -62,7 +67,6 @@ public class MainActivity extends ActionBarActivity
      */
     CameraJpegCapture cameraJpegCapture;
 
-
     /*
     Some helpful things (screen unlock, etc) that shouldn't go in main activity because it will be too much and messy
      */
@@ -75,17 +79,8 @@ public class MainActivity extends ActionBarActivity
     streamingEngine1 is used for the second device (that did not initiate the connection) to act as a client and streamingEngine2 to act as a server
 
      */
-    VideoStreaming streamingEngine1;
-
-    VideoStreaming streamingEngine2;
-
-
+    VideoStreaming streamingEngine1, streamingEngine2;
     Audio audioEngine;
-
-    /*
-    Used to attempt to connect to another device
-     */
-    Button connectButton;
 
     /*
     These buttons and checkbox are present in settings_menu layout
@@ -93,17 +88,13 @@ public class MainActivity extends ActionBarActivity
      */
     static CheckBox smCheckBoxUseCamaraView;
     static ImageView smDeviceAvatar;
-    static TextView smDeviceNic, smLableDeviceNicL;
+    static TextView smDeviceNic, smLableDeviceNic;
 
     /*
     Keeps track of what current layout id is
      */
     int currentLayoutId;
 
-    /*
-    Used to enter ip address of other device for connecting
-     */
-    static EditText ipAddressEditText;
 
     volatile static ListenerService listenerService;
     volatile static boolean serviceIsBoundToActivity = false;
@@ -113,7 +104,7 @@ public class MainActivity extends ActionBarActivity
     used in fragment_main to populate list
      */
     ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
-    public static String[] mUrlList_as_StringArray= new String[] { "default.1.1.0",
+    public static String[] mUrlList_as_StringArray= new String[] { "Original initialized",
         "default.1.1.1", "10.1.1.2", "10.1.1.3","10.1.1.4","10.1.1.5","10.1.1.6","10.1.1.7",
         "10.1.1.8", "10.1.1.9", "10.1.1.10","10.1.1.11","10.1.1.12","10.1.1.13","10.1.1.14"  };
 
@@ -154,18 +145,6 @@ public class MainActivity extends ActionBarActivity
         startService(service);
     }
 
-    void setupButtons()
-    {
-        connectButton = (Button) findViewById(R.id.connectButton);
-        ipAddressEditText = (EditText) findViewById(R.id.ipAddressEditText);
-        connectButton.setOnClickListener(new View.OnClickListener()
-        {
-            public void onClick(View v)
-            {
-                establishConnection();
-            }
-        });
-    }
 
 
     public void settingsMenuBackButtonPressed(View view)
@@ -177,10 +156,10 @@ public class MainActivity extends ActionBarActivity
     Attempts to establish the tcp connection to another device
     This starts our streaming server and tells the other device to connect to us
      */
-    void establishConnection()
+    void establishConnection(String ipAddress)
     {
-        String ipAddress = ipAddressEditText.getText().toString();
-
+//        String ipAddress = ipAddressEditText.getText().toString();
+        Log.i(TAG," <---===establish connection called ===--->");
         ImageView jpegTestImageView = (ImageView)findViewById(R.id.jpegTestImageView);
 
         streamingEngine1.listenForMJpegConnection(jpegTestImageView);
@@ -246,17 +225,14 @@ public class MainActivity extends ActionBarActivity
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        // TODO: this will not be needed when UI is changed and NSD + list + video are integrated
         setContentView(R.layout.activity_main);
-        setupButtons();
+        //getActionBar().setTitle(appVersion);
 
         setContentView(R.layout.fragment_main);
         startListenerService();
+        setupNetworkDiscovery();
 
-        // TODO: NetworkDiscovery integration
-//        setupNetworkDiscovery();
-
-        // TODO: fragment code
+        // fragment code
         frag0 = new MyListFrag();
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, frag0, "MAIN_FRAGMENT");
@@ -436,7 +412,6 @@ public class MainActivity extends ActionBarActivity
 
             case R.id.action_home:
                 setContentView(R.layout.activity_main);
-                setupButtons();
                 return true;
 
             case R.id.action_find_peers:
@@ -562,80 +537,24 @@ public class MainActivity extends ActionBarActivity
         ft.commit();
         }
 
-// <--- List fragment code for device list menu ---> //
+    // official android code
+    // TODO: not sure if this is implemented right
+    // Container Activity must implement this interface
 
-    public static class MyListFrag extends ListFragment {
-        String[] values;
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
-            return super.onCreateView( inflater,  container, savedInstanceState);
+    public void onListItemSelectedListener(String deviceIP)
+        {
+            setContentView(R.layout.activity_main);
+            establishConnection(deviceIP);
+            Log.i(TAG," <---===establish connection called from listener ===--->");
         }
-
-
-        @Override
-        public void onActivityCreated(Bundle b) {
-            super.onActivityCreated(b);
-
-            //TODO: call update IP list here
-            values = mUrlList_as_StringArray;
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-                    android.R.layout.simple_list_item_1, mUrlList_as_StringArray);
-            setListAdapter(adapter);
-        } //onActivityCreated close bracket
-
-
-        //////////////////////////
-
-        @Override
-        public void onListItemClick(ListView l, View v, int position, long id) {
-            Log.i(TAG, "Position " +position + " was clicked\n" + v);
-            String deviceIP = ((TextView) v).getText().toString();
-            Log.i("ListItemSelected: ", deviceIP);
-            Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
-
-            selectDetail(deviceIP);
-        }
-
-
-        private void selectDetail(String deviceIP) {
-            //TODO: go to screen 3 and start 2-way stream from selected device
-        }
-
-
-
-        public static class MyImageFragment extends Fragment {
-
-            @Override
-            public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                     Bundle savedInstanceState) {
-                View myFragmentView = inflater.inflate(R.layout.fragment_main, container, false);
-
-                return myFragmentView;
-            }
-
-        }
-
-
-    }
-
-////////	//////////// list fragment code ends here
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container,
-                    false);
-            return rootView;
-        }
+    // This method is executed when list item is clicked and ip selected
+    public void onListItemSelected(String deviceIP)
+    {
+        setContentView(R.layout.activity_main);
+//        mText = (EditText) findViewById(R.id.ipAddressEditText);
+//        mText.setText(deviceIP);
+        establishConnection(deviceIP);
+        Log.i(TAG," <---===establish connection called from selected===--->");
     }
 
 

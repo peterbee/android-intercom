@@ -105,7 +105,7 @@ public class CameraJpegCapture
             {
                 public void onPreviewFrame(byte[] data, Camera camera)
                 {
-                    android.hardware.Camera.Parameters parameters = camera.getParameters();
+                    Camera.Parameters parameters = camera.getParameters();
                     int imageFormat = parameters.getPreviewFormat();
                     if (imageFormat == ImageFormat.NV21)
                     {

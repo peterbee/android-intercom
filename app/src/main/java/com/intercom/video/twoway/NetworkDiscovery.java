@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -37,7 +38,13 @@ public class NetworkDiscovery extends Thread {
     private ArrayList<String> ipList;
 
     public NetworkDiscovery() {
-        this.wifi = (WifiManager) MainActivity.utilities.mainContext.getSystemService(Context.WIFI_SERVICE);
+        try {
+            this.wifi = (WifiManager) MainActivity.utilities.mainContext.getSystemService(Context.WIFI_SERVICE);
+            }
+        catch (NullPointerException e)
+            {
+                Log.i("NetworkDiscovery"," Not Connected to WIFI"); // TODO: fix BUG-0001
+            }
         ipList = new ArrayList<String>();
     }
 
@@ -73,8 +80,10 @@ public class NetworkDiscovery extends Thread {
                         e.printStackTrace();
                     }
                     String url = listenForResponses(socket);
+
                     if (url != null)
-                        ipList.add(url);
+                        if(!ipList.contains(url)) //TODO:verify this as fix for BUG-0007
+                            ipList.add(url);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -100,12 +109,20 @@ public class NetworkDiscovery extends Thread {
         return inetAddress;
     }
 
-    private void sendBroadCast() throws IOException {
-        String data = new Date().toString();
-        socket.setBroadcast(true);
-        DatagramPacket packet = new DatagramPacket(data.getBytes(), data.length(),
-                getBroadcastAddress(wifi), DISCOVERY_PORT);
-        socket.send(packet);
+    private void sendBroadCast()
+    {
+        try
+        {
+            String data = new Date().toString();
+            socket.setBroadcast(true);
+            DatagramPacket packet = new DatagramPacket(data.getBytes(), data.length(),
+                    getBroadcastAddress(wifi), DISCOVERY_PORT);
+            socket.send(packet);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private String listenForResponses(DatagramSocket socket) throws IOException {
