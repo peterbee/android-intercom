@@ -1,4 +1,4 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Utilities;
 import android.app.Activity;
 import android.app.KeyguardManager;
 import android.app.ProgressDialog;
@@ -36,7 +36,7 @@ public class Utilities
     TODO make this work without depricated features.
     TODO make this method less shitty and figure out the right way to do it
     */
-    void forceWakeUpUnlock()
+    public void forceWakeUpUnlock()
     {
         KeyguardManager km = (KeyguardManager) mainContext.getSystemService(Context.KEYGUARD_SERVICE);
         final KeyguardManager.KeyguardLock kl = km .newKeyguardLock("MyKeyguardLock");

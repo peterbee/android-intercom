@@ -1,4 +1,4 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Services;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -8,6 +8,11 @@ import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
+
+import com.intercom.video.twoway.MainActivity;
+import com.intercom.video.twoway.Network.Tcp;
+import com.intercom.video.twoway.R;
+import com.intercom.video.twoway.Utilities.ControlConstants;
 
 public class ListenerService extends Service 
 {
@@ -29,7 +34,7 @@ public class ListenerService extends Service
 	 */
 	public class LocalBinder extends Binder 
 	{
-		ListenerService getService()
+		public ListenerService getService()
 		{
 			// Return this instance of LocalService so clients can call public
 			// methods

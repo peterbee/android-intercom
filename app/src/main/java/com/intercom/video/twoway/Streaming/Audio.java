@@ -1,10 +1,12 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Streaming;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+
+import com.intercom.video.twoway.MainActivity;
 
 import java.io.ByteArrayOutputStream;
 
@@ -31,7 +33,7 @@ public class Audio
     // stores our built up audio data, this grows as more data is read and shrinks down when audio data is transmitted
     ByteArrayOutputStream audioDataStorageStream = new ByteArrayOutputStream();
 
-    Audio()
+    public Audio()
     {
         setupAudioPlayer();
 
@@ -39,7 +41,7 @@ public class Audio
     /*
     this returns all bytes in audioDataStorageStream and clears it
     */
-    byte[] consumeAudioBytes()
+    public byte[] consumeAudioBytes()
     {
 
         byte[] audioData = audioDataStorageStream.toByteArray();
@@ -53,7 +55,7 @@ public class Audio
     /*
     sets up our audio player to constantly play data we feed it
      */
-    void setupAudioPlayer()
+    public void setupAudioPlayer()
     {
         audioTrackPlayer = new AudioTrack(AudioManager.STREAM_MUSIC,RECORDER_SAMPLERATE, AudioFormat.CHANNEL_OUT_MONO,RECORDER_AUDIO_ENCODING, AUDIO_CHUNK_SIZE * BYTES_PER_AUDIO_ELEMENT, AudioTrack.MODE_STREAM);
         audioTrackPlayer.play();
@@ -81,7 +83,7 @@ public class Audio
     /*
     Start capturing audio data from the mic
      */
-    void startAudioCapture()
+    public void startAudioCapture()
     {
 
         Thread audioCaptureThread = new Thread(new Runnable()

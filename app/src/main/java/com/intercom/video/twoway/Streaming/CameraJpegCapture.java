@@ -1,12 +1,10 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Streaming;
 
 /*
 This class deals with capturing camera data in real time
  */
 
 import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
@@ -14,13 +12,16 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.util.DisplayMetrics;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
+
+import com.intercom.video.twoway.R;
+import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 public class CameraJpegCapture
 {
+    public Utilities utilities;
     int pWidth=320;
     int pHeight=240;
     int jpegQuality = 10;
@@ -32,10 +33,11 @@ public class CameraJpegCapture
     VideoStreaming streamEngine;
     Audio audioEngine;
 
-    static Camera.PreviewCallback previewCallback;
+    public static Camera.PreviewCallback previewCallback;
 
-    CameraJpegCapture(VideoStreaming streamer, Audio audio)
+    public CameraJpegCapture(VideoStreaming streamer, Audio audio, Utilities utilities)
     {
+        this.utilities = utilities;
         streamEngine = streamer;
         audioEngine = audio;
     }
@@ -45,7 +47,7 @@ public class CameraJpegCapture
     private List getSupportedPreviewSizes()
     {
         DisplayMetrics metrics = new DisplayMetrics();
-        ((Activity)(MainActivity.utilities.mainContext)).getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        ((Activity)(utilities.mainContext)).getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
         int height = metrics.widthPixels;
         int width = metrics.heightPixels;
@@ -65,7 +67,7 @@ public class CameraJpegCapture
     /*
     we pass in streamEngine so we can send out frames as they are captured
      */
-    void startCam()
+    public void startCam()
     {
         try
         {
@@ -76,9 +78,9 @@ public class CameraJpegCapture
 
             // mCamera = openFrontFacingCameraGingerbread();
             // Create our Preview view and set it as the content of our activity.
-            mPreview = new CameraPreview(MainActivity.utilities.mainContext, mCamera);
+            mPreview = new CameraPreview(utilities.mainContext, mCamera);
 
-            preview = (FrameLayout) ((Activity)(MainActivity.utilities.mainContext)).findViewById(R.id.camera_preview);
+            preview = (FrameLayout) ((Activity)(utilities.mainContext)).findViewById(R.id.camera_preview);
 
             preview.addView(mPreview);
             params = mCamera.getParameters();
@@ -97,7 +99,7 @@ public class CameraJpegCapture
     /*
     This sets our callback tat is called on every single camera preview frame
      */
-    void setupPreviewJpegCaptureCallback(Camera c)
+    public void setupPreviewJpegCaptureCallback(Camera c)
     {
         try
         {

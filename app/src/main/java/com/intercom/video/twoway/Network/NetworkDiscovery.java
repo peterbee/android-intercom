@@ -1,10 +1,11 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Network;
 
 import android.content.Context;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
-import android.widget.Toast;
+
+import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -36,10 +37,12 @@ public class NetworkDiscovery extends Thread {
     private String myIp;
     private boolean stop = false;
     private ArrayList<String> ipList;
+    private Utilities utilities;
 
-    public NetworkDiscovery() {
+    public NetworkDiscovery(Utilities utilities) {
+        this.utilities = utilities;
         try {
-            this.wifi = (WifiManager) MainActivity.utilities.mainContext.getSystemService(Context.WIFI_SERVICE);
+            this.wifi = (WifiManager) this.utilities.mainContext.getSystemService(Context.WIFI_SERVICE);
             }
         catch (NullPointerException e)
             {

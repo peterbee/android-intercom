@@ -1,4 +1,4 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Utilities;
 
 import android.content.Context;
 import android.content.SharedPreferences;

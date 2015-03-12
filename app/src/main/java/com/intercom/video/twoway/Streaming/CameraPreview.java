@@ -1,22 +1,13 @@
-package com.intercom.video.twoway;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+package com.intercom.video.twoway.Streaming;
 import java.io.IOException;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.ImageFormat;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
-import android.hardware.Camera.PreviewCallback;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import com.intercom.video.twoway.Streaming.CameraJpegCapture;
 
 /*
 Used to help get camera data.
