@@ -23,7 +23,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     //used with callback from list fragment
 
     // app verions
-    String appVersion="1.0.0";
+    String appVersion="1.0.1";
 
     // Connect to network discovery
     NetworkDiscovery mNetworkDiscovery;
