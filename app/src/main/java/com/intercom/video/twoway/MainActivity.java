@@ -41,7 +41,7 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
     EditText mText;
 
     // app verions
-    String appVersion="1.0.0";
+    String appVersion="1.0.1";
 
     // Connct to network discovery
     NetworkDiscovery mNetworkDiscovery;
@@ -104,12 +104,7 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
     used in fragment_main to populate list
      */
     ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
-    public static String[] mUrlList_as_StringArray= new String[] { "Original initialized",
-        "default.1.1.1", "10.1.1.2", "10.1.1.3","10.1.1.4","10.1.1.5","10.1.1.6","10.1.1.7",
-        "10.1.1.8", "10.1.1.9", "10.1.1.10","10.1.1.11","10.1.1.12","10.1.1.13","10.1.1.14"  };
-
-    //TODO remember to remove these default values after testing^^^
-
+    public static String[] mUrlList_as_StringArray= new String[] { "No devices discovered" };
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -158,10 +153,7 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
      */
     void establishConnection(String ipAddress)
     {
-//        String ipAddress = ipAddressEditText.getText().toString();
-        Log.i(TAG," <---===establish connection called ===--->");
         ImageView jpegTestImageView = (ImageView)findViewById(R.id.jpegTestImageView);
-
         streamingEngine1.listenForMJpegConnection(jpegTestImageView);
 
         // this unlocks and turns on the other device via service
@@ -315,7 +307,10 @@ public class MainActivity extends ActionBarActivity implements MyListFrag.onList
         // then start our own remote server and tel the other device to connect
         if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_FIRST))
         {
+            // TODO: set autoswitch to main layout =true
+            setContentView(R.layout.activity_main);
             utilities.forceWakeUpUnlock();
+
 
             audioEngine.startAudioCapture();
 
