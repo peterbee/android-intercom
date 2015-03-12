@@ -95,14 +95,14 @@ public class SettingsFragment extends Fragment {
 
     public void setUseCameraViewFlag(boolean isChecked) {
         this.sharedPreferenceAccessor.writeBooleanToSharedPrefs(
-                SharedPreferenceAccessor.SETTINGS_MENU,
-                isChecked, SharedPreferenceAccessor.USE_CAMERA_VIEW);
+                SharedPreferenceAccessor.USE_CAMERA_VIEW,
+                isChecked, SharedPreferenceAccessor.SETTINGS_MENU);
     }
 
     public void setDeviceNic(String newDeviceNickname) {
         this.sharedPreferenceAccessor.writeStringToSharedPrefs(
-                SharedPreferenceAccessor.SETTINGS_MENU,
-                SharedPreferenceAccessor.DEVICE_NICKNAME, newDeviceNickname);
+                SharedPreferenceAccessor.DEVICE_NICKNAME,
+                newDeviceNickname,SharedPreferenceAccessor.SETTINGS_MENU);
     }
 
     public boolean getUseCameraViewFlag() {

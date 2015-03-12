@@ -26,21 +26,22 @@ public class SharedPreferenceAccessor {
         }
     }
 
-    public void writeStringToSharedPrefs(String title, String toWrite, String preferenceName)
+    public void writeStringToSharedPrefs(String saveTitle, String toWrite, String preferenceName)
     {
         SharedPreferences settings = referenceActivity.getApplicationContext().
                 getSharedPreferences(preferenceName, 0);
         SharedPreferences.Editor editor = settings.edit();
-        editor.putString(title, toWrite);
+        editor.putString(saveTitle, toWrite);
         editor.apply();
     }
 
-    public void writeBooleanToSharedPrefs(String title, boolean toWrite, String preferenceName)
+    public void writeBooleanToSharedPrefs(String saveTitle,
+                                          boolean toWrite, String preferenceName)
     {
         SharedPreferences settings = referenceActivity.getApplicationContext().
                 getSharedPreferences(preferenceName, 0);
         SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(title, toWrite);
+        editor.putBoolean(saveTitle, toWrite);
         editor.apply();
     }
 
