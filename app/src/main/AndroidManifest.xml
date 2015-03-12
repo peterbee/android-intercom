@@ -35,7 +35,7 @@
         </activity>
 
         <service
-            android:name="com.intercom.video.twoway.ListenerService"
+            android:name=".Services.ListenerService"
             android:icon="@drawable/service_icon"
             android:label="listener_service"
             />

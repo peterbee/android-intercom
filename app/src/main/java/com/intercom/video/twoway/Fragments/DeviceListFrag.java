@@ -1,4 +1,4 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Fragments;
 
 import android.app.Activity;
 import android.app.ListFragment;
@@ -11,6 +11,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.intercom.video.twoway.MainActivity;
 
 public class DeviceListFrag extends ListFragment {
     String[] values;

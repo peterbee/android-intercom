@@ -16,6 +16,18 @@ import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 
+import com.intercom.video.twoway.Fragments.DeviceListFrag;
+import com.intercom.video.twoway.Fragments.SettingsFragment;
+import com.intercom.video.twoway.Services.ListenerService;
+import com.intercom.video.twoway.Network.NetworkDiscovery;
+import com.intercom.video.twoway.Streaming.Audio;
+import com.intercom.video.twoway.Streaming.CameraJpegCapture;
+import com.intercom.video.twoway.Network.Tcp;
+import com.intercom.video.twoway.Streaming.VideoStreaming;
+import com.intercom.video.twoway.Utilities.ControlConstants;
+import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
+import com.intercom.video.twoway.Utilities.Utilities;
+
 import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity implements DeviceListFrag.onListItemSelectedListener {
@@ -35,10 +47,8 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     //
     // frag variables ^^^
 
-    ControlConstants constants = new ControlConstants();
-
     // used in logcat logging
-    static String TAG = "Two-Way:";
+    public static String TAG = "Two-Way:";
 
     /*
     Handles all networking stuff
@@ -53,7 +63,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     /*
     Some helpful things (screen unlock, etc) that shouldn't go in main activity because it will be too much and messy
      */
-    static Utilities utilities;
+    public Utilities utilities;
 
     /*
     Handles all the video and audio streaming stuff.
@@ -64,6 +74,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
      */
     VideoStreaming streamingEngine1, streamingEngine2;
     Audio audioEngine;
+    public static boolean mic = true;
 
     /*
     Keeps track of what current layout id is
@@ -75,7 +86,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     volatile static boolean serviceIsBoundToActivity = false;
 
     /*
-    list of all discovered IP adresses
+    list of all discovered IP addresses
     used in fragment_main to populate list
      */
     ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
@@ -89,13 +100,12 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sharedPreferenceAccessor = new SharedPreferenceAccessor(this);
-
+        utilities = new Utilities(this);
         audioEngine = new Audio();
 
-        streamingEngine1 = new VideoStreaming(audioEngine);
-        streamingEngine2 = new VideoStreaming(audioEngine);
+        streamingEngine1 = new VideoStreaming(audioEngine, utilities);
+        streamingEngine2 = new VideoStreaming(audioEngine, utilities);
 
-        utilities = new Utilities(this);
 
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -124,7 +134,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
             utilities.showToastMessage("Connected to service");
             // We've bound to LocalService, cast the IBinder and get
             // LocalService instance
-            com.intercom.video.twoway.ListenerService.LocalBinder binder = (com.intercom.video.twoway.ListenerService.LocalBinder) service;
+            ListenerService.LocalBinder binder = (ListenerService.LocalBinder) service;
             listenerService = binder.getService();
 
             serviceIsBoundToActivity = true;
@@ -181,7 +191,6 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
         super.setContentView(layoutResID);
     }
 
-    static boolean mic = true;
 
     public void onCheckboxClicked(View view) {
 
@@ -204,7 +213,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     public void setupNetworkDiscovery() {
         //TODO: move this into NetworkDiscovery class
         //WifiManager mWifi= (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        mNetworkDiscovery = new NetworkDiscovery();
+        mNetworkDiscovery = new NetworkDiscovery(utilities);
         mNetworkDiscovery.start();
         mUrlList_asArrayList = mNetworkDiscovery.getIpList();
 
@@ -257,13 +266,13 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
         utilities.showToastMessage("Intent Received - " + intent.getExtras().getString("COMMAND"));
 
         // simply start the activity and turn on the screen, nothing more
-        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_ACTIVITY)) {
+        if (COMMAND_STRING.equals(ControlConstants.INTENT_COMMAND_START_ACTIVITY)) {
             utilities.forceWakeUpUnlock();
         }
 
         // tells us to connect to the remote server and start feeding it our video
         // then start our own remote server and tel the other device to connect
-        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_FIRST)) {
+        if (COMMAND_STRING.equals(ControlConstants.INTENT_COMMAND_START_STREAMING_FIRST)) {
             // TODO: set autoswitch to main layout =true
             setContentView(R.layout.activity_main);
             utilities.forceWakeUpUnlock();
@@ -272,7 +281,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
 
             // connect to the remote device and start streaming
             streamingEngine1.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
-            cameraJpegCapture = new CameraJpegCapture(streamingEngine1, audioEngine);
+            cameraJpegCapture = new CameraJpegCapture(streamingEngine1, audioEngine, utilities);
             cameraJpegCapture.startCam();
 
             // now start our server and tell the other to connect to us
@@ -281,14 +290,14 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
 
         // tells us to connect to the remote server, this happens second after we have already started our own server and told them to connect
         // the difference between this and INTENT_COMMAND_START_STREAMING_FIRST is that we dont start a new server and tell the other to connect because we already did that
-        if (COMMAND_STRING.equals(constants.INTENT_COMMAND_START_STREAMING_SECOND)) {
+        if (COMMAND_STRING.equals(ControlConstants.INTENT_COMMAND_START_STREAMING_SECOND)) {
             utilities.forceWakeUpUnlock();
 
             audioEngine.startAudioCapture();
 
             // connect to the remote device and start streaming
             streamingEngine2.connectToDevice(intent.getExtras().getString("EXTRA_DATA"));
-            cameraJpegCapture = new CameraJpegCapture(streamingEngine2, audioEngine);
+            cameraJpegCapture = new CameraJpegCapture(streamingEngine2, audioEngine, utilities);
             cameraJpegCapture.startCam();
         }
 

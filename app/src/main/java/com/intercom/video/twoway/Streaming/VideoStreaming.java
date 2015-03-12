@@ -1,27 +1,14 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Streaming;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.Camera;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.preference.PreferenceManager;
-import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.MediaController;
-import android.widget.VideoView;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import com.intercom.video.twoway.Utilities.Utilities;
+
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
@@ -34,6 +21,7 @@ public class VideoStreaming
 {
 
     private int LISTENING_SERVICE_PORT = 2049;
+    private Utilities utilities;
 
     /*
     Used when we are the client
@@ -59,8 +47,9 @@ public class VideoStreaming
 
     Audio audioEngine;
 
-    VideoStreaming(Audio a)
+    public VideoStreaming(Audio a, Utilities utilities)
     {
+        this.utilities = utilities;
         connected = false;
         audioEngine=a;
     }
@@ -78,7 +67,7 @@ public class VideoStreaming
     /*
     Close the streams and socket
      */
-    void closeConnection()
+    public void closeConnection()
     {
         try
         {
@@ -116,7 +105,7 @@ public class VideoStreaming
     /*
    Listen for a connection.  This should only be called from a seperate thread so the main thread isnt blocked
     */
-    void listenForMJpegConnection(final ImageView jpegImageView)
+    public void listenForMJpegConnection(final ImageView jpegImageView)
     {
         Thread listenForConnectionThread = new Thread()
         {
@@ -209,7 +198,7 @@ public class VideoStreaming
 
     // asynchronously decode a frame of video and audio so that we don't cause tcp stack to get backed up with data
     // during the decode process
-    void decodeFrameAndAudioAsynch(final int jpegLength, final byte[] jpegData, final int audioLength, final byte[] audioData, final ImageView jpegImageView)
+    public void decodeFrameAndAudioAsynch(final int jpegLength, final byte[] jpegData, final int audioLength, final byte[] audioData, final ImageView jpegImageView)
     {
         Thread decodeFrameThread = new Thread()
         {
@@ -225,7 +214,7 @@ public class VideoStreaming
                     {
                         e.printStackTrace();
                     }
-                    ((Activity) (MainActivity.utilities.mainContext)).runOnUiThread(new Runnable()
+                    ((Activity) (utilities.mainContext)).runOnUiThread(new Runnable()
                     {
                         @Override
                         public void run()
@@ -323,7 +312,7 @@ public class VideoStreaming
     /*
     Try to connect to the other device, this must be done before we send any Jpeg frames
      */
-    void connectToDevice(final String ipAddress)
+    public void connectToDevice(final String ipAddress)
     {
         Thread openConnectionThread = new Thread()
         {

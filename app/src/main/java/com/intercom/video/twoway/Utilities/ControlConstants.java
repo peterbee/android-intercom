@@ -1,4 +1,4 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Utilities;
 
 import android.app.Activity;
 import android.app.KeyguardManager;
@@ -23,18 +23,13 @@ includes:
 public class ControlConstants
 {
     // commands sent via intent to the activity from the service
-    final String INTENT_COMMAND_START_ACTIVITY = "START_ACTIVITY";
-    final String INTENT_COMMAND_START_STREAMING_FIRST = "START_STREAMING_FIRST";
-    final String INTENT_COMMAND_START_STREAMING_SECOND = "START_STREAMING_SECOND";
+    public static final String INTENT_COMMAND_START_ACTIVITY = "START_ACTIVITY";
+    public static final String INTENT_COMMAND_START_STREAMING_FIRST = "START_STREAMING_FIRST";
+    public static final String INTENT_COMMAND_START_STREAMING_SECOND = "START_STREAMING_SECOND";
 
-    final String INTENT_COMMAND_STOP_STREAMING = "STOP_STREAMING";
+    public static final String INTENT_COMMAND_STOP_STREAMING = "STOP_STREAMING";
 
     // commands sent over network from device to device
-    final String NETWORK_COMMAND_START_STREAMING = "START_STREAMING";
-    final String NETWORK_COMMAND_STOP_STREAMING = "STOP_STREAMING";
-
-    ControlConstants()
-    {
-
-    }
+    public static final String NETWORK_COMMAND_START_STREAMING = "START_STREAMING";
+    public static final String NETWORK_COMMAND_STOP_STREAMING = "STOP_STREAMING";
 }

@@ -1,10 +1,12 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Fragments;
 
 import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.intercom.video.twoway.R;
 
 public class MyImageFragment extends Fragment {
 

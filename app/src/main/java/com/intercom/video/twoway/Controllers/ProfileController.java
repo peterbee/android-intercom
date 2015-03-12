@@ -1,16 +1,15 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Controllers;
 
-import android.graphics.Bitmap;
-import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import com.intercom.video.twoway.Models.ContactsEntity;
+import com.intercom.video.twoway.Network.NetworkConstants;
+import com.intercom.video.twoway.Network.Tcp;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;

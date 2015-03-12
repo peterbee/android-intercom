@@ -1,4 +1,4 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Network;
 
 /**
  * Created by charles on 3/5/15.

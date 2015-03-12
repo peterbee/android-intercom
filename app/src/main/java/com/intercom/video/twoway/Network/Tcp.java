@@ -1,4 +1,4 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Network;
 
 import android.util.Log;
 
@@ -19,7 +19,7 @@ public class Tcp
     private int LISTENING_SERVICE_PORT = 1025;
 
     // the remote address of the last device we connected to
-    String lastRemoteIpAddress;
+    public String lastRemoteIpAddress;
 
     /*
     Used when we are the client
@@ -45,7 +45,7 @@ public class Tcp
     final int DISCONNECTED = 1;
     final int CONNECTED = 2;
 
-    Tcp()
+    public Tcp()
     {
         connectionState=DISCONNECTED;
     }
@@ -64,7 +64,7 @@ public class Tcp
     /*
     Close the streams and socket
      */
-    void closeConnection()
+    public void closeConnection()
     {
         try
         {
@@ -122,7 +122,7 @@ public class Tcp
     /*
    Listen for a connection.  This should only be called from a seperate thread so the main thread isnt blocked
     */
-    int listenForConnection()
+    public int listenForConnection()
     {
         int connectionStage=0;
         try
@@ -160,7 +160,7 @@ public class Tcp
     /*
     Informs the remote device that we have started a streaming server and are read to be connected to
      */
-    void connectToDevice(final String ipAddress, final int connectionStage)
+    public void connectToDevice(final String ipAddress, final int connectionStage)
     {
         Thread openConnectionThread = new Thread()
         {
@@ -203,7 +203,7 @@ public class Tcp
     /*
     Returns the ip address of the remote device we are connected to
      */
-    String getRemoteIpAddress()
+    public String getRemoteIpAddress()
     {
 
         return tcpSocket.getRemoteSocketAddress().toString();

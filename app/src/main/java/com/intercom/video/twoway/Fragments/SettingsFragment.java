@@ -1,4 +1,4 @@
-package com.intercom.video.twoway;
+package com.intercom.video.twoway.Fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -22,6 +22,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.intercom.video.twoway.Models.ContactsEntity;
+import com.intercom.video.twoway.R;
+import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
 
 
 public class SettingsFragment extends Fragment {
