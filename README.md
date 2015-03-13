@@ -1,14 +1,14 @@
 # Building and Installing the Two-Way App
 
-For minimum device requirements, view the list [here](https://github.com/robertzas/7bit/wiki/Minimum-Specifications).
+For minimum device requirements, view the list [here](wiki/Minimum-Specifications).
 
-* [Building and Installing Using the Command Line](https://github.com/robertzas/7bit/wiki/Building-and-Installing#building-and-installing-using-the-command-line)
- * [Requirements](https://github.com/robertzas/7bit/wiki/Building-and-Installing#requirements)
- * [Building](https://github.com/robertzas/7bit/wiki/Building-and-Installing#building)
- * [Installing](https://github.com/robertzas/7bit/wiki/Building-and-Installing#installing)
-* [Building and Installing With Android Studio](https://github.com/robertzas/7bit/wiki/Building-and-Installing#building-and-installing-with-android-studio)
- * [Requirements](https://github.com/robertzas/7bit/wiki/Building-and-Installing#requirements-1)
- * [Building and Installing](https://github.com/robertzas/7bit/wiki/Building-and-Installing#building-and-installing)
+* [Building and Installing Using the Command Line](#building-and-installing-using-the-command-line)
+ * [Requirements](#requirements)
+ * [Building](#building)
+ * [Installing](#installing)
+* [Building and Installing With Android Studio](#building-and-installing-with-android-studio)
+ * [Requirements](#requirements-1)
+ * [Building and Installing](#building-and-installing)
 
 ---
 
@@ -34,7 +34,7 @@ Note: On Android 4.2 and newer, Developer options is hidden by default. To make 
 1. Check out the Code<br>
     The source can either be downloaded as a zip archive or by using git.
  1. Downloading Archive
-<br><br><br>![](https://github.com/robertzas/7bit/wiki/Images/Build Instructions/Clone/01.png)<br>
+<br><br><br>![](Images/Build Instructions/Clone/01.png)<br>
         Go to https://github.com/robertzas/7bit and click the <b>Download Zip</b> button.  Extract the 7bit-master folder from the archive.
  1. Checkout Using Git<br>
         Open a command prompt or bash and navigate to the location you want the source saved to.  Run the following command:<br>`git clone https://github.com/robertzas/7bit`<br> Enter your GitHub login and password if prompted.  The code will be checked out to a folder called 7bit in the current directory.
@@ -73,18 +73,18 @@ Note: On Android 4.2 and newer, Developer options is hidden by default. To make 
 
 ### Building and Installing
 1. Open Android Studio.
-<br><br><br>![](https://github.com/robertzas/7bit/wiki/Images/Build Instructions/Android Studio/01.png)<br>
+<br><br><br>![](Images/Build Instructions/Android Studio/01.png)<br>
 1. From the <b>Quick Start</b> menu, select <b>Check out project from Version Control</b> and select <b>GitHub</b>
-<br><br><br>![](https://github.com/robertzas/7bit/wiki/Images/Build Instructions/Android Studio/02.png)<br>
+<br><br><br>![](Images/Build Instructions/Android Studio/02.png)<br>
 1. Enter <i>http<b></b>s://github.com/robertzas/7bit.git</i> in the <b>Vcs Repository URL</b> field.
 1. Select a folder to checkout the source code in under the <b>Parent Directory</b> field.
 1. Leave the <b>Directory Name</b> as <i>7bit</i>.
 1. Click the <b>Clone</b> button.
-<br><br><br>![](https://github.com/robertzas/7bit/wiki/Images/Build Instructions/Android Studio/03.png)<br>
+<br><br><br>![](Images/Build Instructions/Android Studio/03.png)<br>
 1. Click <b>Yes</b>.
 1. Connect your Android device to your computer with a USB cable.
-<br><br><br>![](https://github.com/robertzas/7bit/wiki/Images/Build Instructions/Android Studio/04.png)<br>
+<br><br><br>![](Images/Build Instructions/Android Studio/04.png)<br>
 1. Click <b>Run</b> from the menu and then <b>Run 'app'</b>.
-<br><br><br>![](https://github.com/robertzas/7bit/wiki/Images/Build Instructions/Android Studio/05.png)<br>
+<br><br><br>![](Images/Build Instructions/Android Studio/05.png)<br>
 1. You will see a <b>Choose Device</b> window, select the device to install the app to and click <b>OK</b>.
 1. This will build the app in Android studio and install and run the app on your Android device.
