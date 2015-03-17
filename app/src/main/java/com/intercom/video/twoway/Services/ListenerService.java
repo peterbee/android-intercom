@@ -10,6 +10,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import com.intercom.video.twoway.MainActivity;
+import com.intercom.video.twoway.Network.NetworkConstants;
 import com.intercom.video.twoway.Network.Tcp;
 import com.intercom.video.twoway.R;
 import com.intercom.video.twoway.Utilities.ControlConstants;
@@ -118,6 +119,8 @@ public class ListenerService extends Service
                             sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_FIRST, newRemoteAddress);
                         if(connectionStage==2)
                             sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_SECOND, newRemoteAddress);
+                        if(connectionStage== NetworkConstants.PROFILE)
+                            sendCommandToActivity(ControlConstants.INTENT_COMMAND_TRANSFER_PROFILE, newRemoteAddress);
 
                         // now just close the connection since this is only proof of concept
                         serviceTcpEngine.closeConnection();

@@ -16,6 +16,7 @@ import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 
+import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.Fragments.DeviceListFrag;
 import com.intercom.video.twoway.Fragments.SettingsFragment;
 import com.intercom.video.twoway.Services.ListenerService;
@@ -30,7 +31,9 @@ import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.util.ArrayList;
 
-public class MainActivity extends ActionBarActivity implements DeviceListFrag.onListItemSelectedListener {
+public class MainActivity extends ActionBarActivity implements
+        DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface {
+    public ProfileController profileController;
     public SharedPreferenceAccessor sharedPreferenceAccessor;
     //used with callback from list fragment
 
@@ -106,7 +109,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
         streamingEngine1 = new VideoStreaming(audioEngine, utilities);
         streamingEngine2 = new VideoStreaming(audioEngine, utilities);
 
-
+        profileController = new ProfileController(this);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -300,6 +303,11 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
             cameraJpegCapture = new CameraJpegCapture(streamingEngine2, audioEngine, utilities);
             cameraJpegCapture.startCam();
         }
+        if(COMMAND_STRING.equals(ControlConstants.INTENT_COMMAND_TRANSFER_PROFILE))
+        {
+            this.profileController.receiveDeviceInfoByIP(intent.getExtras().getString("EXTRA_DATA"));
+            this.profileController.sendDeviceInfoByIp(intent.getExtras().getString("EXTRA_DATA"));
+        }
 
 
     }
@@ -418,5 +426,10 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
 //        mText.setText(deviceIP);
         establishConnection(deviceIP);
         Log.i(TAG, " <---===establish connection called from selected===--->");
+    }
+
+    @Override
+    public ProfileController retrieveProfileController() {
+        return profileController;
     }
 }
