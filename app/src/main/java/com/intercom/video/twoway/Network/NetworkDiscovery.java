@@ -143,10 +143,11 @@ public class NetworkDiscovery extends Thread {
                 if (ip.equals(myIp) || ipList.contains(ip)) {
                     socket.send(packet);
                     Log.d("NetworkDiscovery", "Ip known, rebroadcasting: " + ip);
+                }else {
+                    payload = new String(packet.getData(), 0, packet.getLength());
+                    Log.d("NetworkDiscovery", "received: " + payload + " ip: " + ip);
+                    return ip;
                 }
-                payload = new String(packet.getData(), 0, packet.getLength());
-                Log.d("NetworkDiscovery", "received: " + payload + " ip: " + ip);
-                return ip;
             }
         } catch (SocketTimeoutException e) {
             Log.d("NetworkDiscovery", "timed out");
