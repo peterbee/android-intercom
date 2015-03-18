@@ -30,7 +30,7 @@ ipList == list of discovered ips
 public class NetworkDiscovery extends Thread {
 
     private static final int DISCOVERY_PORT = 44444;
-    private static final int LISTENING_TIMEOUT_MS = 500;
+    private static final int LISTENING_TIMEOUT_MS = 1000;
     private static final int OPPORTUNITY_TIMEOUT_MS = 200;
     private WifiManager wifi;
     private DatagramSocket socket;
@@ -76,7 +76,7 @@ public class NetworkDiscovery extends Thread {
                 try {
                     sendBroadCast();
                     try {
-                        this.sleep(OPPORTUNITY_TIMEOUT_MS);
+                        this.sleep((long) (Math.random() * 200));
                     } catch (InterruptedException e) {
                         Log.d("NetworkDiscovery", "Sleep interrupted");
                     }
