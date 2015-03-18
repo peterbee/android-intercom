@@ -30,8 +30,8 @@ ipList == list of discovered ips
 public class NetworkDiscovery extends Thread {
 
     private static final int DISCOVERY_PORT = 44444;
-    private static final int LISTENING_TIMEOUT_MS = 500;
-    private static final int OPPORTUNITY_TIMEOUT_MS = 200;
+    //private static final int LISTENING_TIMEOUT_MS = 500;
+    //private static final int OPPORTUNITY_TIMEOUT_MS = 200;
     private WifiManager wifi;
     private DatagramSocket socket;
     private String myIp;
@@ -64,14 +64,13 @@ public class NetworkDiscovery extends Thread {
         this.stop = false;
     }
 
-
     public void run() {
         while (!stop) {
             try {
                 myIp = getMyIp();
                 socket = new DatagramSocket(DISCOVERY_PORT);
                 socket.setBroadcast(true);
-                socket.setSoTimeout(LISTENING_TIMEOUT_MS);
+                socket.setSoTimeout((int) (Math.random() * 400 + 100));
 
                 try {
                     sendBroadCast();
@@ -145,7 +144,7 @@ public class NetworkDiscovery extends Thread {
                 if (ip.equals(myIp) || ipList.contains(ip)) {
                     socket.send(packet);
                     Log.d("NetworkDiscovery", "Ip known, rebroadcasting: " + ip);
-                }else {
+                } else {
                     payload = new String(packet.getData(), 0, packet.getLength());
                     Log.d("NetworkDiscovery", "received: " + payload + " ip: " + ip);
                     return ip;
