@@ -43,11 +43,9 @@ public class NetworkDiscovery extends Thread {
         this.utilities = utilities;
         try {
             this.wifi = (WifiManager) this.utilities.mainContext.getSystemService(Context.WIFI_SERVICE);
-            }
-        catch (NullPointerException e)
-            {
-                Log.i("NetworkDiscovery"," Not Connected to WIFI"); // TODO: fix BUG-0001
-            }
+        } catch (NullPointerException e) {
+            Log.i("NetworkDiscovery", " Not Connected to WIFI"); // TODO: fix BUG-0001
+        }
         ipList = new ArrayList<String>();
     }
 
@@ -80,52 +78,58 @@ public class NetworkDiscovery extends Thread {
                     try {
                         this.sleep(OPPORTUNITY_TIMEOUT_MS);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        Log.d("NetworkDiscovery", "Sleep interrupted");
                     }
                     String url = listenForResponses(socket);
 
-                    if (url != null)
-                        if(!ipList.contains(url)) //TODO:verify this as fix for BUG-0007
-                            ipList.add(url);
+                    if (url != null) {
+                        ipList.add(url);
+                    }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.d("NetworkDiscovery", "IOException?");
                 } finally {
                     socket.close();
                 }
 
             } catch (SocketException e) {
-                e.printStackTrace();
+                Log.d("NetworkDiscovery", "Socket Issue");
+            } finally {
+                if (!socket.isClosed()) {
+                    socket.close();
+                }
+            }
+            if (!socket.isClosed()) {
+                socket.close();
             }
         }
-
+        if (!socket.isClosed()) {
+            socket.close();
+        }
     }
 
     private InetAddress getBroadcastAddress(WifiManager wifi) throws UnknownHostException {
         DhcpInfo dhcp = wifi.getDhcpInfo();
+        if (dhcp == null) {
+            Log.d("NetworkDiscovery", "DHCP null");
+        }
         int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
-        //TODO null handleing
         InetAddress inetAddress = ipIntToInet(broadcast);
-//        System.err.println("host address: " + inetAddress.getHostAddress());
-//        Log.e("blah", inetAddress.toString());
-
-
+        Log.d("NetworkDiscovery",
+                "host address found: " + inetAddress.getHostAddress());
         return inetAddress;
     }
 
-    private void sendBroadCast()
-    {
-        try
-        {
+    private void sendBroadCast() {
+        try {
             String data = new Date().toString();
             socket.setBroadcast(true);
             DatagramPacket packet = new DatagramPacket(data.getBytes(), data.length(),
                     getBroadcastAddress(wifi), DISCOVERY_PORT);
             socket.send(packet);
+        } catch (Exception e) {
+            Log.d("NetworkDiscovery", "Couldn't send broadcast");
         }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
+        Log.d("NetworkDiscovery", "Sent broadcast");
     }
 
     private String listenForResponses(DatagramSocket socket) throws IOException {
@@ -136,16 +140,16 @@ public class NetworkDiscovery extends Thread {
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet);
                 String ip = packet.getAddress().getHostAddress();
-                if (ip.equals(myIp)) {
-//                    System.err.println("received my packet");
-                    return null;
+                if (ip.equals(myIp) || ipList.contains(ip)) {
+                    socket.send(packet);
+                    Log.d("NetworkDiscovery", "Ip known, rebroadcasting: " + ip);
                 }
                 payload = new String(packet.getData(), 0, packet.getLength());
-                System.err.println("received: " + payload + " ip: " + ip);
+                Log.d("NetworkDiscovery", "received: " + payload + " ip: " + ip);
                 return ip;
             }
         } catch (SocketTimeoutException e) {
-            System.err.println("timed out");
+            Log.d("NetworkDiscovery", "timed out");
         }
         return null;
     }
@@ -153,12 +157,17 @@ public class NetworkDiscovery extends Thread {
     private String getMyIp() {
         int ipAddress = wifi.getConnectionInfo().getIpAddress();
         InetAddress inetAddress = ipIntToInet(ipAddress);
+        if (inetAddress == null) {
+            Log.d("NetworkDiscovery", "Can't get ip address from DHCP");
+            return null;
+        }
         String ipAddressString = inetAddress.getHostAddress();
+        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
         return ipAddressString;
     }
 
     private InetAddress ipIntToInet(int ipAddress) {
-        InetAddress inetAddress;
+        InetAddress inetAddress = null;
         // Convert little-endian to big-endianif needed
         if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
             ipAddress = Integer.reverseBytes(ipAddress);
@@ -167,10 +176,8 @@ public class NetworkDiscovery extends Thread {
         try {
             inetAddress = InetAddress.getByAddress(ipByteArray);
         } catch (UnknownHostException ex) {
-            inetAddress = null;
+            Log.d("NetworkDiscovery", "Can't convert from int to ip");
         }
         return inetAddress;
     }
-
-
 }
