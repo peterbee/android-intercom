@@ -360,15 +360,10 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
                 return true;
 
             case R.id.action_find_peers:
-                System.out.println("About to run network discovery getIpList");
                 mUrlList_asArrayList = mNetworkDiscovery.getIpList();
-
-//                ArrayList<String> mUrlList_asArrayList =  fnew ArrayList<String>();
-
 
                 // update initial list of discovered IPs
                 // also need to happen every time the view is called
-                System.err.println("about to return array list");
                 mUrlList_as_StringArray = convertArrayListToStringArray(mUrlList_asArrayList);
                 setIpList(mUrlList_as_StringArray);
                 showDeviceList();
