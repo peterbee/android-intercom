@@ -148,6 +148,8 @@ public class NetworkDiscovery extends Thread
 
     public void run()
     {
+
+        /*
         try
         {
             myIp = getMyIp();
@@ -160,8 +162,8 @@ public class NetworkDiscovery extends Thread
 
         startBroadcastThread();
         startListenerThread();
+*/
 
-/*
         while (!stop)
         {
             try
@@ -176,7 +178,7 @@ public class NetworkDiscovery extends Thread
                 {
                     sendBroadCast();
 
-
+                    /*
                     try
                     {
                         this.sleep(OPPORTUNITY_TIMEOUT_MS);
@@ -184,6 +186,7 @@ public class NetworkDiscovery extends Thread
                     {
                         Log.d("NetworkDiscovery", "Sleep interrupted");
                     }
+                    */
 
 
                     String url = listenForResponses(socket);
@@ -219,7 +222,7 @@ public class NetworkDiscovery extends Thread
         {
             socket.close();
         }
-        */
+
 
     }
 
