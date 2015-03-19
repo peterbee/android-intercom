@@ -12,10 +12,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.MainActivity;
+import com.intercom.video.twoway.Models.ContactsEntity;
 
 public class DeviceListFrag extends ListFragment {
+    ProfileController profileController;
     String[] values;
+    String[] deviceNames;
     //Button connectButton;
 
     // Used to pass action back to MainActivity
@@ -32,8 +36,18 @@ public class DeviceListFrag extends ListFragment {
 
         //TODO: call update IP list here
         values = MainActivity.mUrlList_as_StringArray;
+        if(values != null && values.length > 0) {
+            getDeviceProfiles(values);
+            for(String ip : values)
+            {
+                if(profileController.getProfileByIp(ip) != null)
+                {
+                    values[0] = profileController.getProfile().getDeviceName();
+                }
+            }
+        }
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_list_item_1, MainActivity.mUrlList_as_StringArray);
+                android.R.layout.simple_list_item_1, values);
         setListAdapter(adapter);
     }
 
@@ -74,6 +88,18 @@ public class DeviceListFrag extends ListFragment {
         }
     }
 
+    private void getDeviceProfiles(String[] ips)
+    {
+        for(String ip : ips)
+        {
+            profileController.receiveDeviceInfoByIp(ip);
+        }
+    }
+
+    public void setProfileController(ProfileController pc)
+    {
+        this.profileController = pc;
+    }
 
 }
 

@@ -13,12 +13,12 @@ import java.io.Serializable;
 public class ContactsEntity implements Serializable{
 
     private String deviceName;
-    private Bitmap picture;
+    private String picture;
 
     public ContactsEntity(String deviceName, Bitmap picture)
     {
         this.deviceName = deviceName;
-        this.picture = picture;
+        this.picture = ContactsEntity.encodePictureToBase64(picture);
     }
 
     public void setDeviceName(String deviceName) {
@@ -27,31 +27,11 @@ public class ContactsEntity implements Serializable{
 
 
     public void setPicture(Bitmap picture) {
-        this.picture = picture;
+        this.picture = ContactsEntity.encodePictureToBase64(picture);
     }
 
     public String getDeviceName() {
         return deviceName;
-    }
-
-
-    public Bitmap getPicture() {
-        return picture;
-    }
-
-    public static String encodePictureToBase64(Bitmap picture) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        picture.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] b = baos.toByteArray();
-        String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
-        return encodedImage;
-    }
-
-    public static Bitmap decodePictureFromBase64(String picToDecode)
-    {
-        byte[] b = Base64.decode(picToDecode, Base64.DEFAULT);
-        Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);
-        return bitmap;
     }
 
     @Override
@@ -74,4 +54,24 @@ public class ContactsEntity implements Serializable{
         result = 31 * result + (picture != null ? picture.hashCode() : 0);
         return result;
     }
+
+    public Bitmap getPicture() {
+        return ContactsEntity.decodePictureFromBase64(picture);
+    }
+
+    public static String encodePictureToBase64(Bitmap picture) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        picture.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] b = baos.toByteArray();
+        String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+        return encodedImage;
+    }
+
+    public static Bitmap decodePictureFromBase64(String picToDecode)
+    {
+        byte[] b = Base64.decode(picToDecode, Base64.DEFAULT);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);
+        return bitmap;
+    }
+
 }

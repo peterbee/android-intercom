@@ -8,7 +8,9 @@ import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
+import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.MainActivity;
 import com.intercom.video.twoway.Network.NetworkConstants;
 import com.intercom.video.twoway.Network.Tcp;
@@ -17,6 +19,8 @@ import com.intercom.video.twoway.Utilities.ControlConstants;
 
 public class ListenerService extends Service 
 {
+    private ProfileController profileController;
+
     private Tcp serviceTcpEngine = new Tcp();
 
     private boolean listeningForConnections = false;
@@ -120,7 +124,7 @@ public class ListenerService extends Service
                         if(connectionStage==2)
                             sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_SECOND, newRemoteAddress);
                         if(connectionStage== NetworkConstants.PROFILE)
-                            sendCommandToActivity(ControlConstants.INTENT_COMMAND_TRANSFER_PROFILE, newRemoteAddress);
+                            profileController.sendDeviceInfoByIp(newRemoteAddress);
 
                         // now just close the connection since this is only proof of concept
                         serviceTcpEngine.closeConnection();
@@ -144,5 +148,16 @@ public class ListenerService extends Service
         startMainActivityIntent.putExtra("EXTRA_DATA", extra);
 
         getApplication().startActivity(startMainActivityIntent);
+    }
+
+    public void setProfileController(ProfileController pc)
+    {
+        if(pc == null)
+        {
+            Log.d("Ohhhhhh fuck", "Shit... it's created before everything else");
+        }
+        else {
+            this.profileController = pc;
+        }
     }
 }

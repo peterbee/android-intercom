@@ -144,8 +144,6 @@ public class NetworkDiscovery extends Thread {
                 payload = new String(packet.getData(), 0, packet.getLength());
                 System.err.println("received: " + payload + " ip: " + ip);
                 //Added This to transfer profile
-                this.utilities.sendCommandToActivity(ControlConstants.INTENT_COMMAND_TRANSFER_PROFILE,
-                        ip);
                 return ip;
             }
         } catch (SocketTimeoutException e) {

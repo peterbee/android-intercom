@@ -139,6 +139,7 @@ public class MainActivity extends ActionBarActivity implements
             // LocalService instance
             ListenerService.LocalBinder binder = (ListenerService.LocalBinder) service;
             listenerService = binder.getService();
+            listenerService.setProfileController(profileController);
 
             serviceIsBoundToActivity = true;
 
@@ -303,13 +304,6 @@ public class MainActivity extends ActionBarActivity implements
             cameraJpegCapture = new CameraJpegCapture(streamingEngine2, audioEngine, utilities);
             cameraJpegCapture.startCam();
         }
-        if(COMMAND_STRING.equals(ControlConstants.INTENT_COMMAND_TRANSFER_PROFILE))
-        {
-            this.profileController.receiveDeviceInfoByIP(intent.getExtras().getString("EXTRA_DATA"));
-            this.profileController.sendDeviceInfoByIp(intent.getExtras().getString("EXTRA_DATA"));
-        }
-
-
     }
 
     @Override
@@ -393,6 +387,7 @@ public class MainActivity extends ActionBarActivity implements
     public void showDeviceList() {
         setContentView(R.layout.fragment_main);
         deviceListFrag = new DeviceListFrag();
+        deviceListFrag.setProfileController(this.profileController);
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);

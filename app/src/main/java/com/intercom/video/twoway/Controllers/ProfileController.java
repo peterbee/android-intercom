@@ -9,6 +9,9 @@ import com.intercom.video.twoway.Network.NetworkConstants;
 import com.intercom.video.twoway.Network.Tcp;
 import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ObjectInputStream;
@@ -17,17 +20,19 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Must be in Listener Service - Proof of concept
  * Assumes there
  */
 public class ProfileController {
-    private static int PORT = 6644;
+    private static int INITIAL_PORT = 1025;
+    private static int TRANSFER_PORT = 1024;
     private static int PREPARE_FOR_ENTRY = 1;
     private static int PREPARED_FOR_ENTRY = 2;
 
-    private HashMap<String, ContactsEntity> contacts;
+    private ConcurrentHashMap<String, ContactsEntity> contacts;
     private ContactsEntity currentDevice;
     private InputStream tcpIn;
     private OutputStream tcpOut;
@@ -45,7 +50,7 @@ public class ProfileController {
     {
         tcpEngine = new Tcp();
         //Hard Coding Values for testing Purposes
-        contacts = new HashMap<>();
+        contacts = new ConcurrentHashMap<>();
         this.sharedPreferenceAccessor = new SharedPreferenceAccessor(context);
         refreshDeviceProfile();
     }
@@ -56,6 +61,8 @@ public class ProfileController {
         if(!this.contacts.containsKey(ip))
         {
             this.contacts.put(ip, contactToAdd);
+            System.err.print("Device " + currentDevice.getDeviceName() + " received " +
+                    contactToAdd.getDeviceName() + " w00t. ");
         }
         else
         {
@@ -65,7 +72,7 @@ public class ProfileController {
 
     //Some Collection of profiles
     //Dunno if it's stored on the device
-    public void sendDeviceInfoByIp(String ip)
+    public void sendDeviceInfoByIp(final String ip)
     {
         Thread deviceProfileTransfer = new Thread() {
             public void run(){
@@ -73,35 +80,28 @@ public class ProfileController {
                 {
                     int response;
                     boolean entry = false;
-                    serverSocket = new ServerSocket(PORT);
-                    tcpSocket = serverSocket.accept();
-                    objectOut = new ObjectOutputStream(tcpSocket.getOutputStream());
-                    objectIn = new ObjectInputStream(tcpSocket.getInputStream());
-
-                    tcpOut.write(ProfileController.PREPARE_FOR_ENTRY);
-                    tcpOut.flush();
-
-                    response = tcpIn.read();
-
-                    if(response == ProfileController.PREPARE_FOR_ENTRY)
-                    {
-                        entry = true;
-                    }
-
-                    if(entry) {
-                        objectOut.writeObject(currentDevice);
-                        objectOut.flush();
-                    }
+                    Socket transferSocket = new Socket(ip, TRANSFER_PORT);
+                    objectOut = new ObjectOutputStream(transferSocket.getOutputStream());
+                    objectOut.writeObject(currentDevice);
+                    objectOut.flush();
                 }
                 catch(Exception e)
                 {
-                    Log.i("Bad Profile Transfer", "There was an error transferring profiles");
+                    System.err.print("There was an error transferring profiles");
+                }
+                finally{
+                    try {
+                        objectOut.close();
+                    } catch (IOException e) {
+                        System.err.print("Error closing object out connection");
+                    }
                 }
             }
         };
+        deviceProfileTransfer.start();
     }
 
-    public void receiveDeviceInfoByIP(final String ip)
+    public void receiveDeviceInfoByIp(final String ip)
     {
         Thread deviceProfileTransfer = new Thread() {
             public void run(){
@@ -109,30 +109,46 @@ public class ProfileController {
                 {
                     int response;
                     boolean entry = false;
-                    serverSocket = new ServerSocket(PORT);
-                    tcpSocket = serverSocket.accept();
-                    objectOut = new ObjectOutputStream(tcpSocket.getOutputStream());
-                    objectIn = new ObjectInputStream(tcpSocket.getInputStream());
+                    //Start Listening first, just in case why not
+                    ServerSocket transferServer= new ServerSocket(TRANSFER_PORT);
 
-                    response = tcpIn.read();
+                    Socket initiationSocket = new Socket(ip, INITIAL_PORT);
 
-                    if(response == ProfileController.PREPARE_FOR_ENTRY)
+                    DataOutputStream initialOut = new DataOutputStream(initiationSocket.getOutputStream());
+
+                    initialOut.write(NetworkConstants.PROFILE);
+                    initialOut.flush();
+                    transferServer.setSoTimeout(5000);
+                    Socket transferSocket = transferServer.accept();
+
+                    initialOut.close();
+                    initiationSocket.close();
+
+                    objectIn = new ObjectInputStream(transferSocket.getInputStream());
+
+                    try {
+                        ContactsEntity incoming = (ContactsEntity) objectIn.readObject();
+                        addContact(ip, incoming);
+                    }
+                    catch(ClassCastException e)
                     {
-                        tcpOut.write(ProfileController.PREPARE_FOR_ENTRY);
-                        tcpOut.flush();
-                        entry = true;
+                        System.err.print("Error casting class sent over tcp");
                     }
 
-                    if(entry) {
-                        addContact(ip, (ContactsEntity) objectIn.readObject());
-                    }
+                    transferSocket.close();
+                    objectIn.close();
+
                 }
                 catch(Exception e)
                 {
-                    Log.i("Bad Profile Transfer", "There was an error transferring profiles");
+                    System.err.print("There was an error Receiving profiles");
+                }
+                finally{
+
                 }
             }
         };
+        deviceProfileTransfer.start();
     }
 
     private void refreshDeviceProfile()
@@ -195,4 +211,20 @@ public class ProfileController {
                 this.currentDevice.getDeviceName(),SharedPreferenceAccessor.SETTINGS_MENU);
     }
 
+    public ContactsEntity getProfileByIp(String ip) {
+        if (this.contacts != null && !this.contacts.isEmpty()){
+            if(this.contacts.containsKey(ip))
+            {
+                return contacts.get(ip);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
 }
