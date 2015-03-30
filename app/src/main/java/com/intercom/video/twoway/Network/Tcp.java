@@ -72,8 +72,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            System.err.println("error println");
-            e.printStackTrace();
+
         }
         try
         {
@@ -81,7 +80,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
@@ -89,7 +88,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
@@ -97,7 +96,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
@@ -105,7 +104,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
@@ -113,7 +112,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
 
         connectionState=DISCONNECTED;

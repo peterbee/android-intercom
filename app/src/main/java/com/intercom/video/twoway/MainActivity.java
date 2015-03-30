@@ -100,13 +100,8 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         sharedPreferenceAccessor = new SharedPreferenceAccessor(this);
+
         utilities = new Utilities(this);
-        audioEngine = new Audio();
-
-        streamingEngine1 = new VideoStreaming(audioEngine, utilities);
-        streamingEngine2 = new VideoStreaming(audioEngine, utilities);
-
-
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -115,7 +110,6 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
 
         setContentView(R.layout.fragment_main);
         startListenerService();
-        setupNetworkDiscovery();
 
         // fragment code
         deviceListFrag = new DeviceListFrag();
@@ -261,7 +255,15 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
         super.onNewIntent(intent);
         setIntent(intent);
 
+        // return if no extras so we dont crash trying to retrieve them
+        if(intent.getExtras()==null)
+            return;
+
         String COMMAND_STRING = intent.getExtras().getString("COMMAND");
+
+        // if no string return so no crash
+        if(COMMAND_STRING==null)
+            return;
 
         utilities.showToastMessage("Intent Received - " + intent.getExtras().getString("COMMAND"));
 
@@ -308,18 +310,34 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     public void onResume() {
         super.onResume();
 
+        utilities = new Utilities(this);
+        audioEngine = new Audio();
+
+
+        setupNetworkDiscovery();
+
+        streamingEngine1 = new VideoStreaming(audioEngine, utilities);
+        streamingEngine2 = new VideoStreaming(audioEngine, utilities);
+
         Intent theService = new Intent(this, ListenerService.class);
         bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
 
     @Override
-    public void onPause() {
+    public void onPause()
+    {
         super.onPause();
     }
 
     @Override
-    public void onStop() {
+    public void onStop()
+    {
+        streamingEngine1.closeConnection();
+        streamingEngine2.closeConnection();
+        tcpEngine.closeConnection();
+        mNetworkDiscovery.stopNetworkDiscovery();
+
         super.onStop();
     }
 
@@ -332,7 +350,14 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     }
 
     @Override
-    public void onBackPressed() {
+    public void onBackPressed()
+    {
+        Log.d("back pressed", "Closing connection on back pressed");
+        streamingEngine1.closeConnection();
+        streamingEngine2.closeConnection();
+        tcpEngine.closeConnection();
+        mNetworkDiscovery.stopNetworkDiscovery();
+
         //back from settings is main screen
         if (this.currentLayoutId == R.layout.settings_menu) {
             setContentView(R.layout.activity_main);
