@@ -20,6 +20,9 @@ includes:
 - Stream setting constants (bitrate, resolution etc)
 
  */
+
+//this is a meaningless change to test Git syncing
+
 public class ControlConstants
 {
     // commands sent via intent to the activity from the service
