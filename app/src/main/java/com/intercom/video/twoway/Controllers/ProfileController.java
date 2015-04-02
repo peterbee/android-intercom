@@ -23,8 +23,7 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Must be in Listener Service - Proof of concept
- * Assumes there
+ * Controls access to profiles, as well as sending and receiving profiles
  */
 public class ProfileController {
     private static int INITIAL_PORT = 1025;
@@ -36,8 +35,13 @@ public class ProfileController {
     private ContactsEntity currentDevice;
     private InputStream tcpIn;
     private OutputStream tcpOut;
-    private Socket tcpSocket;
+    private Socket socketIn;
+    private Socket sendDeviceSocket;
+    private Socket receiveDeviceInitiationSocket;
+    private ServerSocket receiveDeviceServerSocket;
     private ServerSocket serverSocket;
+    private DataOutputStream receiveDeviceInitiationStream;
+    private Socket receiveDeviceSocket;
     private ObjectOutputStream objectOut;
     private ObjectInputStream objectIn;
     private Tcp tcpEngine;
@@ -56,12 +60,12 @@ public class ProfileController {
     }
 
     //Add Contact To Master List
-    public synchronized void addContact(String ip, ContactsEntity contactToAdd)
+    public void addContact(String ip, ContactsEntity contactToAdd)
     {
         if(!this.contacts.containsKey(ip))
         {
             this.contacts.put(ip, contactToAdd);
-            System.err.print("Device " + currentDevice.getDeviceName() + " received " +
+            Log.d("Profile Controller", "Device " + currentDevice.getDeviceName() + " received " +
                     contactToAdd.getDeviceName() + " w00t. ");
         }
         else
@@ -70,82 +74,77 @@ public class ProfileController {
         }
     }
 
-    //Some Collection of profiles
-    //Dunno if it's stored on the device
     public void sendDeviceInfoByIp(final String ip)
     {
         Thread deviceProfileTransfer = new Thread() {
             public void run(){
-                try
-                {
-                    int response;
-                    boolean entry = false;
-                    Socket transferSocket = new Socket(ip, TRANSFER_PORT);
-                    objectOut = new ObjectOutputStream(transferSocket.getOutputStream());
-                    objectOut.writeObject(currentDevice);
-                    objectOut.flush();
-                }
-                catch(Exception e)
-                {
-                    System.err.print("There was an error transferring profiles");
-                }
-                finally{
-                    try {
-                        objectOut.close();
-                    } catch (IOException e) {
-                        System.err.print("Error closing object out connection");
-                    }
-                }
+            try
+            {
+                sendDeviceSocket = new Socket(ip, TRANSFER_PORT);
+                objectOut = new ObjectOutputStream(sendDeviceSocket.getOutputStream());
+                objectOut.writeObject(currentDevice);
+                objectOut.flush();
+            }
+            catch(Exception e)
+            {
+                Log.d("Profile Controller", "Error sending profile over tcp");
+            }
+            finally{
+                closeOutgoingConnections();
+            }
             }
         };
         deviceProfileTransfer.start();
     }
 
+    //
     public void receiveDeviceInfoByIp(final String ip)
     {
+        if(this.contacts.containsKey(ip)) {
+            return;
+        }
         Thread deviceProfileTransfer = new Thread() {
             public void run(){
-                try
+            try
+            {
+                int response;
+                boolean entry = false;
+                //Start Listening first, just in case why not
+                receiveDeviceServerSocket = new ServerSocket(TRANSFER_PORT);
+
+                receiveDeviceInitiationSocket = new Socket(ip, INITIAL_PORT);
+
+                receiveDeviceInitiationStream = new DataOutputStream(
+                        receiveDeviceInitiationSocket.getOutputStream());
+
+                receiveDeviceInitiationStream.write(NetworkConstants.PROFILE);
+                receiveDeviceInitiationStream.flush();
+                receiveDeviceServerSocket.setSoTimeout(5000);
+                receiveDeviceSocket = receiveDeviceServerSocket.accept();
+
+                receiveDeviceInitiationStream.close();
+                receiveDeviceInitiationSocket.close();
+
+                objectIn = new ObjectInputStream(receiveDeviceSocket.getInputStream());
+
+                try {
+                    ContactsEntity incoming = (ContactsEntity) objectIn.readObject();
+                    addContact(ip, incoming);
+                }
+                catch(ClassCastException e)
                 {
-                    int response;
-                    boolean entry = false;
-                    //Start Listening first, just in case why not
-                    ServerSocket transferServer= new ServerSocket(TRANSFER_PORT);
-
-                    Socket initiationSocket = new Socket(ip, INITIAL_PORT);
-
-                    DataOutputStream initialOut = new DataOutputStream(initiationSocket.getOutputStream());
-
-                    initialOut.write(NetworkConstants.PROFILE);
-                    initialOut.flush();
-                    transferServer.setSoTimeout(5000);
-                    Socket transferSocket = transferServer.accept();
-
-                    initialOut.close();
-                    initiationSocket.close();
-
-                    objectIn = new ObjectInputStream(transferSocket.getInputStream());
-
-                    try {
-                        ContactsEntity incoming = (ContactsEntity) objectIn.readObject();
-                        addContact(ip, incoming);
-                    }
-                    catch(ClassCastException e)
-                    {
-                        System.err.print("Error casting class sent over tcp");
-                    }
-
-                    transferSocket.close();
-                    objectIn.close();
-
+                    System.err.print("Done fucked up casting profile");
+                    //Log.d("Profile Controller", "Error casting class sent over tcp");
                 }
-                catch(Exception e)
-                {
-                    System.err.print("There was an error Receiving profiles");
-                }
-                finally{
-
-                }
+            }
+            catch(Exception e)
+            {
+                System.err.print("Done fucked up receiving profile");
+                Log.d("Profile Controller","There was an error Receiving profiles over tcp");
+            }
+            finally{
+                closeIncomingConnections();
+            }
             }
         };
         deviceProfileTransfer.start();
@@ -225,6 +224,66 @@ public class ProfileController {
         else
         {
             return null;
+        }
+    }
+
+    private void closeOutgoingConnections()
+    {
+        try
+        {
+            sendDeviceSocket.close();
+
+        }catch (Exception e)
+        {
+            Log.d("Profile Controller", "Could not close sendDeviceSocket");
+        }
+        try
+        {
+            objectOut.close();
+
+        }catch (Exception e)
+        {
+            Log.d("Profile Controller", "Could not close objectOut Socket");
+        }
+    }
+
+    private void closeIncomingConnections()
+    {
+        try {
+            receiveDeviceServerSocket.close();
+
+        } catch (Exception e) {
+            Log.d("Profile Controller", "Could not close receiveDeviceServerSocket");
+        }
+        try {
+            receiveDeviceInitiationSocket.close();
+
+        } catch (Exception e) {
+            Log.d("Profile Controller", "Could not close receiveDeviceInitiationSocket");
+        }
+        try {
+            receiveDeviceInitiationStream.close();
+
+        } catch (Exception e) {
+            Log.d("Profile Controller", "Could not close receiveDeviceInitiationStream");
+        }
+        try {
+            receiveDeviceSocket.close();
+
+        } catch (Exception e) {
+            Log.d("Profile Controller", "Could not close receiveDeviceSocket");
+        }
+        try {
+            receiveDeviceSocket.close();
+
+        } catch (Exception e) {
+            Log.d("Profile Controller", "Could not close receiveDeviceSocket");
+        }
+        try {
+            objectIn.close();
+
+        } catch (Exception e) {
+            Log.d("Profile Controller", "Could not close objectIn");
         }
     }
 }

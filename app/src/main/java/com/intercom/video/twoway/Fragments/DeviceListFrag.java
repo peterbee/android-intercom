@@ -19,7 +19,7 @@ import com.intercom.video.twoway.Models.ContactsEntity;
 public class DeviceListFrag extends ListFragment {
     ProfileController profileController;
     String[] values;
-    String[] deviceNames;
+    String[] deviceIPs;
     //Button connectButton;
 
     // Used to pass action back to MainActivity
@@ -36,16 +36,13 @@ public class DeviceListFrag extends ListFragment {
 
         //TODO: call update IP list here
         values = MainActivity.mUrlList_as_StringArray;
-        if(values != null && values.length > 0) {
+
+        if(values != null)
+        {
             getDeviceProfiles(values);
-            for(String ip : values)
-            {
-                if(profileController.getProfileByIp(ip) != null)
-                {
-                    values[0] = profileController.getProfile().getDeviceName();
-                }
-            }
+            values = updateIpListFromProfileController(values);
         }
+
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
                 android.R.layout.simple_list_item_1, values);
         setListAdapter(adapter);
@@ -53,11 +50,22 @@ public class DeviceListFrag extends ListFragment {
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
+
         Log.i(MainActivity.TAG, "Position " + position + " was clicked\n" + v);
         String deviceIP = ((TextView) v).getText().toString();
         Log.i("ListItemSelected: ", deviceIP);
         Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
-        selectDetail(deviceIP);
+        selectDetail(deviceIPs[position]);
+/*
+        if(deviceIP.matches("^([0-9]{1,3}(\.)){3}([0-9]{1.3}"))
+        {
+            selectDetail(deviceIP);
+        }
+        else
+        {
+            deviceIP = profileController.getProfileByName(deviceIP);
+            selectDetail(deviceIP);
+        }*/
     }
 
 
@@ -72,6 +80,8 @@ public class DeviceListFrag extends ListFragment {
         mListener.onListItemSelected(deviceIP);
     }
 
+    //For now whoever implements this interface must handle retrieving the ip from the profile controller
+    //if it is not in an ip form right now
     // official android code:
     // Container Activity ( MainActivity in this case )must implement this interface
     public interface onListItemSelectedListener {
@@ -100,6 +110,32 @@ public class DeviceListFrag extends ListFragment {
     {
         this.profileController = pc;
     }
+
+    public String[] updateIpListFromProfileController(String[] ips)
+    {
+        String[] profiles = new String[ips.length];
+        deviceIPs = ips;
+
+        if(ips.length > 0) {
+            getDeviceProfiles(ips);
+            int valuesPosition = 0;
+            for(String ip : ips)
+            {
+                if(profileController.getProfileByIp(ip) != null)
+                {
+                    profiles[valuesPosition] = profileController.getProfileByIp(ip).getDeviceName();
+                }
+                else
+                {
+                    profiles[valuesPosition] = ip;
+                }
+                valuesPosition++;
+            }
+        }
+        return profiles;
+    }
+
+
 
 }
 

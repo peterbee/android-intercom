@@ -30,6 +30,7 @@ import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
 import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.util.ArrayList;
+import java.util.regex.*;
 
 public class MainActivity extends ActionBarActivity implements
         DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface {
@@ -391,6 +392,7 @@ public class MainActivity extends ActionBarActivity implements
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        deviceListFrag.updateIpListFromProfileController(mUrlList_as_StringArray);
         ft.commit();
     }
 
