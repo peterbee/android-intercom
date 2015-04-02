@@ -30,7 +30,6 @@ import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
 import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.util.ArrayList;
-import java.util.regex.*;
 
 public class MainActivity extends ActionBarActivity implements
         DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface {
@@ -105,10 +104,6 @@ public class MainActivity extends ActionBarActivity implements
         super.onCreate(savedInstanceState);
         sharedPreferenceAccessor = new SharedPreferenceAccessor(this);
         utilities = new Utilities(this);
-        audioEngine = new Audio();
-
-        streamingEngine1 = new VideoStreaming(audioEngine, utilities);
-        streamingEngine2 = new VideoStreaming(audioEngine, utilities);
 
         profileController = new ProfileController(this);
 
@@ -119,7 +114,7 @@ public class MainActivity extends ActionBarActivity implements
 
         setContentView(R.layout.fragment_main);
         startListenerService();
-        setupNetworkDiscovery();
+        //setupNetworkDiscovery();
 
         // fragment code
         deviceListFrag = new DeviceListFrag();
@@ -266,7 +261,15 @@ public class MainActivity extends ActionBarActivity implements
         super.onNewIntent(intent);
         setIntent(intent);
 
+        // return if no extras so we dont crash trying to retrieve them
+        if(intent.getExtras()==null)
+            return;
+
         String COMMAND_STRING = intent.getExtras().getString("COMMAND");
+
+        // if no string return so no crash
+        if(COMMAND_STRING==null)
+            return;
 
         utilities.showToastMessage("Intent Received - " + intent.getExtras().getString("COMMAND"));
 
@@ -305,11 +308,22 @@ public class MainActivity extends ActionBarActivity implements
             cameraJpegCapture = new CameraJpegCapture(streamingEngine2, audioEngine, utilities);
             cameraJpegCapture.startCam();
         }
+
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
+        utilities = new Utilities(this);
+        audioEngine = new Audio();
+
+
+        setupNetworkDiscovery();
+
+        streamingEngine1 = new VideoStreaming(audioEngine, utilities);
+        streamingEngine2 = new VideoStreaming(audioEngine, utilities);
 
         Intent theService = new Intent(this, ListenerService.class);
         bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
@@ -322,7 +336,13 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     @Override
-    public void onStop() {
+    public void onStop()
+    {
+        streamingEngine1.closeConnection();
+        streamingEngine2.closeConnection();
+        tcpEngine.closeConnection();
+        mNetworkDiscovery.stopNetworkDiscovery();
+
         super.onStop();
     }
 
@@ -335,7 +355,14 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     @Override
-    public void onBackPressed() {
+    public void onBackPressed()
+    {
+        Log.d("back pressed", "Closing connection on back pressed");
+        streamingEngine1.closeConnection();
+        streamingEngine2.closeConnection();
+        tcpEngine.closeConnection();
+        mNetworkDiscovery.stopNetworkDiscovery();
+
         //back from settings is main screen
         if (this.currentLayoutId == R.layout.settings_menu) {
             setContentView(R.layout.activity_main);
@@ -363,15 +390,10 @@ public class MainActivity extends ActionBarActivity implements
                 return true;
 
             case R.id.action_find_peers:
-                System.out.println("About to run network discovery getIpList");
                 mUrlList_asArrayList = mNetworkDiscovery.getIpList();
-
-//                ArrayList<String> mUrlList_asArrayList =  fnew ArrayList<String>();
-
 
                 // update initial list of discovered IPs
                 // also need to happen every time the view is called
-                System.err.println("about to return array list");
                 mUrlList_as_StringArray = convertArrayListToStringArray(mUrlList_asArrayList);
                 setIpList(mUrlList_as_StringArray);
                 showDeviceList();
@@ -388,11 +410,9 @@ public class MainActivity extends ActionBarActivity implements
     public void showDeviceList() {
         setContentView(R.layout.fragment_main);
         deviceListFrag = new DeviceListFrag();
-        deviceListFrag.setProfileController(this.profileController);
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        deviceListFrag.updateIpListFromProfileController(mUrlList_as_StringArray);
         ft.commit();
     }
 
