@@ -72,97 +72,9 @@ public class NetworkDiscovery extends Thread
         this.stop = false;
     }
 
-    public void startBroadcastThread()
-    {
-        discoveryRunning = true;
-
-        Thread broadcastThread = new Thread()
-        {
-            public void run()
-            {
-                while (discoveryRunning)
-                {
-                    sendBroadCast();
-                    try
-                    {
-                        // send a broadcast every second
-                        Thread.sleep(1000);
-                    } catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        };
-
-        broadcastThread.start();
-    }
-
-    /*
-    Listen for broadcasts from other devices
-     */
-    public void startListenerThread()
-    {
-        discoveryRunning = true;
-
-        Thread listenerThread = new Thread()
-        {
-            public void run()
-            {
-                byte[] buf = new byte[1024];
-                while (discoveryRunning)
-                {
-                    try
-                    {
-                        DatagramPacket packet = new DatagramPacket(buf, buf.length);
-                        socket.receive(packet);
-                        String ip = packet.getAddress().getHostAddress();
-
-                        Log.d("NetworkDiscovery", "Broadcast received from " + ip);
-
-                        // now add it to our ip list if its not already in the ip list
-
-                        if (!ipList.contains(ip))
-                            if(!ip.equals(myIp))
-                            ipList.add(ip);
-
-                    } catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        };
-
-        listenerThread.start();
-    }
-
-    public void stopDiscovery()
-    {
-        discoveryRunning = false;
-        if (!socket.isClosed())
-        {
-            socket.close();
-        }
-    }
 
     public void run()
     {
-
-        /*
-        try
-        {
-            myIp = getMyIp();
-            socket = new DatagramSocket(DISCOVERY_PORT);
-            socket.setBroadcast(true);
-        } catch (Exception e)
-        {
-
-        }
-
-        startBroadcastThread();
-        startListenerThread();
-*/
 
         while (!stop)
         {
@@ -205,17 +117,15 @@ public class NetworkDiscovery extends Thread
 
             } catch (SocketException e)
             {
-                Log.d("NetworkDiscovery", "Socket Issue");
-            } finally
-            {
-                if (!socket.isClosed())
-                {
-                    socket.close();
-                }
+//                Log.d("NetworkDiscovery", "Socket Issue");
             }
-            if (!socket.isClosed())
+            try
             {
                 socket.close();
+            }
+            catch(Exception e)
+            {
+
             }
         }
         if (!socket.isClosed())
@@ -251,7 +161,7 @@ public class NetworkDiscovery extends Thread
         DhcpInfo myDhcpInfo = myWifiManager.getDhcpInfo();
         if (myDhcpInfo == null)
         {
-            System.out.println("Could not get broadcast address");
+            Log.d("NetworkDiscovery", "COuld not get broadcast address");
             return null;
         }
         int broadcast = (myDhcpInfo.ipAddress & myDhcpInfo.netmask)
@@ -274,9 +184,9 @@ public class NetworkDiscovery extends Thread
             socket.send(packet);
         } catch (Exception e)
         {
-            Log.d("NetworkDiscovery", "Couldn't send broadcast");
+//            Log.d("NetworkDiscovery", "Couldn't send broadcast");
         }
-        Log.d("NetworkDiscovery", "Sent broadcast");
+//        Log.d("NetworkDiscovery", "Sent broadcast");
     }
 
     private String listenForResponses(DatagramSocket socket) throws IOException
@@ -292,8 +202,8 @@ public class NetworkDiscovery extends Thread
                 String ip = packet.getAddress().getHostAddress();
                 if (ip.equals(myIp) || ipList.contains(ip))
                 {
-                    socket.send(packet);
-                    Log.d("NetworkDiscovery", "Ip known, rebroadcasting: " + ip);
+//                    socket.send(packet);
+//                    Log.d("NetworkDiscovery", "Ip known, rebroadcasting: " + ip);
                 } else
                 {
                     payload = new String(packet.getData(), 0, packet.getLength());
@@ -318,7 +228,7 @@ public class NetworkDiscovery extends Thread
             return null;
         }
         String ipAddressString = inetAddress.getHostAddress();
-        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
+//        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
         return ipAddressString;
     }
 
