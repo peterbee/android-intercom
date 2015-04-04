@@ -39,7 +39,6 @@ public class DeviceListFrag extends ListFragment {
 
         if(values != null)
         {
-            getDeviceProfiles(values);
             values = updateIpListFromProfileController(values);
         }
 
