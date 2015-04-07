@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.intercom.video.twoway.Interfaces.UpdateDeviceListInterface;
+import com.intercom.video.twoway.MainActivity;
 import com.intercom.video.twoway.Models.ContactsEntity;
 import com.intercom.video.twoway.Network.NetworkConstants;
 import com.intercom.video.twoway.Network.ProfileSender;
@@ -36,47 +38,43 @@ public class ProfileController {
     private static int PREPARE_FOR_ENTRY = 1;
     private static int PREPARED_FOR_ENTRY = 2;
 
-    private ConcurrentHashMap<String, ContactsEntity> contacts;
+    private ConcurrentHashMap<String, ContactsEntity> devices;
     private ContactsEntity currentDevice;
-    private InputStream tcpIn;
-    private OutputStream tcpOut;
-    private Socket socketIn;
-    private Socket sendDeviceSocket;
-    private Socket receiveDeviceInitiationSocket;
-    private ServerSocket receiveDeviceServerSocket;
-    private ServerSocket serverSocket;
-    private DataOutputStream receiveDeviceInitiationStream;
-    private Socket receiveDeviceSocket;
-    private ObjectOutputStream objectOut;
-    private ObjectInputStream objectIn;
-    private Tcp tcpEngine;
     private SharedPreferenceAccessor sharedPreferenceAccessor;
-    private ArrayList<Runnable> runningThreads;
     private final Object lock = new Object();
     private ArrayList<String> currentlyRetrievingIps;
     private ExecutorService executor;
+    private ProfileServer profileServer;
+    private Thread serverThread;
+    private String ip;
+    private UpdateDeviceListInterface mainActivityCallback;
 
     /*Passes wifi manager and bitmap pic for now for testing purposes, need to already have device
         Profile set up
     */
-    public ProfileController(Context context)
+    public ProfileController(MainActivity mainActivity, String ip)
     {
+        this.ip = ip;
         this.executor = Executors.newCachedThreadPool();
-        this.tcpEngine = new Tcp();
         //Hard Coding Values for testing Purposes
-        this.contacts = new ConcurrentHashMap<>();
-        this.sharedPreferenceAccessor = new SharedPreferenceAccessor(context);
+        this.devices = new ConcurrentHashMap<>();
+        this.sharedPreferenceAccessor = new SharedPreferenceAccessor(mainActivity);
         refreshDeviceProfile();
         this.currentlyRetrievingIps = new ArrayList<String>();
-
+        profileServer = new ProfileServer(this);
+        serverThread = new Thread(profileServer, "ProfileServer");
+        serverThread.start();
+        this.mainActivityCallback = mainActivity;
     }
 
     //Add Contact To Master List
     public void addContact(String ip, ContactsEntity contactToAdd)
     {
-        if(!this.contacts.containsKey(ip))
+        //String ipToSave = splitIpFromPort(ip);
+
+        if(!this.devices.containsKey(contactToAdd.getIp()))
         {
-            this.contacts.put(ip, contactToAdd);
+            this.devices.put(contactToAdd.getIp(), contactToAdd);
             Log.d("Profile Controller", "Device " + currentDevice.getDeviceName() + " received " +
                     contactToAdd.getDeviceName() + " w00t. ");
         }
@@ -95,18 +93,35 @@ public class ProfileController {
     //
     public void receiveDeviceInfoByIp(String ip)
     {
-        if(this.contacts.containsKey(ip)) {
+        String freshIp = splitIpFromPort(ip);
+        if(this.devices.containsKey(freshIp)) {
             return;
         }
-        Runnable profileServer = new ProfileServer(this, ip);
-        executor.execute(profileServer);
+        this.profileServer.requestProfile(freshIp);
+    }
+
+    private String splitIpFromPort(String ip)
+    {
+        if(ip.contains(":"))
+        {
+            String[] splitIp = ip.split(":");
+            if(splitIp[0].contains("/"))
+            {
+                return splitIp[0].split("/")[1];
+            }
+            return splitIp[0];
+        }
+        else
+        {
+            return ip;
+        }
     }
 
     private void refreshDeviceProfile()
     {
         Bitmap devicePicture = loadProfilePictureFromPreferences();
         String deviceName = getDeviceNickname();
-        this.currentDevice = new ContactsEntity(deviceName, devicePicture);
+        this.currentDevice = new ContactsEntity(deviceName, devicePicture, ip);
     }
 
     private Bitmap loadProfilePictureFromPreferences() {
@@ -163,10 +178,10 @@ public class ProfileController {
     }
 
     public ContactsEntity getProfileByIp(String ip) {
-        if (this.contacts != null && !this.contacts.isEmpty()){
-            if(this.contacts.containsKey(ip))
+        if (this.devices != null && !this.devices.isEmpty()){
+            if(this.devices.containsKey(ip))
             {
-                return contacts.get(ip);
+                return devices.get(ip);
             }
             else
             {
@@ -201,5 +216,15 @@ public class ProfileController {
         {
             currentlyRetrievingIps.remove(ip);
         }
+    }
+
+    public ConcurrentHashMap<String, ContactsEntity> getDeviceList()
+    {
+        return this.devices;
+    }
+
+    public void updateDeviceList()
+    {
+        mainActivityCallback.updateDeviceListFromHashMap(this.devices);
     }
 }

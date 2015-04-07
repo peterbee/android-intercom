@@ -14,11 +14,13 @@ public class ContactsEntity implements Serializable{
 
     private String deviceName;
     private String picture;
+    private String ip;
 
-    public ContactsEntity(String deviceName, Bitmap picture)
+    public ContactsEntity(String deviceName, Bitmap picture, String ip)
     {
         this.deviceName = deviceName;
         this.picture = ContactsEntity.encodePictureToBase64(picture);
+        this.ip = stripIp(ip);
     }
 
     public void setDeviceName(String deviceName) {
@@ -30,8 +32,22 @@ public class ContactsEntity implements Serializable{
         this.picture = ContactsEntity.encodePictureToBase64(picture);
     }
 
+    public void setIp(String ip)
+    {
+        this.ip = ip;
+    }
+
+    public String getIp()
+    {
+        return this.ip;
+    }
+
     public String getDeviceName() {
         return deviceName;
+    }
+
+    public Bitmap getPicture() {
+        return ContactsEntity.decodePictureFromBase64(picture);
     }
 
     @Override
@@ -43,6 +59,7 @@ public class ContactsEntity implements Serializable{
 
         if (deviceName != null ? !deviceName.equals(that.deviceName) : that.deviceName != null)
             return false;
+        if (ip != null ? !ip.equals(that.ip) : that.ip != null) return false;
         if (picture != null ? !picture.equals(that.picture) : that.picture != null) return false;
 
         return true;
@@ -52,11 +69,18 @@ public class ContactsEntity implements Serializable{
     public int hashCode() {
         int result = deviceName != null ? deviceName.hashCode() : 0;
         result = 31 * result + (picture != null ? picture.hashCode() : 0);
+        result = 31 * result + (ip != null ? ip.hashCode() : 0);
         return result;
     }
 
-    public Bitmap getPicture() {
-        return ContactsEntity.decodePictureFromBase64(picture);
+    private String stripIp(String ipToStrip)
+    {
+        if(!ipToStrip.contains(":"))
+        {
+            return ipToStrip;
+        }
+        String[] splitIp = ipToStrip.split(":");
+        return splitIp[0];
     }
 
     public static String encodePictureToBase64(Bitmap picture) {

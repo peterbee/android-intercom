@@ -19,6 +19,8 @@ import android.widget.ImageView;
 import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.Fragments.DeviceListFrag;
 import com.intercom.video.twoway.Fragments.SettingsFragment;
+import com.intercom.video.twoway.Interfaces.UpdateDeviceListInterface;
+import com.intercom.video.twoway.Models.ContactsEntity;
 import com.intercom.video.twoway.Services.ListenerService;
 import com.intercom.video.twoway.Network.NetworkDiscovery;
 import com.intercom.video.twoway.Streaming.Audio;
@@ -30,10 +32,13 @@ import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
 import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.*;
 
 public class MainActivity extends ActionBarActivity implements
-        DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface {
+        DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface,
+        UpdateDeviceListInterface
+{
     public ProfileController profileController;
     public SharedPreferenceAccessor sharedPreferenceAccessor;
     //used with callback from list fragment
@@ -110,7 +115,7 @@ public class MainActivity extends ActionBarActivity implements
         streamingEngine1 = new VideoStreaming(audioEngine, utilities);
         streamingEngine2 = new VideoStreaming(audioEngine, utilities);
 
-        profileController = new ProfileController(this);
+
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -120,9 +125,10 @@ public class MainActivity extends ActionBarActivity implements
         setContentView(R.layout.fragment_main);
         startListenerService();
         setupNetworkDiscovery();
-
+        profileController = new ProfileController(this, mNetworkDiscovery.getMyIp());
         // fragment code
         deviceListFrag = new DeviceListFrag();
+        deviceListFrag.setProfileController(this.profileController);
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -388,11 +394,14 @@ public class MainActivity extends ActionBarActivity implements
     public void showDeviceList() {
         setContentView(R.layout.fragment_main);
         deviceListFrag = new DeviceListFrag();
+        deviceListFrag.updateIpList(mUrlList_as_StringArray);
         deviceListFrag.setProfileController(this.profileController);
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         deviceListFrag.updateIpListFromProfileController(mUrlList_as_StringArray);
+
+
         ft.commit();
     }
 
@@ -428,5 +437,13 @@ public class MainActivity extends ActionBarActivity implements
     @Override
     public ProfileController retrieveProfileController() {
         return profileController;
+    }
+
+    @Override
+    public void updateDeviceListFromHashMap(ConcurrentHashMap<String, ContactsEntity> deviceList)
+    {
+        if(deviceListFrag != null) {
+            //deviceListFrag.updateIpListFromProfileHashMap(this.profileController.getDeviceList());
+        }
     }
 }

@@ -16,11 +16,15 @@ import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.MainActivity;
 import com.intercom.video.twoway.Models.ContactsEntity;
 
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class DeviceListFrag extends ListFragment {
     ProfileController profileController;
     String[] values;
     String[] deviceIPs;
     //Button connectButton;
+    private ArrayAdapter<String> adapter;
 
     // Used to pass action back to MainActivity
     onListItemSelectedListener mListener;
@@ -35,14 +39,16 @@ public class DeviceListFrag extends ListFragment {
         super.onActivityCreated(b);
 
         //TODO: call update IP list here
-        values = MainActivity.mUrlList_as_StringArray;
+        if(values == null) {
+            values = MainActivity.mUrlList_as_StringArray;
+        }
 
         if(values != null)
         {
-            values = updateIpListFromProfileController(values);
+            updateIpListFromProfileHashMap(this.profileController.getDeviceList());
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
+        this.adapter = new ArrayAdapter<String>(getActivity(),
                 android.R.layout.simple_list_item_1, values);
         setListAdapter(adapter);
     }
@@ -55,16 +61,6 @@ public class DeviceListFrag extends ListFragment {
         Log.i("ListItemSelected: ", deviceIP);
         Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
         selectDetail(deviceIPs[position]);
-/*
-        if(deviceIP.matches("^([0-9]{1,3}(\.)){3}([0-9]{1.3}"))
-        {
-            selectDetail(deviceIP);
-        }
-        else
-        {
-            deviceIP = profileController.getProfileByName(deviceIP);
-            selectDetail(deviceIP);
-        }*/
     }
 
 
@@ -134,7 +130,35 @@ public class DeviceListFrag extends ListFragment {
         return profiles;
     }
 
+    public void updateIpListFromProfileHashMap(
+            ConcurrentHashMap<String, ContactsEntity> devices)
+    {
+        if(values == null)
+        {
+            return;
+        }
+        String[] profiles = new String[values.length];
+        deviceIPs = values.clone();
 
+        if(values.length > 0) {
+            for(int i = 0; i < profiles.length; i ++)
+            {
+                if(devices.containsKey(deviceIPs[i]))
+                {
+                    profiles[i] = devices.get(deviceIPs[i]).getDeviceName();
+                }
+                else
+                {
+                    profiles[i] = deviceIPs[i];
+                }
+            }
+        }
+        values = profiles;
+    }
 
+    public void updateIpList(String[] ipList)
+    {
+        this.values = ipList;
+    }
 }
 
