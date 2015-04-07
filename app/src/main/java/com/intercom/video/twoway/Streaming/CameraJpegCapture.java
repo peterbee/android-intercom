@@ -140,14 +140,14 @@ public class CameraJpegCapture
     public static Camera getCameraInstance()
     {
         Camera c = null;
-        int numCams = c.getNumberOfCameras();
 
-        if (numCams == 0) {
+        try {
+            Log.i("CameraJpegCapture", "Attempting to use front-facing camera");
+            c = Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
+            Log.i("CameraJpegCapture", "Front-facing camera set as default");
+        } catch (RuntimeException e) {
+            Log.e("CameraJpegCapture", "Front-facing camera failed to open");
             c = Camera.open();
-            Log.i("CameraJpegCapture", "Device only has rear-facing camera");
-        } else {
-            c = Camera.open(1);
-            Log.i("CameraJpegCapture", "Set front-facing camera as default");
         }
 
         return c;
