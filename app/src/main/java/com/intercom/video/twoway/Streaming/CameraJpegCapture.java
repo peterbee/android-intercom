@@ -137,6 +137,13 @@ public class CameraJpegCapture
 
         return;
     }
+
+    /**
+     * Attempts to open front-facing camera first (if one exists). If that fails, tries to open
+     * rear-facing camera. If no cameras are found, or all fail to open, returns null. Relies on
+     * device properly identifying cameras as front-facing or rear-facing.
+     * @return The camera object that was opened.
+     */
     public static Camera getCameraInstance()
     {
         Camera c = null;
