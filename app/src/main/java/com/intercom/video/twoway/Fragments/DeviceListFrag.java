@@ -83,62 +83,54 @@ public class DeviceListFrag extends ListFragment {
         }
     }
 
-    private void getDeviceProfiles(String[] ips)
-    {
-        for(String ip : ips)
-        {
-            profileController.receiveDeviceInfoByIp(ip);
+    private void getDeviceProfiles(String[] ips) {
+        for (String ip : ips) {
+            try {
+                profileController.receiveDeviceInfoByIp(ip);
+            } catch (Exception e) {
+                Log.e("Profile Sharing", "String ip was null within ips");
+            }
         }
     }
 
-    public void setProfileController(ProfileController pc)
-    {
+    public void setProfileController(ProfileController pc) {
         this.profileController = pc;
     }
 
-    public String[] updateIpListFromProfileController(String[] ips)
-    {
+    public String[] updateIpListFromProfileController(String[] ips) {
         String[] profiles = new String[ips.length];
         deviceIPs = ips;
 
-        if(ips.length > 0) {
+        if (ips.length > 0) {
             getDeviceProfiles(ips);
             int valuesPosition = 0;
-            for(String ip : ips)
-            {
-                if(profileController.getProfileByIp(ip) != null)
-                {
-                    profiles[valuesPosition] = profileController.getProfileByIp(ip).getDeviceName();
+            for (String ip : ips) {
+                if (ip != null) {
+                    if (profileController.getProfileByIp(ip) != null) {
+                        profiles[valuesPosition] = profileController.getProfileByIp(ip).getDeviceName();
+                    } else {
+                        profiles[valuesPosition] = ip;
+                    }
+                    valuesPosition++;\
                 }
-                else
-                {
-                    profiles[valuesPosition] = ip;
-                }
-                valuesPosition++;
             }
         }
         return profiles;
     }
 
     public void updateIpListFromProfileHashMap(
-            ConcurrentHashMap<String, ContactsEntity> devices)
-    {
-        if(values == null)
-        {
+            ConcurrentHashMap<String, ContactsEntity> devices) {
+        if (values == null) {
             return;
         }
         String[] profiles = new String[values.length];
         deviceIPs = values.clone();
 
-        if(values.length > 0) {
-            for(int i = 0; i < profiles.length; i ++)
-            {
-                if(devices.containsKey(deviceIPs[i]))
-                {
+        if (values.length > 0) {
+            for (int i = 0; i < profiles.length; i++) {
+                if (devices.containsKey(deviceIPs[i])) {
                     profiles[i] = devices.get(deviceIPs[i]).getDeviceName();
-                }
-                else
-                {
+                } else {
                     profiles[i] = deviceIPs[i];
                 }
             }
@@ -146,8 +138,7 @@ public class DeviceListFrag extends ListFragment {
         values = profiles;
     }
 
-    public void updateIpList(String[] ipList)
-    {
+    public void updateIpList(String[] ipList) {
         this.values = ipList;
     }
 }
