@@ -111,7 +111,7 @@ public class DeviceListFrag extends ListFragment {
                     } else {
                         profiles[valuesPosition] = ip;
                     }
-                    valuesPosition++;\
+                    valuesPosition++;
                 }
             }
         }
