@@ -11,6 +11,7 @@ import android.graphics.SurfaceTexture;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.widget.FrameLayout;
 
 import com.intercom.video.twoway.R;
@@ -136,11 +137,43 @@ public class CameraJpegCapture
 
         return;
     }
+
+    /**
+     * Attempts to open front-facing camera first (if one exists). If that fails, tries to open
+     * rear-facing camera. If no cameras are found, or all fail to open, returns null. Relies on
+     * device properly identifying cameras as front-facing or rear-facing.
+     * @return The camera object that was opened.
+     */
     public static Camera getCameraInstance()
     {
         Camera c = null;
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        int numCameras = Camera.getNumberOfCameras();
+        boolean frontCameraOpened = false;
 
-        c = Camera.open();
+        for (int i = 0; i < numCameras; i ++) {
+            Camera.getCameraInfo(i, info);
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                try {
+                    Log.i("CameraJpegCapture", "Attempting to use front-facing camera");
+                    c = Camera.open(i);
+                    Log.i("CameraJpegCapture", "Front-facing camera set as default");
+                    frontCameraOpened = true;
+                } catch (RuntimeException e) {
+                    Log.e("CameraJpegCapture", "Front-facing camera failed to open");
+                }
+            }
+        }
+
+        if (!frontCameraOpened) {
+            Log.i("CameraJpegCapture", "Attempting to use rear-facing camera");
+            c = Camera.open();
+        }
+        if (c != null) {
+            Log.i("CameraJpegCapture", "Rear-facing camera set as default");
+        } else {
+            Log.e("CameraJpegCapture", "Rear-facing camera failed to open");
+        }
 
         return c;
     }
