@@ -21,7 +21,6 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 
-import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.Models.ContactsEntity;
 import com.intercom.video.twoway.R;
 import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
@@ -34,10 +33,6 @@ public class SettingsFragment extends Fragment {
     private SharedPreferenceAccessor sharedPreferenceAccessor;
     private Uri mCurrentPhotoPath;
     private int UPDATE_PROFILE_PICTURE = 446;
-    private ProfileController profileController;
-    private ProfileControllerTransferInterface mListener;
-    private ContactsEntity profile;
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -45,7 +40,7 @@ public class SettingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.settings_menu, container, false);
 
         initializeComponents(view);
-        loadProfilePicture();
+        loadProfilePictureFromPreferences();
         activateSettingsMenuListeners();
         doRememberDeviceNic();
         doRememberCameraViewFlag();
@@ -59,8 +54,6 @@ public class SettingsFragment extends Fragment {
         this.deviceNickname = (EditText) view.findViewById(R.id.settings_menu_editText_deviceNic);
         this.useCameraView = (CheckBox) view.findViewById(R.id.settings_menu_checkBox_usecamaraview);
         this.profilePicture = (ImageView) view.findViewById(R.id.imageView_device_avatar);
-        this.profileController = mListener.retrieveProfileController();
-        this.profile = profileController.getProfile();
         this.sharedPreferenceAccessor = new SharedPreferenceAccessor(this.getActivity());
     }
 
@@ -107,7 +100,9 @@ public class SettingsFragment extends Fragment {
     }
 
     public void setDeviceNic(String newDeviceNickname) {
-        this.profileController.updateProfileName(newDeviceNickname);
+        this.sharedPreferenceAccessor.writeStringToSharedPrefs(
+                SharedPreferenceAccessor.DEVICE_NICKNAME,
+                newDeviceNickname,SharedPreferenceAccessor.SETTINGS_MENU);
     }
 
     public boolean getUseCameraViewFlag() {
@@ -116,13 +111,20 @@ public class SettingsFragment extends Fragment {
                 SharedPreferenceAccessor.USE_CAMERA_VIEW);
     }
 
+    public String getDeviceNic() {
+        return this.sharedPreferenceAccessor.loadStringFromSharedPreferences(
+                SharedPreferenceAccessor.SETTINGS_MENU,
+                SharedPreferenceAccessor.DEVICE_NICKNAME);
+    }
+
     public void doRememberCameraViewFlag() {
         boolean mCameraFlag = getUseCameraViewFlag();
         this.useCameraView.setChecked(mCameraFlag);
     }
 
     public void doRememberDeviceNic() {
-        this.deviceNickname.setText(profile.getDeviceName());
+        String mDeviceNic = getDeviceNic();
+        this.deviceNickname.setText(mDeviceNic);
     }
 
     //These were just in the main method in my old repository... should have been a little bit smarter
@@ -152,11 +154,19 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    private void loadProfilePicture() {
-        try {
-            this.profilePicture.setImageBitmap(profile.getPicture());
-        } catch (Exception e) {
+    private void loadProfilePictureFromPreferences() {
+        String picture = this.sharedPreferenceAccessor.loadStringFromSharedPreferences(
+                SharedPreferenceAccessor.SETTINGS_MENU, SharedPreferenceAccessor.PROFILE_PICTURE);
+        if (picture.equals(SharedPreferenceAccessor.NO_SUCH_SAVED_PREFERENCE)) {
+            Log.d("No Profile Picture", "There is no saved Profile picture");
+        } else {
+            // Returns the Uri for a photo stored on disk given the fileName
+            try {
+                Bitmap bitmap = ContactsEntity.decodePictureFromBase64(picture);
+                this.profilePicture.setImageBitmap(bitmap);
+            } catch (Exception e) {
                 Log.d("No Image", "Profile Image does not exist");
+            }
         }
     }
 
@@ -175,7 +185,9 @@ public class SettingsFragment extends Fragment {
     }
 
     private void saveProfilePictures(Bitmap picture) {
-        this.profile = this.profileController.updateProfilePicture(picture);
+        this.sharedPreferenceAccessor.writeStringToSharedPrefs(
+                SharedPreferenceAccessor.PROFILE_PICTURE,
+                ContactsEntity.encodePictureToBase64(picture), SharedPreferenceAccessor.SETTINGS_MENU);
     }
 
     @Override
@@ -184,22 +196,6 @@ public class SettingsFragment extends Fragment {
             if (requestCode == UPDATE_PROFILE_PICTURE) {
                 setProfilePicture();
             }
-        }
-    }
-
-
-    public interface ProfileControllerTransferInterface {
-        public ProfileController retrieveProfileController();
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (ProfileControllerTransferInterface) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + "CUSTOM ERROR: must implement " +
-                    "ProfileControllerTransferInterface");
         }
     }
 

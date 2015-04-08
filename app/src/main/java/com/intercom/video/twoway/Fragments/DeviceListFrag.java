@@ -12,19 +12,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.MainActivity;
-import com.intercom.video.twoway.Models.ContactsEntity;
-
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DeviceListFrag extends ListFragment {
-    ProfileController profileController;
     String[] values;
-    String[] deviceIPs;
     //Button connectButton;
-    private ArrayAdapter<String> adapter;
 
     // Used to pass action back to MainActivity
     onListItemSelectedListener mListener;
@@ -39,28 +31,19 @@ public class DeviceListFrag extends ListFragment {
         super.onActivityCreated(b);
 
         //TODO: call update IP list here
-        if(values == null) {
-            values = MainActivity.mUrlList_as_StringArray;
-        }
-
-        if(values != null)
-        {
-            updateIpListFromProfileHashMap(this.profileController.getDeviceList());
-        }
-
-        this.adapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_list_item_1, values);
+        values = MainActivity.mUrlList_as_StringArray;
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
+                android.R.layout.simple_list_item_1, MainActivity.mUrlList_as_StringArray);
         setListAdapter(adapter);
     }
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-
         Log.i(MainActivity.TAG, "Position " + position + " was clicked\n" + v);
         String deviceIP = ((TextView) v).getText().toString();
         Log.i("ListItemSelected: ", deviceIP);
         Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
-        selectDetail(deviceIPs[position]);
+        selectDetail(deviceIP);
     }
 
 
@@ -75,8 +58,6 @@ public class DeviceListFrag extends ListFragment {
         mListener.onListItemSelected(deviceIP);
     }
 
-    //For now whoever implements this interface must handle retrieving the ip from the profile controller
-    //if it is not in an ip form right now
     // official android code:
     // Container Activity ( MainActivity in this case )must implement this interface
     public interface onListItemSelectedListener {
@@ -93,72 +74,6 @@ public class DeviceListFrag extends ListFragment {
         }
     }
 
-    private void getDeviceProfiles(String[] ips)
-    {
-        for(String ip : ips)
-        {
-            profileController.receiveDeviceInfoByIp(ip);
-        }
-    }
 
-    public void setProfileController(ProfileController pc)
-    {
-        this.profileController = pc;
-    }
-
-    public String[] updateIpListFromProfileController(String[] ips)
-    {
-        String[] profiles = new String[ips.length];
-        deviceIPs = ips;
-
-        if(ips.length > 0) {
-            getDeviceProfiles(ips);
-            int valuesPosition = 0;
-            for(String ip : ips)
-            {
-                if(profileController.getProfileByIp(ip) != null)
-                {
-                    profiles[valuesPosition] = profileController.getProfileByIp(ip).getDeviceName();
-                }
-                else
-                {
-                    profiles[valuesPosition] = ip;
-                }
-                valuesPosition++;
-            }
-        }
-        return profiles;
-    }
-
-    public void updateIpListFromProfileHashMap(
-            ConcurrentHashMap<String, ContactsEntity> devices)
-    {
-        if(values == null)
-        {
-            return;
-        }
-        String[] profiles = new String[values.length];
-        deviceIPs = values.clone();
-
-        if(values.length > 0) {
-            for(int i = 0; i < profiles.length; i ++)
-            {
-                if(devices.containsKey(deviceIPs[i]))
-                {
-                    profiles[i] = devices.get(deviceIPs[i]).getDeviceName();
-                }
-                else
-                {
-                    profiles[i] = deviceIPs[i];
-                }
-            }
-        }
-        values = profiles;
-    }
-
-    public void updateIpList(String[] ipList)
-    {
-        this.values = ipList;
-    }
 }
 

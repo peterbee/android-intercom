@@ -17,8 +17,6 @@ import android.view.WindowManager;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import com.intercom.video.twoway.MainActivity;
-
 import java.util.UUID;
 
 /*
@@ -93,20 +91,5 @@ public class Utilities
                 Toast.makeText(mainContext, message, Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    /*
-    send a command to the activity
-    This will probably be our primary means of communicating with the activity
-    this also wakes the activity and turns on the screen
-     */
-    public void sendCommandToActivity(String command, String extra)
-    {
-        Intent startMainActivityIntent = new Intent(this.mainContext, MainActivity.class);
-        startMainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startMainActivityIntent.putExtra("COMMAND", command);
-        startMainActivityIntent.putExtra("EXTRA_DATA", extra);
-
-        this.mainContext.startActivity(startMainActivityIntent);
     }
 }
