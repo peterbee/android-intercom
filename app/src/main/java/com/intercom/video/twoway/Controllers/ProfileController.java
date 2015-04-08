@@ -54,8 +54,9 @@ public class ProfileController {
     /*Passes wifi manager and bitmap pic for now for testing purposes, need to already have device
         Profile set up
     */
-    public ProfileController(MainActivity mainActivity, String ip)
+    public ProfileController(MainActivity mainActivity, String ip, NetworkDiscovery nd)
     {
+        network=nd;
         this.ip = ip;
         this.executor = Executors.newCachedThreadPool();
         //Hard Coding Values for testing Purposes

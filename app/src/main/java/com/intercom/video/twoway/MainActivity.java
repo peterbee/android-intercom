@@ -120,6 +120,9 @@ public class MainActivity extends ActionBarActivity implements
         setContentView(R.layout.fragment_main);
         startListenerService();
 
+        setupNetworkDiscovery();
+        profileController = new ProfileController(this, mNetworkDiscovery.getMyIp(), mNetworkDiscovery);
+
         // fragment code
         deviceListFrag = new DeviceListFrag();
         deviceListFrag.setProfileController(this.profileController);
@@ -325,19 +328,13 @@ public class MainActivity extends ActionBarActivity implements
         audioEngine = new Audio();
 
 
-        setupNetworkDiscovery();
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        setupNetworkDiscovery();
 
         streamingEngine1 = new VideoStreaming(audioEngine, utilities);
         streamingEngine2 = new VideoStreaming(audioEngine, utilities);
 
         Intent theService = new Intent(this, ListenerService.class);
         bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
-        profileController = new ProfileController(this, mNetworkDiscovery.getMyIp());
     }
 
 

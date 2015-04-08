@@ -229,7 +229,7 @@ public class NetworkDiscovery extends Thread
             return null;
         }
         String ipAddressString = inetAddress.getHostAddress();
-//        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
+        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
         return ipAddressString;
     }
 
