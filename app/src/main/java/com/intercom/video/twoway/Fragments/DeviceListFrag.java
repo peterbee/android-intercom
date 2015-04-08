@@ -39,17 +39,9 @@ public class DeviceListFrag extends ListFragment {
         super.onActivityCreated(b);
 
         //TODO: call update IP list here
-        if(values == null) {
-            values = MainActivity.mUrlList_as_StringArray;
-        }
-
-        if(values != null)
-        {
-            updateIpListFromProfileHashMap(this.profileController.getDeviceList());
-        }
-
-        this.adapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_list_item_1, values);
+        values = MainActivity.mUrlList_as_StringArray;
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
+                android.R.layout.simple_list_item_1, MainActivity.mUrlList_as_StringArray);
         setListAdapter(adapter);
     }
 
@@ -60,7 +52,7 @@ public class DeviceListFrag extends ListFragment {
         String deviceIP = ((TextView) v).getText().toString();
         Log.i("ListItemSelected: ", deviceIP);
         Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
-        selectDetail(deviceIPs[position]);
+        selectDetail(deviceIP);
     }
 
 
@@ -75,8 +67,6 @@ public class DeviceListFrag extends ListFragment {
         mListener.onListItemSelected(deviceIP);
     }
 
-    //For now whoever implements this interface must handle retrieving the ip from the profile controller
-    //if it is not in an ip form right now
     // official android code:
     // Container Activity ( MainActivity in this case )must implement this interface
     public interface onListItemSelectedListener {

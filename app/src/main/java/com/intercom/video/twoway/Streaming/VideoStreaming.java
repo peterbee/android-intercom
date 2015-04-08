@@ -38,7 +38,7 @@ public class VideoStreaming
     InputStream tcpIn;
     OutputStream tcpOut;
 
-    boolean connected;
+    volatile boolean connected;
 
     Bitmap receivedBitmap;
 
@@ -74,28 +74,28 @@ public class VideoStreaming
             tcpIn.close();
         } catch (Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
             tcpOut.close();
         } catch (Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
             tcpSocket.close();
         } catch (Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
             tcpServerSocket.close();
         } catch (Exception e)
         {
-            e.printStackTrace();
+
         }
 
         connected = false;
@@ -196,17 +196,34 @@ public class VideoStreaming
     // this simple returns the method so nothing gets backed up
     boolean currentlyDecodingFrame;
 
-    // asynchronously decode a frame of video and audio so that we don't cause tcp stack to get backed up with data
-    // during the decode process
+    /**
+     asynchronously decode a frame of video and audio so that we don't cause
+     tcp stack to get backed up with incoming tcp data during the decode process
+     @param jpegLength length of the jpeg data being passed in
+     @param jpegData the actual jpeg data
+     @param audioLength the length of the audio data being passed in
+     @param audioData the actual raw pcm audio data
+     @param jpegImageView the image view we are displaying the jpeg to
+     */
     public void decodeFrameAndAudioAsynch(final int jpegLength, final byte[] jpegData, final int audioLength, final byte[] audioData, final ImageView jpegImageView)
     {
         Thread decodeFrameThread = new Thread()
         {
             public void run()
             {
+                // dont do anything if it is busy decoding a frame
+                // this is not a synchronized section because synchronized sections
+                // would start building up waiting for others to finish
                 if (!currentlyDecodingFrame)
                 {
                     currentlyDecodingFrame = true;
+                    try
+                    {
+                        audioEngine.playAudioChunk(Arrays.copyOf(audioData, audioLength));
+                    } catch (Exception e)
+                    {
+
+                    }
                     try
                     {
                         receivedBitmap = BitmapFactory.decodeByteArray(jpegData, 0, jpegLength);
@@ -222,21 +239,16 @@ public class VideoStreaming
                             try
                             {
                                 jpegImageView.setImageBitmap(receivedBitmap);
-                            } catch (Exception e)
+                            }
+                            catch (Exception e)
                             {
-                                e.printStackTrace();
+
                             }
                         }
                     });
-                    try
-                    {
-                        audioEngine.playAudioChunk(Arrays.copyOf(audioData, audioLength));
-                    } catch (Exception e)
-                    {
 
-                    }
+                    currentlyDecodingFrame=false;
                 }
-                currentlyDecodingFrame=false;
             }
         };
 

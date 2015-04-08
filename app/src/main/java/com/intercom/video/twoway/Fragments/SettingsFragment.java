@@ -116,13 +116,20 @@ public class SettingsFragment extends Fragment {
                 SharedPreferenceAccessor.USE_CAMERA_VIEW);
     }
 
+    public String getDeviceNic() {
+        return this.sharedPreferenceAccessor.loadStringFromSharedPreferences(
+                SharedPreferenceAccessor.SETTINGS_MENU,
+                SharedPreferenceAccessor.DEVICE_NICKNAME);
+    }
+
     public void doRememberCameraViewFlag() {
         boolean mCameraFlag = getUseCameraViewFlag();
         this.useCameraView.setChecked(mCameraFlag);
     }
 
     public void doRememberDeviceNic() {
-        this.deviceNickname.setText(profile.getDeviceName());
+        String mDeviceNic = getDeviceNic();
+        this.deviceNickname.setText(mDeviceNic);
     }
 
     //These were just in the main method in my old repository... should have been a little bit smarter
