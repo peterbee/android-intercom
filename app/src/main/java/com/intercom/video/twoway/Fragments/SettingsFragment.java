@@ -152,6 +152,10 @@ public class SettingsFragment extends Fragment {
         // Returns the Uri for a photo stored on disk given the fileName
         try {
             Bitmap bitmap = BitmapFactory.decodeFile(getRealPathFromURI(mCurrentPhotoPath));
+            if(bitmap == null)
+            {
+                return;
+            }
             this.profilePicture.setImageBitmap(bitmap);
             saveProfilePictures(bitmap);
         } catch (Exception e) {

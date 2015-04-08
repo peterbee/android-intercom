@@ -425,14 +425,11 @@ public class MainActivity extends ActionBarActivity implements
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         deviceListFrag.updateIpListFromProfileController(mUrlList_as_StringArray);
-
-
         ft.commit();
     }
 
     public void showSettings()
     {
-        setContentView(R.layout.fragment_main);
         settingsFrag = new SettingsFragment();
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, settingsFrag, "MAIN_FRAGMENT");

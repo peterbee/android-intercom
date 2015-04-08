@@ -47,7 +47,14 @@ public class ContactsEntity implements Serializable{
     }
 
     public Bitmap getPicture() {
-        return ContactsEntity.decodePictureFromBase64(picture);
+        if(picture != null) {
+            return ContactsEntity.decodePictureFromBase64(picture);
+        }
+        else
+        {
+            return null;
+        }
+
     }
 
     @Override
@@ -75,6 +82,10 @@ public class ContactsEntity implements Serializable{
 
     private String stripIp(String ipToStrip)
     {
+        if(ipToStrip == null)
+        {
+            return "";
+        }
         if(!ipToStrip.contains(":"))
         {
             return ipToStrip;
@@ -84,6 +95,10 @@ public class ContactsEntity implements Serializable{
     }
 
     public static String encodePictureToBase64(Bitmap picture) {
+        if(picture == null)
+        {
+            return null;
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         picture.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] b = baos.toByteArray();
