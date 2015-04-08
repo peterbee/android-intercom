@@ -30,6 +30,7 @@ public class Tcp
     Used for accepting connections when we are the server
      */
     ServerSocket tcpServerSocket;
+
     // Lower level streams
     // good for transfering raw bytes of video data
     InputStream tcpIn;
@@ -71,8 +72,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            System.err.println("error println");
-            e.printStackTrace();
+
         }
         try
         {
@@ -80,7 +80,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
@@ -88,7 +88,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
@@ -96,7 +96,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
@@ -104,7 +104,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
         try
         {
@@ -112,7 +112,7 @@ public class Tcp
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+
         }
 
         connectionState=DISCONNECTED;

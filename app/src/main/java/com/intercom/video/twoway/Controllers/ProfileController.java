@@ -1,21 +1,11 @@
 package com.intercom.video.twoway.Controllers;
 
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.util.Log;
 
-import com.intercom.video.twoway.Interfaces.UpdateDeviceListInterface;
-import com.intercom.video.twoway.MainActivity;
 import com.intercom.video.twoway.Models.ContactsEntity;
 import com.intercom.video.twoway.Network.NetworkConstants;
-import com.intercom.video.twoway.Network.ProfileSender;
-import com.intercom.video.twoway.Network.ProfileServer;
 import com.intercom.video.twoway.Network.Tcp;
-import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ObjectInputStream;
@@ -23,60 +13,42 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 /**
- * Controls access to profiles, as well as sending and receiving profiles
+ * Must be in Listener Service - Proof of concept
+ * Assumes there
  */
 public class ProfileController {
-    private static int INITIAL_PORT = 1025;
-    private static int TRANSFER_PORT = 1024;
+    private static int PORT = 6644;
     private static int PREPARE_FOR_ENTRY = 1;
     private static int PREPARED_FOR_ENTRY = 2;
 
-    private ConcurrentHashMap<String, ContactsEntity> devices;
+    private ArrayList<ContactsEntity> contacts;
     private ContactsEntity currentDevice;
-    private SharedPreferenceAccessor sharedPreferenceAccessor;
-    private final Object lock = new Object();
-    private ArrayList<String> currentlyRetrievingIps;
-    private ExecutorService executor;
-    private ProfileServer profileServer;
-    private Thread serverThread;
-    private String ip;
-    private UpdateDeviceListInterface mainActivityCallback;
+    private InputStream tcpIn;
+    private OutputStream tcpOut;
+    private Socket tcpSocket;
+    private ServerSocket serverSocket;
+    private ObjectOutputStream objectOut;
+    private ObjectInputStream objectIn;
+    private Tcp tcpEngine;
 
     /*Passes wifi manager and bitmap pic for now for testing purposes, need to already have device
         Profile set up
     */
-    public ProfileController(MainActivity mainActivity, String ip)
+    public void ProfileController()
     {
-        this.ip = ip;
-        this.executor = Executors.newCachedThreadPool();
+        tcpEngine = new Tcp();
         //Hard Coding Values for testing Purposes
-        this.devices = new ConcurrentHashMap<>();
-        this.sharedPreferenceAccessor = new SharedPreferenceAccessor(mainActivity);
-        refreshDeviceProfile();
-        this.currentlyRetrievingIps = new ArrayList<String>();
-        profileServer = new ProfileServer(this);
-        serverThread = new Thread(profileServer, "ProfileServer");
-        serverThread.start();
-        this.mainActivityCallback = mainActivity;
+        contacts = new ArrayList<ContactsEntity>();
+        initializeDeviceProfile();
     }
 
     //Add Contact To Master List
-    public void addContact(String ip, ContactsEntity contactToAdd)
+    public void addContact(ContactsEntity contactToAdd)
     {
-        //String ipToSave = splitIpFromPort(ip);
-
-        if(!this.devices.containsKey(contactToAdd.getIp()))
+        if(!this.contacts.contains(contactToAdd))
         {
-            this.devices.put(contactToAdd.getIp(), contactToAdd);
-            Log.d("Profile Controller", "Device " + currentDevice.getDeviceName() + " received " +
-                    contactToAdd.getDeviceName() + " w00t. ");
+            this.contacts.add(contactToAdd);
         }
         else
         {
@@ -84,147 +56,178 @@ public class ProfileController {
         }
     }
 
-    public void sendDeviceInfoByIp(final String ip)
+    //Some Collection of profiles
+    //Dunno if it's stored on the device
+    public void sendDeviceInfoByIp(String ip)
     {
-        Runnable profileSender = new ProfileSender(ip, this.currentDevice);
-        executor.execute(profileSender);
-    }
+        Thread deviceProfileTransfer = new Thread() {
+            public void run(){
+                try
+                {
+                    int response;
+                    boolean entry = false;
+                    serverSocket = new ServerSocket(PORT);
+                    tcpSocket = serverSocket.accept();
+                    objectOut = new ObjectOutputStream(tcpSocket.getOutputStream());
+                    objectIn = new ObjectInputStream(tcpSocket.getInputStream());
 
-    //
-    public void receiveDeviceInfoByIp(String ip)
-    {
-        String freshIp = splitIpFromPort(ip);
-        if(this.devices.containsKey(freshIp)) {
-            return;
-        }
-        this.profileServer.requestProfile(freshIp);
-    }
 
-    private String splitIpFromPort(String ip)
-    {
-        if(ip.contains(":"))
-        {
-            String[] splitIp = ip.split(":");
-            if(splitIp[0].contains("/"))
-            {
-                return splitIp[0].split("/")[1];
+
+                    tcpOut.write(ProfileController.PREPARE_FOR_ENTRY);
+                    tcpOut.flush();
+
+                    response = tcpIn.read();
+
+                    if(response == ProfileController.PREPARE_FOR_ENTRY)
+                    {
+                        entry = true;
+                    }
+
+                    if(entry) {
+                        objectOut.writeObject(currentDevice);
+                        objectOut.flush();
+                    }
+                }
+                catch(Exception e)
+                {
+                    Log.i("Bad Profile Transfer", "There was an error transferring profiles");
+                }
             }
-            return splitIp[0];
-        }
-        else
-        {
-            return ip;
-        }
+        };
     }
 
-    private void refreshDeviceProfile()
+    public void getDeviceInformation(String ip)
     {
-        Bitmap devicePicture = loadProfilePictureFromPreferences();
-        String deviceName = getDeviceNickname();
-        this.currentDevice = new ContactsEntity(deviceName, devicePicture, ip);
+        tcpEngine.connectToDevice(ip, NetworkConstants.PROFILE);
     }
 
-    private Bitmap loadProfilePictureFromPreferences() {
-        String picture = this.sharedPreferenceAccessor.loadStringFromSharedPreferences(
-                SharedPreferenceAccessor.SETTINGS_MENU, SharedPreferenceAccessor.PROFILE_PICTURE);
-        if (picture.equals(SharedPreferenceAccessor.NO_SUCH_SAVED_PREFERENCE)) {
-            Log.d("No Profile Picture", "There is no saved Profile picture");
-            return null;
-        } else {
-            // Returns the Uri for a photo stored on disk given the fileName
-            try {
-                Bitmap bitmap = ContactsEntity.decodePictureFromBase64(picture);
-                return bitmap;
-            } catch (Exception e) {
-                Log.d("No Image", "Profile Image does not exist");
-                return null;
+    public void receiveDeviceInfoByIP(String ip)
+    {
+        Thread deviceProfileTransfer = new Thread() {
+            public void run(){
+                try
+                {
+                    int response;
+                    boolean entry = false;
+                    serverSocket = new ServerSocket(PORT);
+                    tcpSocket = serverSocket.accept();
+                    objectOut = new ObjectOutputStream(tcpSocket.getOutputStream());
+                    objectIn = new ObjectInputStream(tcpSocket.getInputStream());
+
+                    response = tcpIn.read();
+
+                    if(response == ProfileController.PREPARE_FOR_ENTRY)
+                    {
+                        tcpOut.write(ProfileController.PREPARE_FOR_ENTRY);
+                        tcpOut.flush();
+                        entry = true;
+                    }
+
+                    if(entry) {
+                        addContact((ContactsEntity) objectIn.readObject());
+                    }
+                }
+                catch(Exception e)
+                {
+                    Log.i("Bad Profile Transfer", "There was an error transferring profiles");
+                }
             }
-        }
+        };
     }
 
-    private String getDeviceNickname() {
-        return this.sharedPreferenceAccessor.loadStringFromSharedPreferences(
-                SharedPreferenceAccessor.SETTINGS_MENU,
-                SharedPreferenceAccessor.DEVICE_NICKNAME);
-    }
-
-    public ContactsEntity getProfile()
+    private void initializeDeviceProfile()
     {
-        return this.currentDevice;
+        //TODO: Need to initialize our profile
+
     }
 
-    public ContactsEntity updateProfilePicture(Bitmap picture)
-    {
-        this.currentDevice.setPicture(picture);
-        saveProfile();
-        return this.currentDevice;
-    }
+    //These were just in the main method in my old repository... should have been a little bit smarter
+    //With how i handled that, but oh well
 
-    public ContactsEntity updateProfileName(String name)
-    {
-        this.currentDevice.setDeviceName(name);
-        saveProfile();
-        return this.currentDevice;
-    }
+    //Method called from settings fragment to take a profile picture for you device
+//    public void takeProfilePicture(){
+//        ContentValues values = new ContentValues();
+//        values.put(MediaStore.Images.Media.TITLE, "ProfilePicture");
+//        values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera");
+//        mCurrentPhotoPath = getContentResolver().insert(
+//                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        intent.putExtra(MediaStore.EXTRA_OUTPUT, mCurrentPhotoPath);
+//        startActivityForResult(intent, UPDATE_PROFILE_PICTURE);
+//    }
+//
+//    private File createImageFile() throws IOException {
+//        // Create an image file name
+//        String imageFileName = "ProfilePicture";
+//        File storageDir = Environment.getExternalStoragePublicDirectory(
+//                Environment.DIRECTORY_PICTURES);
+//        File image = File.createTempFile(
+//                imageFileName,  /* prefix */
+//                ".jpg",         /* suffix */
+//                storageDir      /* directory */
+//        );
+//
+//        // Save a file: path for use with ACTION_VIEW intents
+////        mCurrentPhotoPath = new Uri.Builder("file:" + image.getAbsolutePath());
+//        return image;
+//    }
+//
+//    private String loadFromSharedPreferences(String prefsName, String settingsTitle)
+//    {
+//        // Log.i(TAG,"getDeviceNic Called ");
+//        String preferencesToReturn;
+//        SharedPreferences settings = getApplicationContext().getSharedPreferences(prefsName, 0);
+//        // Log.i(TAG,"DeviceNic recovered: "+settings.getString("device_nic","0"));
+//        preferencesToReturn = settings.getString(settingsTitle, "0");
+//        return preferencesToReturn;
+//
+//    }
+//
+//    //Called when going to settings layout, or when a device wants the contacts entity
+//    private void setProfilePictures() {
+//        // Returns the Uri for a photo stored on disk given the fileName
+//        ImageView profilePic = (ImageView) findViewById(R.id.imageView_device_avatar);
+//        try {
+////            File f = new File(mCurrentPhotoPath);
+////            Uri contentUri = Uri.fromFile(f);
+//            Bitmap bitmap = BitmapFactory.decodeFile(getRealPathFromURI(mCurrentPhotoPath));
+//            //Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentUri);
+//            profilePic.setImageBitmap(bitmap);
+//            saveProfilePictures(bitmap);
+//        }
+//        catch(Exception e)
+//        {
+//            Log.d("No Image", "Profile Image does not exist");
+//        }
+//    }
+//
+//    private void loadProfilePictureFromPreferences()
+//    {
+//        String picture = loadFromSharedPreferences("SETTINGS MENU", "Profile Picture");
+//
+//        if(picture.equals("0"))
+//        {
+//            Log.d("No Profile Picture", "There is no saved Profile picture");
+//        }
+//        else
+//        {
+//            // Returns the Uri for a photo stored on disk given the fileName
+//            ImageView profilePic = (ImageView) findViewById(R.id.imageView_device_avatar);
+//            try {
+//                Bitmap bitmap = ContactsEntity.decodePictureFromBase64(picture);
+//                profilePic.setImageBitmap(bitmap);
+//            }
+//            catch(Exception e)
+//            {
+//                Log.d("No Image", "Profile Image does not exist");
+//            }
+//        }
+//    }
+//
+//    private void saveProfilePictures(Bitmap picture)
+//    {
+//        writeToSharedPrefs("Profile Picture", ContactsEntity.encodePictureToBase64(picture), "SETTINGS MENU");
+//    }
 
-    private void saveProfile()
-    {
-        this.sharedPreferenceAccessor.writeStringToSharedPrefs(
-                SharedPreferenceAccessor.PROFILE_PICTURE,
-                ContactsEntity.encodePictureToBase64(this.currentDevice.getPicture()), SharedPreferenceAccessor.SETTINGS_MENU);
-        this.sharedPreferenceAccessor.writeStringToSharedPrefs(
-                SharedPreferenceAccessor.DEVICE_NICKNAME,
-                this.currentDevice.getDeviceName(),SharedPreferenceAccessor.SETTINGS_MENU);
-    }
 
-    public ContactsEntity getProfileByIp(String ip) {
-        if (this.devices != null && !this.devices.isEmpty()){
-            if(this.devices.containsKey(ip))
-            {
-                return devices.get(ip);
-            }
-            else
-            {
-                return null;
-            }
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    private boolean checkIfProfileCanBeRetrieved(String ip)
-    {
-        synchronized (lock)
-        {
-            if(currentlyRetrievingIps.contains(ip))
-            {
-                return false;
-            }
-            else
-            {
-                currentlyRetrievingIps.add(ip);
-                return true;
-            }
-        }
-    }
-
-    public void removeIpFromLockedList(String ip)
-    {
-        synchronized (lock)
-        {
-            currentlyRetrievingIps.remove(ip);
-        }
-    }
-
-    public ConcurrentHashMap<String, ContactsEntity> getDeviceList()
-    {
-        return this.devices;
-    }
-
-    public void updateDeviceList()
-    {
-        mainActivityCallback.updateDeviceListFromHashMap(this.devices);
-    }
 }

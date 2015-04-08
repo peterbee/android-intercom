@@ -2,7 +2,6 @@ package com.intercom.video.twoway.Utilities;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.wifi.WifiManager;
 
 /**
  * Created by Charles Toll on 3/10/15.
@@ -63,11 +62,5 @@ public class SharedPreferenceAccessor {
                 getSharedPreferences(prefsName, 0);
         preferencesToReturn = settings.getBoolean(settingsTitle, false);
         return preferencesToReturn;
-    }
-
-    public String getIp()
-    {
-        WifiManager wifi = (WifiManager) referenceActivity.getSystemService(Context.WIFI_SERVICE);
-        return "";
     }
 }
