@@ -219,7 +219,7 @@ public class NetworkDiscovery extends Thread
         return null;
     }
 
-    private String getMyIp()
+    public String getMyIp()
     {
         int ipAddress = wifi.getConnectionInfo().getIpAddress();
         InetAddress inetAddress = ipIntToInet(ipAddress);

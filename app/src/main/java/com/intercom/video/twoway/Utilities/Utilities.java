@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
+import android.net.wifi.WifiManager;
 import android.widget.MediaController;
 import android.net.Uri;
 import android.os.PowerManager;
@@ -19,6 +20,10 @@ import android.widget.VideoView;
 
 import com.intercom.video.twoway.MainActivity;
 
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteOrder;
 import java.util.UUID;
 
 /*
@@ -27,6 +32,7 @@ This class contains useful stuff that we dont want to put in main activity becau
 public class Utilities
 {
     public Context mainContext;
+    private WifiManager wifi;
 
     public Utilities(Context c)
     {

@@ -30,7 +30,7 @@ public class ProfileServer implements Runnable{
         try {
             receiveDeviceServerSocket = new ServerSocket(
                     NetworkConstants.PROFILE_TRANSFER_PROPER_PORT);
-            while(true) {
+            while(true) { //TODO: change this to stop on a flag
                 receiveDeviceSocket = receiveDeviceServerSocket.accept();
                 profileIn = new ObjectInputStream(receiveDeviceSocket.getInputStream());
 

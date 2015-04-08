@@ -11,7 +11,8 @@ import com.intercom.video.twoway.Network.NetworkConstants;
 import com.intercom.video.twoway.Network.ProfileSender;
 import com.intercom.video.twoway.Network.ProfileServer;
 import com.intercom.video.twoway.Network.Tcp;
-import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
+import com.intercom.video.twoway.Utilities.*;
+import com.intercom.video.twoway.Network.NetworkDiscovery;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -48,6 +49,7 @@ public class ProfileController {
     private Thread serverThread;
     private String ip;
     private UpdateDeviceListInterface mainActivityCallback;
+    private NetworkDiscovery network;
 
     /*Passes wifi manager and bitmap pic for now for testing purposes, need to already have device
         Profile set up
@@ -117,11 +119,11 @@ public class ProfileController {
         }
     }
 
-    private void refreshDeviceProfile()
+    public void refreshDeviceProfile()
     {
         Bitmap devicePicture = loadProfilePictureFromPreferences();
         String deviceName = getDeviceNickname();
-        this.currentDevice = new ContactsEntity(deviceName, devicePicture, ip);
+        this.currentDevice = new ContactsEntity(deviceName, devicePicture, network.getMyIp());
     }
 
     private Bitmap loadProfilePictureFromPreferences() {

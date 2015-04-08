@@ -326,12 +326,18 @@ public class MainActivity extends ActionBarActivity implements
 
 
         setupNetworkDiscovery();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         streamingEngine1 = new VideoStreaming(audioEngine, utilities);
         streamingEngine2 = new VideoStreaming(audioEngine, utilities);
 
         Intent theService = new Intent(this, ListenerService.class);
         bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
+        profileController = new ProfileController(this, mNetworkDiscovery.getMyIp());
     }
 
 
