@@ -40,8 +40,14 @@ public class DeviceListFrag extends ListFragment {
 
         //TODO: call update IP list here
         values = MainActivity.mUrlList_as_StringArray;
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_list_item_1, MainActivity.mUrlList_as_StringArray);
+
+        if(values != null)
+        {
+            updateIpListFromProfileHashMap(this.profileController.getDeviceList());
+        }
+
+        adapter = new ArrayAdapter<String>(getActivity(),
+                android.R.layout.simple_list_item_1, values);
         setListAdapter(adapter);
     }
 
@@ -120,7 +126,7 @@ public class DeviceListFrag extends ListFragment {
 
     public void updateIpListFromProfileHashMap(
             ConcurrentHashMap<String, ContactsEntity> devices) {
-        if (values == null) {
+        if (values == null || devices == null) {
             return;
         }
         String[] profiles = new String[values.length];

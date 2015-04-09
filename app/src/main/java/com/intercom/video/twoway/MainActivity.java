@@ -419,12 +419,11 @@ public class MainActivity extends ActionBarActivity implements
     public void showDeviceList() {
         setContentView(R.layout.fragment_main);
         deviceListFrag = new DeviceListFrag();
-        deviceListFrag.updateIpList(mUrlList_as_StringArray);
         deviceListFrag.setProfileController(this.profileController);
+        getProfilesFromDiscoveredIPs(mUrlList_as_StringArray);
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        deviceListFrag.updateIpListFromProfileController(mUrlList_as_StringArray);
         ft.commit();
     }
 
@@ -466,6 +465,14 @@ public class MainActivity extends ActionBarActivity implements
     {
         if(deviceListFrag != null) {
             //deviceListFrag.updateIpListFromProfileHashMap(this.profileController.getDeviceList());
+        }
+    }
+
+    private void getProfilesFromDiscoveredIPs(String[] ips)
+    {
+        for(String ip : ips)
+        {
+            this.profileController.receiveDeviceInfoByIp(ip);
         }
     }
 }
