@@ -58,7 +58,7 @@ public class DeviceListFrag extends ListFragment {
         String deviceIP = ((TextView) v).getText().toString();
         Log.i("ListItemSelected: ", deviceIP);
         Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
-        selectDetail(deviceIP);
+        selectDetail(deviceIPs[position]);
     }
 
 
