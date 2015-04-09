@@ -74,7 +74,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
      */
     VideoStreaming streamingEngine1, streamingEngine2;
     Audio audioEngine;
-    public static boolean mic = true;
+    public static boolean mic = false;
 
     /*
     Keeps track of what current layout id is
