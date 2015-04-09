@@ -103,27 +103,6 @@ public class DeviceListFrag extends ListFragment {
         this.profileController = pc;
     }
 
-    public String[] updateIpListFromProfileController(String[] ips) {
-        String[] profiles = new String[ips.length];
-        deviceIPs = ips;
-
-        if (ips.length > 0) {
-            getDeviceProfiles(ips);
-            int valuesPosition = 0;
-            for (String ip : ips) {
-                if (ip != null) {
-                    if (profileController.getProfileByIp(ip) != null) {
-                        profiles[valuesPosition] = profileController.getProfileByIp(ip).getDeviceName();
-                    } else {
-                        profiles[valuesPosition] = ip;
-                    }
-                    valuesPosition++;
-                }
-            }
-        }
-        return profiles;
-    }
-
     public void updateIpListFromProfileHashMap(
             ConcurrentHashMap<String, ContactsEntity> devices) {
         if (values == null || devices == null) {
