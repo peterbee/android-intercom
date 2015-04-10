@@ -5,6 +5,7 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
+import com.intercom.video.twoway.Utilities.ControlConstants;
 import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.io.IOException;
@@ -218,7 +219,7 @@ public class NetworkDiscovery extends Thread
         return null;
     }
 
-    private String getMyIp()
+    public String getMyIp()
     {
         int ipAddress = wifi.getConnectionInfo().getIpAddress();
         InetAddress inetAddress = ipIntToInet(ipAddress);
@@ -228,7 +229,7 @@ public class NetworkDiscovery extends Thread
             return null;
         }
         String ipAddressString = inetAddress.getHostAddress();
-//        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
+        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
         return ipAddressString;
     }
 

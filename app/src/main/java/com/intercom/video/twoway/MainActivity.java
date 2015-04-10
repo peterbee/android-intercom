@@ -16,8 +16,11 @@ import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 
+import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.Fragments.DeviceListFrag;
 import com.intercom.video.twoway.Fragments.SettingsFragment;
+import com.intercom.video.twoway.Interfaces.UpdateDeviceListInterface;
+import com.intercom.video.twoway.Models.ContactsEntity;
 import com.intercom.video.twoway.Services.ListenerService;
 import com.intercom.video.twoway.Network.NetworkDiscovery;
 import com.intercom.video.twoway.Streaming.Audio;
@@ -29,8 +32,14 @@ import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
 import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.*;
 
-public class MainActivity extends ActionBarActivity implements DeviceListFrag.onListItemSelectedListener {
+public class MainActivity extends ActionBarActivity implements
+        DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface,
+        UpdateDeviceListInterface
+{
+    public ProfileController profileController;
     public SharedPreferenceAccessor sharedPreferenceAccessor;
     //used with callback from list fragment
 
@@ -74,7 +83,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
      */
     VideoStreaming streamingEngine1, streamingEngine2;
     Audio audioEngine;
-    public static boolean mic = true;
+    public static boolean mic = false;
 
     /*
     Keeps track of what current layout id is
@@ -111,8 +120,12 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
         setContentView(R.layout.fragment_main);
         startListenerService();
 
+        setupNetworkDiscovery();
+        profileController = new ProfileController(this, mNetworkDiscovery.getMyIp(), mNetworkDiscovery);
+
         // fragment code
         deviceListFrag = new DeviceListFrag();
+        deviceListFrag.setProfileController(this.profileController);
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -130,6 +143,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
             // LocalService instance
             ListenerService.LocalBinder binder = (ListenerService.LocalBinder) service;
             listenerService = binder.getService();
+            listenerService.setProfileController(profileController);
 
             serviceIsBoundToActivity = true;
 
@@ -314,7 +328,7 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
         audioEngine = new Audio();
 
 
-        setupNetworkDiscovery();
+//        setupNetworkDiscovery();
 
         streamingEngine1 = new VideoStreaming(audioEngine, utilities);
         streamingEngine2 = new VideoStreaming(audioEngine, utilities);
@@ -405,6 +419,8 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
     public void showDeviceList() {
         setContentView(R.layout.fragment_main);
         deviceListFrag = new DeviceListFrag();
+        deviceListFrag.setProfileController(this.profileController);
+        getProfilesFromDiscoveredIPs(mUrlList_as_StringArray);
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -413,7 +429,6 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
 
     public void showSettings()
     {
-        setContentView(R.layout.fragment_main);
         settingsFrag = new SettingsFragment();
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, settingsFrag, "MAIN_FRAGMENT");
@@ -438,5 +453,26 @@ public class MainActivity extends ActionBarActivity implements DeviceListFrag.on
 //        mText.setText(deviceIP);
         establishConnection(deviceIP);
         Log.i(TAG, " <---===establish connection called from selected===--->");
+    }
+
+    @Override
+    public ProfileController retrieveProfileController() {
+        return profileController;
+    }
+
+    @Override
+    public void updateDeviceListFromHashMap(ConcurrentHashMap<String, ContactsEntity> deviceList)
+    {
+        if(deviceListFrag != null) {
+            //deviceListFrag.updateIpListFromProfileHashMap(this.profileController.getDeviceList());
+        }
+    }
+
+    private void getProfilesFromDiscoveredIPs(String[] ips)
+    {
+        for(String ip : ips)
+        {
+            this.profileController.receiveDeviceInfoByIp(ip);
+        }
     }
 }

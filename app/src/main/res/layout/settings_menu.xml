@@ -1,54 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+    <RelativeLayout
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/settings_menu"
-    android:weightSum="1">
+        android:layout_height="match_parent"
+        android:id="@+id/settings_menu"
+        android:weightSum="1"
+        android:nestedScrollingEnabled="false">
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Use Camera View"
-        android:id="@+id/settings_menu_checkBox_usecamaraview"
-        android:layout_gravity="end"
-        android:checked="false"
-        android:layout_marginTop="39dp"
-        android:layout_below="@+id/settings_menu_editText_deviceNic_lable"
-        android:layout_alignLeft="@+id/settings_menu_editText_deviceNic_lable"
-        android:layout_alignStart="@+id/settings_menu_editText_deviceNic_lable" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Use Camera View"
+            android:id="@+id/settings_menu_checkBox_usecamaraview"
+            android:layout_gravity="end"
+            android:checked="false"
+            android:layout_marginTop="39dp"
+            android:layout_below="@+id/settings_menu_editText_deviceNic_lable"
+            android:layout_alignLeft="@+id/settings_menu_editText_deviceNic_lable"
+            android:layout_alignStart="@+id/settings_menu_editText_deviceNic_lable" />
 
-    <ImageView
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:id="@+id/imageView_device_avatar"
-        android:src="@drawable/ic_action_view_profile"
-        android:layout_marginTop="55dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        <ImageView
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:id="@+id/imageView_device_avatar"
+            android:src="@drawable/ic_action_view_profile"
+            android:layout_marginTop="55dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Two-Way"
-        android:id="@+id/settings_menu_editText_deviceNic"
-        android:layout_gravity="center_horizontal"
-        android:layout_above="@+id/settings_menu_checkBox_usecamaraview"
-        android:layout_toRightOf="@+id/settings_menu_checkBox_usecamaraview"
-        android:layout_toEndOf="@+id/settings_menu_checkBox_usecamaraview"
-        android:inputType="textPersonName"/>
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Two-Way"
+            android:id="@+id/settings_menu_editText_deviceNic"
+            android:layout_gravity="center_horizontal"
+            android:layout_above="@+id/settings_menu_checkBox_usecamaraview"
+            android:layout_toRightOf="@+id/settings_menu_checkBox_usecamaraview"
+            android:layout_toEndOf="@+id/settings_menu_checkBox_usecamaraview"
+            android:inputType="textPersonName"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Nickname:   "
-        android:id="@+id/settings_menu_editText_deviceNic_lable"
-        android:layout_marginTop="69dp"
-        android:layout_below="@+id/imageView_device_avatar"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginLeft="31dp"
-        android:layout_marginStart="31dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Nickname:   "
+            android:id="@+id/settings_menu_editText_deviceNic_lable"
+            android:layout_marginTop="69dp"
+            android:layout_below="@+id/imageView_device_avatar"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginLeft="31dp"
+            android:layout_marginStart="31dp" />
 
-</RelativeLayout>
+    </RelativeLayout>
+</ScrollView>

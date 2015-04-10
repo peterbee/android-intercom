@@ -20,9 +20,6 @@ includes:
 - Stream setting constants (bitrate, resolution etc)
 
  */
-
-//this is a meaningless change to test Git syncing
-
 public class ControlConstants
 {
     // commands sent via intent to the activity from the service
@@ -35,4 +32,5 @@ public class ControlConstants
     // commands sent over network from device to device
     public static final String NETWORK_COMMAND_START_STREAMING = "START_STREAMING";
     public static final String NETWORK_COMMAND_STOP_STREAMING = "STOP_STREAMING";
+    public static final String INTENT_COMMAND_TRANSFER_PROFILE = "TRANSFER_PROFILE";
 }

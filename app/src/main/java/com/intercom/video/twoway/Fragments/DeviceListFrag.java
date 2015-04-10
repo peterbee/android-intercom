@@ -12,11 +12,19 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.MainActivity;
+import com.intercom.video.twoway.Models.ContactsEntity;
+
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DeviceListFrag extends ListFragment {
+    ProfileController profileController;
     String[] values;
+    String[] deviceIPs;
     //Button connectButton;
+    private ArrayAdapter<String> adapter;
 
     // Used to pass action back to MainActivity
     onListItemSelectedListener mListener;
@@ -32,18 +40,25 @@ public class DeviceListFrag extends ListFragment {
 
         //TODO: call update IP list here
         values = MainActivity.mUrlList_as_StringArray;
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_list_item_1, MainActivity.mUrlList_as_StringArray);
+
+        if(values != null)
+        {
+            updateIpListFromProfileHashMap(this.profileController.getDeviceList());
+        }
+
+        adapter = new ArrayAdapter<String>(getActivity(),
+                android.R.layout.simple_list_item_1, values);
         setListAdapter(adapter);
     }
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
+
         Log.i(MainActivity.TAG, "Position " + position + " was clicked\n" + v);
         String deviceIP = ((TextView) v).getText().toString();
         Log.i("ListItemSelected: ", deviceIP);
         Toast.makeText(getActivity(), "Option " + position + " clicked", Toast.LENGTH_SHORT).show();
-        selectDetail(deviceIP);
+        selectDetail(deviceIPs[position]);
     }
 
 
@@ -74,6 +89,42 @@ public class DeviceListFrag extends ListFragment {
         }
     }
 
+    private void getDeviceProfiles(String[] ips) {
+        for (String ip : ips) {
+            try {
+                profileController.receiveDeviceInfoByIp(ip);
+            } catch (Exception e) {
+                Log.e("Profile Sharing", "String ip was null within ips");
+            }
+        }
+    }
 
+    public void setProfileController(ProfileController pc) {
+        this.profileController = pc;
+    }
+
+    public void updateIpListFromProfileHashMap(
+            ConcurrentHashMap<String, ContactsEntity> devices) {
+        if (values == null || devices == null) {
+            return;
+        }
+        String[] profiles = new String[values.length];
+        deviceIPs = values.clone();
+
+        if (values.length > 0) {
+            for (int i = 0; i < profiles.length; i++) {
+                if (devices.containsKey(deviceIPs[i])) {
+                    profiles[i] = devices.get(deviceIPs[i]).getDeviceName();
+                } else {
+                    profiles[i] = deviceIPs[i];
+                }
+            }
+        }
+        values = profiles;
+    }
+
+    public void updateIpList(String[] ipList) {
+        this.values = ipList;
+    }
 }
 

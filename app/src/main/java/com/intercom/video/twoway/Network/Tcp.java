@@ -30,7 +30,6 @@ public class Tcp
     Used for accepting connections when we are the server
      */
     ServerSocket tcpServerSocket;
-
     // Lower level streams
     // good for transfering raw bytes of video data
     InputStream tcpIn;
