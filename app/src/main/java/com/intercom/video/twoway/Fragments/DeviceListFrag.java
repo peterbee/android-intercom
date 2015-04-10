@@ -16,12 +16,11 @@ import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.MainActivity;
 import com.intercom.video.twoway.Models.ContactsEntity;
 
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DeviceListFrag extends ListFragment {
     ProfileController profileController;
-    String[] values;
+    String[] values = MainActivity.mUrlList_as_StringArray;
     String[] deviceIPs;
     //Button connectButton;
     private ArrayAdapter<String> adapter;
