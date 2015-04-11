@@ -76,6 +76,7 @@ public class MainActivity extends ActionBarActivity implements
     volatile static boolean serviceIsBoundToActivity = false; //Control flag for determining whther or not the service dies with the app
     public ArrayList<String> mUrlList_asArrayList = new ArrayList<String>(); //Array for storing IP addresses
     public static String[] mUrlList_as_StringArray;
+    private Intent theService;
 
 
     //-------------------BEGIN MAJOR LIFECYCLE METHODS--------------------------------
@@ -101,8 +102,10 @@ public class MainActivity extends ActionBarActivity implements
         mNetworkDiscovery = new NetworkDiscovery(utilities);
         mNetworkDiscovery.setupNetworkDiscovery(this);//starts network discovery
         profileController = new ProfileController(this, mNetworkDiscovery.getMyIp(), mNetworkDiscovery); //starts our profile controller
+        utilities = new Utilities(this);
+        theService = new Intent(this, ListenerService.class);
 
-        // fragment code to allow for settigns fragment and profile fragment
+        // fragment code to allow for settings fragment and profile fragment
         deviceListFrag = new DeviceListFrag();
         deviceListFrag.setProfileController(this.profileController);
         ft = getFragmentManager().beginTransaction();
@@ -120,16 +123,10 @@ public class MainActivity extends ActionBarActivity implements
     public void onResume() {
         super.onResume();
 
-        utilities = new Utilities(this);
         audioEngine = new Audio();
-
-
-//        setupNetworkDiscovery();
-
         streamingEngine1 = new VideoStreaming(audioEngine, utilities);
         streamingEngine2 = new VideoStreaming(audioEngine, utilities);
 
-        Intent theService = new Intent(this, ListenerService.class);
         bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
