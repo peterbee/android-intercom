@@ -53,7 +53,7 @@ public class MainActivity extends ActionBarActivity implements
     public SharedPreferenceAccessor sharedPreferenceAccessor;
     //used with callback from list fragment
     String appVersion = "1.0.1";// app versions
-    NetworkDiscovery mNetworkDiscovery; // Connect to network discovery
+    NetworkDiscovery mNetworkDiscovery; // Network Discovery Object
     // fragment variables here
     public static FragmentTransaction ft = null;
     DeviceListFrag deviceListFrag = null;
@@ -74,7 +74,7 @@ public class MainActivity extends ActionBarActivity implements
     int currentLayoutId; //Keeps track of what current layout id is
     volatile static ListenerService listenerService; //Object for referencing the Listener service
     volatile static boolean serviceIsBoundToActivity = false; //Control flag for determining whther or not the service dies with the app
-    ArrayList<String> mUrlList_asArrayList = new ArrayList<String>(); //Array for storing IP addresses
+    public ArrayList<String> mUrlList_asArrayList = new ArrayList<String>(); //Array for storing IP addresses
     public static String[] mUrlList_as_StringArray;
 
 
@@ -98,7 +98,8 @@ public class MainActivity extends ActionBarActivity implements
         setContentView(R.layout.activity_main);
         setContentView(R.layout.fragment_main);
         startListenerService(); //starts the listener service
-        setupNetworkDiscovery();//starts network discovery
+        mNetworkDiscovery = new NetworkDiscovery(utilities);
+        mNetworkDiscovery.setupNetworkDiscovery(this);//starts network discovery
         profileController = new ProfileController(this, mNetworkDiscovery.getMyIp(), mNetworkDiscovery); //starts our profile controller
 
         // fragment code to allow for settigns fragment and profile fragment
@@ -179,7 +180,7 @@ public class MainActivity extends ActionBarActivity implements
         setContentView(R.layout.fragment_main);
         deviceListFrag = new DeviceListFrag();
         deviceListFrag.setProfileController(this.profileController);
-        getProfilesFromDiscoveredIPs(mUrlList_as_StringArray);
+        profileController.getProfilesFromDiscoveredIPs(mUrlList_as_StringArray, this);
         ft = getFragmentManager().beginTransaction();
         ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -342,8 +343,8 @@ public class MainActivity extends ActionBarActivity implements
 
                 // update initial list of discovered IPs
                 // also need to happen every time the view is called
-                mUrlList_as_StringArray = convertArrayListToStringArray(mUrlList_asArrayList);
-                setIpList(mUrlList_as_StringArray);
+                mUrlList_as_StringArray = utilities.convertArrayListToStringArray(mUrlList_asArrayList);
+                utilities.setIpList(mUrlList_as_StringArray);
                 showDeviceList();
                 for (String ip : mUrlList_as_StringArray)
                     Log.i(TAG, "loading to ui IP: " + ip);
@@ -447,77 +448,5 @@ public class MainActivity extends ActionBarActivity implements
             //deviceListFrag.updateIpListFromProfileHashMap(this.profileController.getDeviceList());
         }
     }
-
-    private void getProfilesFromDiscoveredIPs(String[] ips)
-    {
-        for(String ip : ips)
-        {
-            this.profileController.receiveDeviceInfoByIp(ip);
-        }
-    }
-
-    //----------------BEGIN RANDOM HELPER METHODS----------------------
-
-    /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
-     * This method activates our Network discovery engine.
-     */
-    public void setupNetworkDiscovery() {
-        //TODO: move this into NetworkDiscovery class
-        //WifiManager mWifi= (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        mNetworkDiscovery = new NetworkDiscovery(utilities);
-        mNetworkDiscovery.start();
-        mUrlList_asArrayList = mNetworkDiscovery.getIpList();
-
-        ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
-        // update initial list of discovered IPs
-        // also need to happen every time the view is called
-        mUrlList_as_StringArray = convertArrayListToStringArray(mUrlList_asArrayList);
-        setIpList(mUrlList_as_StringArray);
-
-    }
-
-    /**
-     * @param newIpList
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
-     * gets latest list of discovered IPs from network discovery and sets teh global variable
-     */
-    public void setIpList(String[] newIpList) {
-        mUrlList_as_StringArray = newIpList;
-    }
-
-    /**
-     * @param mArrayList
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
-     * method for populating mStringArrayIpList
-     */
-    public void setIpList(ArrayList<String> mArrayList) {
-        String[] mStringArrayIpList = convertArrayListToStringArray(mArrayList);
-        setIpList(mStringArrayIpList);
-    }
-
-    /**
-     * @param mArrayList
-     * @return String[] composed of all elements in mArrayList
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
-     * method for converting an Arraylist into a String[].  Used for converting the Ip addresses
-     * received from NetworkDiscovery to a easier to use format at this time.
-     */
-    //todo: can have NetworkDiscovery return string list instead
-    //todo: can also move this to utilities
-    public String[] convertArrayListToStringArray(ArrayList<String> mArrayList) {
-        String[] mStringArray = new String[mArrayList.size()];
-
-//        System.out.println("size of this shit = "+mArrayList.size());
-
-        System.err.println("pre for loop");
-        for (int i = 0; i < mArrayList.size(); i++) {
-            Log.i("MainActivity_line511", "what the fuck for loop");
-            mStringArray[i] = mArrayList.get(i);
-        }
-
-        return mStringArray;
-    }
-
 
 }
