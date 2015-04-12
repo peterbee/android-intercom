@@ -1,42 +1,31 @@
 package com.intercom.video.twoway.Utilities;
+
 import android.app.Activity;
 import android.app.KeyguardManager;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
-import android.widget.MediaController;
-import android.net.Uri;
 import android.os.PowerManager;
-import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.intercom.video.twoway.MainActivity;
 
-import java.math.BigInteger;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.UUID;
 
 /*
 This class contains useful stuff that we dont want to put in main activity because it will be big and messy
  */
-public class Utilities
-{
+public class Utilities {
     public Context mainContext;
     private WifiManager wifi;
 
-    public Utilities(Context c)
-    {
-        mainContext=c;
+    public Utilities(Context c) {
+        mainContext = c;
     }
 
     /*
@@ -44,10 +33,9 @@ public class Utilities
     TODO make this work without depricated features.
     TODO make this method less shitty and figure out the right way to do it
     */
-    public void forceWakeUpUnlock()
-    {
+    public void forceWakeUpUnlock() {
         KeyguardManager km = (KeyguardManager) mainContext.getSystemService(Context.KEYGUARD_SERVICE);
-        final KeyguardManager.KeyguardLock kl = km .newKeyguardLock("MyKeyguardLock");
+        final KeyguardManager.KeyguardLock kl = km.newKeyguardLock("MyKeyguardLock");
         kl.disableKeyguard();
 
         PowerManager pm = (PowerManager) mainContext.getSystemService(Context.POWER_SERVICE);
@@ -55,9 +43,9 @@ public class Utilities
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP
                 | PowerManager.ON_AFTER_RELEASE, "MyWakeLock");
         wakeLock.acquire();
- 
 
-        Window window = ((Activity)mainContext).getWindow();
+
+        Window window = ((Activity) mainContext).getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -67,8 +55,7 @@ public class Utilities
      * This returns a unique UUID string that should be unique to this device
      * just in case we need it at some point in the future
      */
-    public String getDeviceId()
-    {
+    public String getDeviceId() {
         final TelephonyManager tm = (TelephonyManager) mainContext
                 .getSystemService(Context.TELEPHONY_SERVICE);
 
@@ -90,12 +77,9 @@ public class Utilities
     /*
     Lets us show a toast message from any thread
     */
-    public void showToastMessage(final String message)
-    {
-        ((Activity)mainContext).runOnUiThread(new Runnable()
-        {
-            public void run()
-            {
+    public void showToastMessage(final String message) {
+        ((Activity) mainContext).runOnUiThread(new Runnable() {
+            public void run() {
                 Toast.makeText(mainContext, message, Toast.LENGTH_LONG).show();
             }
         });
@@ -106,13 +90,55 @@ public class Utilities
     This will probably be our primary means of communicating with the activity
     this also wakes the activity and turns on the screen
      */
-    public void sendCommandToActivity(String command, String extra)
-    {
+    public void sendCommandToActivity(String command, String extra) {
         Intent startMainActivityIntent = new Intent(this.mainContext, MainActivity.class);
         startMainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startMainActivityIntent.putExtra("COMMAND", command);
         startMainActivityIntent.putExtra("EXTRA_DATA", extra);
 
         this.mainContext.startActivity(startMainActivityIntent);
+    }
+
+    /**
+     * @param mArrayList
+     * @return String[] composed of all elements in mArrayList
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * method for converting an Arraylist into a String[].  Used for converting the Ip addresses
+     * received from NetworkDiscovery to a easier to use format at this time.
+     */
+    //todo: can have NetworkDiscovery return string list instead
+    //todo: can also move this to utilities
+    public String[] convertArrayListToStringArray(ArrayList<String> mArrayList) {
+        String[] mStringArray = new String[mArrayList.size()];
+
+//        System.out.println("size of this shit = "+mArrayList.size());
+
+        System.err.println("pre for loop");
+        for (int i = 0; i < mArrayList.size(); i++) {
+            Log.i("MainActivity_line511", "what the fuck for loop");
+            mStringArray[i] = mArrayList.get(i);
+        }
+
+        return mStringArray;
+    }
+
+    /**
+     * @param mArrayList
+     * @param mainActivity
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * method for populating mStringArrayIpList
+     */
+    public void setIpList(ArrayList<String> mArrayList, MainActivity mainActivity) {
+        String[] mStringArrayIpList = convertArrayListToStringArray(mArrayList);
+        mainActivity.utilities.setIpList(mStringArrayIpList);
+    }
+
+    /**
+     * @param newIpList
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * gets latest list of discovered IPs from network discovery and sets teh global variable
+     */
+    public void setIpList(String[] newIpList) {
+        MainActivity.mUrlList_as_StringArray = newIpList;
     }
 }

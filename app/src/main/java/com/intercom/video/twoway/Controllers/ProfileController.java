@@ -1,32 +1,18 @@
 package com.intercom.video.twoway.Controllers;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.intercom.video.twoway.Interfaces.UpdateDeviceListInterface;
 import com.intercom.video.twoway.MainActivity;
 import com.intercom.video.twoway.Models.ContactsEntity;
-import com.intercom.video.twoway.Network.NetworkConstants;
+import com.intercom.video.twoway.Network.NetworkDiscovery;
 import com.intercom.video.twoway.Network.ProfileSender;
 import com.intercom.video.twoway.Network.ProfileServer;
-import com.intercom.video.twoway.Network.Tcp;
-import com.intercom.video.twoway.Utilities.*;
-import com.intercom.video.twoway.Network.NetworkDiscovery;
+import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -54,9 +40,8 @@ public class ProfileController {
     /*Passes wifi manager and bitmap pic for now for testing purposes, need to already have device
         Profile set up
     */
-    public ProfileController(MainActivity mainActivity, String ip, NetworkDiscovery nd)
-    {
-        network=nd;
+    public ProfileController(MainActivity mainActivity, String ip, NetworkDiscovery nd) {
+        network = nd;
         this.ip = ip;
         this.executor = Executors.newCachedThreadPool();
         //Hard Coding Values for testing Purposes
@@ -71,57 +56,45 @@ public class ProfileController {
     }
 
     //Add Contact To Master List
-    public void addContact(String ip, ContactsEntity contactToAdd)
-    {
+    public void addContact(String ip, ContactsEntity contactToAdd) {
         //String ipToSave = splitIpFromPort(ip);
 
-        if(!this.devices.containsKey(contactToAdd.getIp()))
-        {
+        if (!this.devices.containsKey(contactToAdd.getIp())) {
             this.devices.put(contactToAdd.getIp(), contactToAdd);
             Log.d("Profile Controller", "Device " + currentDevice.getDeviceName() + " received " +
                     contactToAdd.getDeviceName() + " w00t. ");
-        }
-        else
-        {
+        } else {
             Log.i("Duplicate Contact", "Profile Controller attempted to add a duplicate contact");
         }
     }
 
-    public void sendDeviceInfoByIp(final String ip)
-    {
+    public void sendDeviceInfoByIp(final String ip) {
         Runnable profileSender = new ProfileSender(ip, this.currentDevice);
         executor.execute(profileSender);
     }
 
     //
-    public void receiveDeviceInfoByIp(String ip)
-    {
+    public void receiveDeviceInfoByIp(String ip) {
         String freshIp = splitIpFromPort(ip);
-        if(this.devices.containsKey(freshIp)) {
+        if (this.devices.containsKey(freshIp)) {
             return;
         }
         this.profileServer.requestProfile(freshIp);
     }
 
-    private String splitIpFromPort(String ip)
-    {
-        if(ip.contains(":"))
-        {
+    private String splitIpFromPort(String ip) {
+        if (ip.contains(":")) {
             String[] splitIp = ip.split(":");
-            if(splitIp[0].contains("/"))
-            {
+            if (splitIp[0].contains("/")) {
                 return splitIp[0].split("/")[1];
             }
             return splitIp[0];
-        }
-        else
-        {
+        } else {
             return ip;
         }
     }
 
-    public void refreshDeviceProfile()
-    {
+    public void refreshDeviceProfile() {
         Bitmap devicePicture = loadProfilePictureFromPreferences();
         String deviceName = getDeviceNickname();
         this.currentDevice = new ContactsEntity(deviceName, devicePicture, network.getMyIp());
@@ -151,83 +124,71 @@ public class ProfileController {
                 SharedPreferenceAccessor.DEVICE_NICKNAME);
     }
 
-    public ContactsEntity getProfile()
-    {
+    public ContactsEntity getProfile() {
         return this.currentDevice;
     }
 
-    public ContactsEntity updateProfilePicture(Bitmap picture)
-    {
+    public ContactsEntity updateProfilePicture(Bitmap picture) {
         this.currentDevice.setPicture(picture);
         saveProfile();
         return this.currentDevice;
     }
 
-    public ContactsEntity updateProfileName(String name)
-    {
+    public ContactsEntity updateProfileName(String name) {
         this.currentDevice.setDeviceName(name);
         saveProfile();
         return this.currentDevice;
     }
 
-    private void saveProfile()
-    {
+    private void saveProfile() {
         this.sharedPreferenceAccessor.writeStringToSharedPrefs(
                 SharedPreferenceAccessor.PROFILE_PICTURE,
                 ContactsEntity.encodePictureToBase64(this.currentDevice.getPicture()), SharedPreferenceAccessor.SETTINGS_MENU);
         this.sharedPreferenceAccessor.writeStringToSharedPrefs(
                 SharedPreferenceAccessor.DEVICE_NICKNAME,
-                this.currentDevice.getDeviceName(),SharedPreferenceAccessor.SETTINGS_MENU);
+                this.currentDevice.getDeviceName(), SharedPreferenceAccessor.SETTINGS_MENU);
     }
 
     public ContactsEntity getProfileByIp(String ip) {
-        if (this.devices != null && !this.devices.isEmpty()){
-            if(this.devices.containsKey(ip))
-            {
+        if (this.devices != null && !this.devices.isEmpty()) {
+            if (this.devices.containsKey(ip)) {
                 return devices.get(ip);
-            }
-            else
-            {
+            } else {
                 return null;
             }
-        }
-        else
-        {
+        } else {
             return null;
         }
     }
 
-    private boolean checkIfProfileCanBeRetrieved(String ip)
-    {
-        synchronized (lock)
-        {
-            if(currentlyRetrievingIps.contains(ip))
-            {
+    private boolean checkIfProfileCanBeRetrieved(String ip) {
+        synchronized (lock) {
+            if (currentlyRetrievingIps.contains(ip)) {
                 return false;
-            }
-            else
-            {
+            } else {
                 currentlyRetrievingIps.add(ip);
                 return true;
             }
         }
     }
 
-    public void removeIpFromLockedList(String ip)
-    {
-        synchronized (lock)
-        {
+    public void removeIpFromLockedList(String ip) {
+        synchronized (lock) {
             currentlyRetrievingIps.remove(ip);
         }
     }
 
-    public ConcurrentHashMap<String, ContactsEntity> getDeviceList()
-    {
+    public ConcurrentHashMap<String, ContactsEntity> getDeviceList() {
         return this.devices;
     }
 
-    public void updateDeviceList()
-    {
+    public void updateDeviceList() {
         mainActivityCallback.updateDeviceListFromHashMap(this.devices);
+    }
+
+    public void getProfilesFromDiscoveredIPs(String[] ips, MainActivity mainActivity) {
+        for (String ip : ips) {
+            receiveDeviceInfoByIp(ip);
+        }
     }
 }

@@ -1,5 +1,7 @@
 package com.intercom.video.twoway;
 
+//Android API imports
+
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
@@ -21,11 +23,11 @@ import com.intercom.video.twoway.Fragments.DeviceListFrag;
 import com.intercom.video.twoway.Fragments.SettingsFragment;
 import com.intercom.video.twoway.Interfaces.UpdateDeviceListInterface;
 import com.intercom.video.twoway.Models.ContactsEntity;
-import com.intercom.video.twoway.Services.ListenerService;
 import com.intercom.video.twoway.Network.NetworkDiscovery;
+import com.intercom.video.twoway.Network.Tcp;
+import com.intercom.video.twoway.Services.ListenerService;
 import com.intercom.video.twoway.Streaming.Audio;
 import com.intercom.video.twoway.Streaming.CameraJpegCapture;
-import com.intercom.video.twoway.Network.Tcp;
 import com.intercom.video.twoway.Streaming.VideoStreaming;
 import com.intercom.video.twoway.Utilities.ControlConstants;
 import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
@@ -33,97 +35,77 @@ import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.*;
 
+//Local code imports
+//Java Imports
+
+/**
+ * @version 1.0.1
+ *          Main activity of the Application.
+ * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+ * @Implements DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface,UpdateDeviceListInterface
+ */
 public class MainActivity extends ActionBarActivity implements
         DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface,
-        UpdateDeviceListInterface
-{
-    public ProfileController profileController;
+        UpdateDeviceListInterface {
+    //--------------BEGIN VARIABLE DECLARATION---------------------------------
+    public ProfileController profileController; // Object for sending and receiving profiles
     public SharedPreferenceAccessor sharedPreferenceAccessor;
     //used with callback from list fragment
-
-    // app verions
-    String appVersion="1.0.1";
-
-    // Connect to network discovery
-    NetworkDiscovery mNetworkDiscovery;
-
+    String appVersion = "1.0.1";// app versions
+    NetworkDiscovery mNetworkDiscovery; // Network Discovery Object
     // fragment variables here
     public static FragmentTransaction ft = null;
     DeviceListFrag deviceListFrag = null;
     SettingsFragment settingsFrag = null;
-    //
-    // frag variables ^^^
-
     // used in logcat logging
     public static String TAG = "Two-Way:";
-
+    Tcp tcpEngine = new Tcp(); //Object for Tcp class
+    CameraJpegCapture cameraJpegCapture; //Object for CameraJpegCapture class
+    public Utilities utilities; // Utilities object
     /*
-    Handles all networking stuff
-     */
-    Tcp tcpEngine = new Tcp();
-
-    /*
-    captures jpeg frames from camera and converts them to bytes for transmission
-     */
-    CameraJpegCapture cameraJpegCapture;
-
-    /*
-    Some helpful things (screen unlock, etc) that shouldn't go in main activity because it will be too much and messy
-     */
-    public Utilities utilities;
-
-    /*
-    Handles all the video and audio streaming stuff.
     streamingEngine1 is used for the first device (that initiated the connection) to act as a server and streamingEngine2 to act as a client
-
     streamingEngine1 is used for the second device (that did not initiate the connection) to act as a client and streamingEngine2 to act as a server
-
      */
     VideoStreaming streamingEngine1, streamingEngine2;
-    Audio audioEngine;
-    public static boolean mic = false;
+    Audio audioEngine; //object for captuing and playing audio
+    public static boolean mic = false; // flag for whether or not to capture audio
 
-    /*
-    Keeps track of what current layout id is
+    int currentLayoutId; //Keeps track of what current layout id is
+    volatile static ListenerService listenerService; //Object for referencing the Listener service
+    volatile static boolean serviceIsBoundToActivity = false; //Control flag for determining whther or not the service dies with the app
+    public ArrayList<String> mUrlList_asArrayList = new ArrayList<String>(); //Array for storing IP addresses
+    public static String[] mUrlList_as_StringArray;
+    private Intent theService;
+
+
+    //-------------------BEGIN MAJOR LIFECYCLE METHODS--------------------------------
+
+    /**
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * Initial lifecycle method call.  Should be creating all permanent objects here that do not
+     * need to be killed or re-instantiated.
+     * @param savedInstanceState
      */
-    int currentLayoutId;
-
-
-    volatile static ListenerService listenerService;
-    volatile static boolean serviceIsBoundToActivity = false;
-
-    /*
-    list of all discovered IP addresses
-    used in fragment_main to populate list
-     */
-    ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
-    public static String[] mUrlList_as_StringArray= new String[] { "Original initialized",
-        "default.1.1.1", "10.1.1.2", "10.1.1.3","10.1.1.4","10.1.1.5","10.1.1.6","10.1.1.7",
-        "10.1.1.8", "10.1.1.9", "10.1.1.10","10.1.1.11","10.1.1.12","10.1.1.13","10.1.1.14"  };
-
-    //TODO remember to remove these default values after testing^^^
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        sharedPreferenceAccessor = new SharedPreferenceAccessor(this);
+        sharedPreferenceAccessor = new SharedPreferenceAccessor(this); //creates an accessor for our storage
+        utilities = new Utilities(this); // instantiates our utilities object.
+        mUrlList_as_StringArray = new String[0];
 
-        utilities = new Utilities(this);
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);// ensures that the app does not let the screen blank out while active
 
         setContentView(R.layout.activity_main);
-        //getActionBar().setTitle(appVersion);
-
         setContentView(R.layout.fragment_main);
-        startListenerService();
+        startListenerService(); //starts the listener service
+        mNetworkDiscovery = new NetworkDiscovery(utilities);
+        mNetworkDiscovery.setupNetworkDiscovery(this);//starts network discovery
+        profileController = new ProfileController(this, mNetworkDiscovery.getMyIp(), mNetworkDiscovery); //starts our profile controller
+        utilities = new Utilities(this);
+        theService = new Intent(this, ListenerService.class);
 
-        setupNetworkDiscovery();
-        profileController = new ProfileController(this, mNetworkDiscovery.getMyIp(), mNetworkDiscovery);
-
-        // fragment code
+        // fragment code to allow for settings fragment and profile fragment
         deviceListFrag = new DeviceListFrag();
         deviceListFrag.setProfileController(this.profileController);
         ft = getFragmentManager().beginTransaction();
@@ -133,136 +115,91 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     /**
-     * Defines callbacks for service binding, passed to bindService()
-     */
-    private ServiceConnection listenerServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            utilities.showToastMessage("Connected to service");
-            // We've bound to LocalService, cast the IBinder and get
-            // LocalService instance
-            ListenerService.LocalBinder binder = (ListenerService.LocalBinder) service;
-            listenerService = binder.getService();
-            listenerService.setProfileController(profileController);
-
-            serviceIsBoundToActivity = true;
-
-            // start the service listening for connection
-            listenerService.startListeningForConnections();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            utilities.showToastMessage("Disconnected from service");
-            serviceIsBoundToActivity = false;
-        }
-    };
-
-    public void startListenerService() {
-        Intent service = new Intent(utilities.mainContext, ListenerService.class);
-        startService(service);
-    }
-
-    /*
-    This is called when we click the establish connection button
-    Attempts to establish the tcp connection to another device
-    This starts our streaming server and tells the other device to connect to us
-     */
-    void establishConnection(String ipAddress) {
-//        String ipAddress = ipAddressEditText.getText().toString();
-        Log.i(TAG, " <---===establish connection called ===--->");
-        ImageView jpegTestImageView = (ImageView) findViewById(R.id.jpegTestImageView);
-        streamingEngine1.listenForMJpegConnection(jpegTestImageView);
-
-        // this unlocks and turns on the other device via service
-        tcpEngine.connectToDevice(ipAddress, 1);
-    }
-
-    /*
-    This is like establishConnection() except is run when when a connection intent is received
-     */
-    void establishConnectionOnIntent(String ipAddress) {
-        ImageView jpegTestImageView = (ImageView) findViewById(R.id.jpegTestImageView);
-
-        streamingEngine2.listenForMJpegConnection(jpegTestImageView);
-
-        // this just unlocks and turns on the other device via service
-        tcpEngine.connectToDevice(ipAddress, 2);
-    }
-
-    /*
-    keeps track of current layout id as Int
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * Next lifecycle method, this is where we instantiate all items that need to be recreated
+     * when the app comes back into focus
      */
     @Override
-    public void setContentView(int layoutResID) {
-        this.currentLayoutId = layoutResID;
-        super.setContentView(layoutResID);
+    public void onResume() {
+        super.onResume();
+
+        audioEngine = new Audio();
+        streamingEngine1 = new VideoStreaming(audioEngine, utilities);
+        streamingEngine2 = new VideoStreaming(audioEngine, utilities);
+
+        bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
-
-    public void onCheckboxClicked(View view) {
-
-        boolean checked = ((CheckBox) view).isChecked();
-
-
-        switch (view.getId()) {
-            case R.id.checkBox:
-                mic = checked;
-                break;
-        }
-    }
-
-
-
-    /*
-    triggers network discovery
-    gets ArrayList with IPs and pushed to list in fragment main.
+    /**
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * This is where we kill all items that need to be removed when the application loses focus
      */
-    public void setupNetworkDiscovery() {
-        //TODO: move this into NetworkDiscovery class
-        //WifiManager mWifi= (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        mNetworkDiscovery = new NetworkDiscovery(utilities);
-        mNetworkDiscovery.start();
-        mUrlList_asArrayList = mNetworkDiscovery.getIpList();
-
-        ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
-        // update initial list of discovered IPs
-        // also need to happen every time the view is called
-        mUrlList_as_StringArray = convertArrayListToStringArray(mUrlList_asArrayList);
-        setIpList(mUrlList_as_StringArray);
-
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
+    /**
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * This is called when the activity is no longer visible (Ex. user presses the home button)
+     * closes
+     */
+    @Override
+    public void onStop() {
+        streamingEngine1.closeConnection();
+        streamingEngine2.closeConnection();
+        tcpEngine.closeConnection();
+        mNetworkDiscovery.stopNetworkDiscovery();
 
-    // gets latest list of discovered IPs from network discovery and sets teh global variable
-    public void setIpList(String[] newIpList) {
-        mUrlList_as_StringArray = newIpList;
+        super.onStop();
     }
 
-    public void setIpList(ArrayList<String> mArrayList) {
-        String[] mStringArrayIpList = convertArrayListToStringArray(mArrayList);
-        setIpList(mStringArrayIpList);
+    /**
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * This is where we terminate all items that could potentially remain after the application
+     * is closed, such as the listener service
+     */
+    @Override
+    public void onDestroy() {
+        // if we wanted to not destroy the service on activity destroy we could comment this out
+        listenerService.stopListeningForConnections();
+        stopService(new Intent(this, ListenerService.class));
+        super.onDestroy();
     }
 
-    //todo: can have NetworkDiscovery return string list instead
-    //todo: can also move this to utilities
-    public String[] convertArrayListToStringArray(ArrayList<String> mArrayList) {
-        String[] mStringArray = new String[mArrayList.size()];
+    //----------------BEGIN MINOR LIFECYCLE METHODS------------------------------
 
-//        System.out.println("size of this shit = "+mArrayList.size());
-
-        System.err.println("pre for loop");
-        for (int i = 0; i < mArrayList.size(); i++) {
-            System.err.println("what the fuck for loop");
-
-            mStringArray[i] = mArrayList.get(i);
-        }
-
-        return mStringArray;
+    /**
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * method to call list fragment to screen from fragment_mail layout
+     */
+    public void showDeviceList() {
+        setContentView(R.layout.fragment_main);
+        deviceListFrag = new DeviceListFrag();
+        deviceListFrag.setProfileController(this.profileController);
+        profileController.getProfilesFromDiscoveredIPs(mUrlList_as_StringArray, this);
+        ft = getFragmentManager().beginTransaction();
+        ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.commit();
     }
 
-    /*
-    This is where we handle messages (as intents) from the service
+    /**
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * Shows the settings fragment
+     */
+    public void showSettings() {
+        settingsFrag = new SettingsFragment();
+        ft = getFragmentManager().beginTransaction();
+        ft.add(R.id.fragment_container, settingsFrag, "MAIN_FRAGMENT");
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.commit();
+    }
+
+    /**
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * This is where we handle messages (as intents) from the service
+     * @param intent
      */
     @Override
     protected void onNewIntent(Intent intent) {
@@ -320,47 +257,54 @@ public class MainActivity extends ActionBarActivity implements
 
     }
 
+    /**
+     * @param menu
+     * @return
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * Inflate the menu; this adds items to the action bar if it is present.
+     */
     @Override
-    public void onResume() {
-        super.onResume();
-
-        utilities = new Utilities(this);
-        audioEngine = new Audio();
-
-
-//        setupNetworkDiscovery();
-
-        streamingEngine1 = new VideoStreaming(audioEngine, utilities);
-        streamingEngine2 = new VideoStreaming(audioEngine, utilities);
-
-        Intent theService = new Intent(this, ListenerService.class);
-        bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
     }
 
-
+    /**
+     * @param layoutResID
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * keeps track of current layout id as Int
+     */
     @Override
-    public void onPause()
-    {
-        super.onPause();
+    public void setContentView(int layoutResID) {
+        this.currentLayoutId = layoutResID;
+        super.setContentView(layoutResID);
     }
 
-    @Override
-    public void onStop()
-    {
-        streamingEngine1.closeConnection();
-        streamingEngine2.closeConnection();
-        tcpEngine.closeConnection();
-        mNetworkDiscovery.stopNetworkDiscovery();
+    //--------------BEGIN ACTION HANDLER CALLBACK METHODS--------------------------
 
-        super.onStop();
+    /**
+     * @param deviceIP
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * official android code, Container Activity must implement this interface
+     */
+    // TODO: not sure if this is implemented right
+    public void onListItemSelectedListener(String deviceIP) {
+        setContentView(R.layout.activity_main);
+        establishConnection(deviceIP);
+        Log.i(TAG, " <---===establish connection called from listener ===--->");
     }
 
-    @Override
-    public void onDestroy() {
-        // if we wanted to not destroy the service on activity destroy we could comment this out
-        listenerService.stopListeningForConnections();
-        stopService(new Intent(this, ListenerService.class));
-        super.onDestroy();
+    /**
+     * @param deviceIP
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * This method is executed when list item is clicked and ip selected
+     */
+    public void onListItemSelected(String deviceIP) {
+        setContentView(R.layout.activity_main);
+//        mText = (EditText) findViewById(R.id.ipAddressEditText);
+//        mText.setText(deviceIP);
+        establishConnection(deviceIP);
+        Log.i(TAG, " <---===establish connection called from selected===--->");
     }
 
     @Override
@@ -376,13 +320,6 @@ public class MainActivity extends ActionBarActivity implements
         if (this.currentLayoutId == R.layout.settings_menu) {
             setContentView(R.layout.activity_main);
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-// Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
     }
 
     @Override
@@ -403,8 +340,8 @@ public class MainActivity extends ActionBarActivity implements
 
                 // update initial list of discovered IPs
                 // also need to happen every time the view is called
-                mUrlList_as_StringArray = convertArrayListToStringArray(mUrlList_asArrayList);
-                setIpList(mUrlList_as_StringArray);
+                mUrlList_as_StringArray = utilities.convertArrayListToStringArray(mUrlList_asArrayList);
+                utilities.setIpList(mUrlList_as_StringArray);
                 showDeviceList();
                 for (String ip : mUrlList_as_StringArray)
                     Log.i(TAG, "loading to ui IP: " + ip);
@@ -415,46 +352,87 @@ public class MainActivity extends ActionBarActivity implements
         }
     }
 
-    // method to call list fragment to screen from fragment_mail layout
-    public void showDeviceList() {
-        setContentView(R.layout.fragment_main);
-        deviceListFrag = new DeviceListFrag();
-        deviceListFrag.setProfileController(this.profileController);
-        getProfilesFromDiscoveredIPs(mUrlList_as_StringArray);
-        ft = getFragmentManager().beginTransaction();
-        ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        ft.commit();
+    /**
+     * @param view
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * Action handler callback for monitoring when the Mic checkbox is changed
+     */
+    public void onCheckboxClicked(View view) {
+
+        boolean checked = ((CheckBox) view).isChecked();
+
+
+        switch (view.getId()) {
+            case R.id.checkBox:
+                mic = checked;
+                break;
+        }
+    }
+    //------------------BEGIN SERVICE METHODS-----------------------------------
+    /**
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * Defines callbacks for service binding, passed to bindService()
+     */
+    private ServiceConnection listenerServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            utilities.showToastMessage("Connected to service");
+            // We've bound to LocalService, cast the IBinder and get
+            // LocalService instance
+            ListenerService.LocalBinder binder = (ListenerService.LocalBinder) service;
+            listenerService = binder.getService();
+            listenerService.setProfileController(profileController);
+
+            serviceIsBoundToActivity = true;
+
+            // start the service listening for connection
+            listenerService.startListeningForConnections();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            utilities.showToastMessage("Disconnected from service");
+            serviceIsBoundToActivity = false;
+        }
+    };
+
+    public void startListenerService() {
+        Intent service = new Intent(utilities.mainContext, ListenerService.class);
+        startService(service);
     }
 
-    public void showSettings()
-    {
-        settingsFrag = new SettingsFragment();
-        ft = getFragmentManager().beginTransaction();
-        ft.add(R.id.fragment_container, settingsFrag, "MAIN_FRAGMENT");
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        ft.commit();
+    /**
+     * @param ipAddress
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * This is called when we click the establish connection button attempts to establish the
+     * tcp connection to another device this starts our streaming server and tells the other
+     * device to connect to us
+     */
+    void establishConnection(String ipAddress) {
+//        String ipAddress = ipAddressEditText.getText().toString();
+        Log.i(TAG, " <---===establish connection called ===--->");
+        ImageView jpegTestImageView = (ImageView) findViewById(R.id.jpegTestImageView);
+        streamingEngine1.listenForMJpegConnection(jpegTestImageView);
+
+        // this unlocks and turns on the other device via service
+        tcpEngine.connectToDevice(ipAddress, 1);
     }
 
-    // official android code
-    // TODO: not sure if this is implemented right
-    // Container Activity must implement this interface
+    /**
+     * @param ipAddress
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * This is like establishConnection() except is run when when a connection intent is received
+     */
+    void establishConnectionOnIntent(String ipAddress) {
+        ImageView jpegTestImageView = (ImageView) findViewById(R.id.jpegTestImageView);
 
-    public void onListItemSelectedListener(String deviceIP) {
-        setContentView(R.layout.activity_main);
-        establishConnection(deviceIP);
-        Log.i(TAG, " <---===establish connection called from listener ===--->");
+        streamingEngine2.listenForMJpegConnection(jpegTestImageView);
+
+        // this just unlocks and turns on the other device via service
+        tcpEngine.connectToDevice(ipAddress, 2);
     }
 
-    // This method is executed when list item is clicked and ip selected
-    public void onListItemSelected(String deviceIP) {
-        setContentView(R.layout.activity_main);
-//        mText = (EditText) findViewById(R.id.ipAddressEditText);
-//        mText.setText(deviceIP);
-        establishConnection(deviceIP);
-        Log.i(TAG, " <---===establish connection called from selected===--->");
-    }
-
+    //------------ BEGIN PROFILE SERVICE METHODS--------------------------------
     @Override
     public ProfileController retrieveProfileController() {
         return profileController;
@@ -468,11 +446,4 @@ public class MainActivity extends ActionBarActivity implements
         }
     }
 
-    private void getProfilesFromDiscoveredIPs(String[] ips)
-    {
-        for(String ip : ips)
-        {
-            this.profileController.receiveDeviceInfoByIp(ip);
-        }
-    }
 }

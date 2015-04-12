@@ -5,7 +5,7 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
-import com.intercom.video.twoway.Utilities.ControlConstants;
+import com.intercom.video.twoway.MainActivity;
 import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.io.IOException;
@@ -250,5 +250,25 @@ public class NetworkDiscovery extends Thread
             Log.d("NetworkDiscovery", "Can't convert from int to ip");
         }
         return inetAddress;
+    }
+
+    /**
+     * @param mainActivity
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * This method activates our Network discovery engine.
+     */
+    public void setupNetworkDiscovery(MainActivity mainActivity) {
+        //TODO: move this into NetworkDiscovery class
+        //WifiManager mWifi= (WifiManager) getSystemService(Context.WIFI_SERVICE);
+
+        start();
+        mainActivity.mUrlList_asArrayList = getIpList();
+
+        ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
+        // update initial list of discovered IPs
+        // also need to happen every time the view is called
+        MainActivity.mUrlList_as_StringArray = mainActivity.utilities.convertArrayListToStringArray(mUrlList_asArrayList);
+        mainActivity.utilities.setIpList(MainActivity.mUrlList_as_StringArray);
+
     }
 }
