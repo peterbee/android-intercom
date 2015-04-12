@@ -141,7 +141,7 @@ public class MainActivity extends ActionBarActivity implements
 
     /**
      * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
-     * This is where we gracefully terminate all aspects of the application when the application
+     * This is called when the activity is no longer visible (Ex. user presses the home button)
      * closes
      */
     @Override
