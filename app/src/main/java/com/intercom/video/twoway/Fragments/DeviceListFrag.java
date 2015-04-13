@@ -37,17 +37,26 @@ public class DeviceListFrag extends ListFragment {
     public void onActivityCreated(Bundle b) {
         super.onActivityCreated(b);
 
-        //TODO: call update IP list here
-        values = MainActivity.mUrlList_as_StringArray;
 
-        if(values != null)
+        try
         {
-            updateIpListFromProfileHashMap(this.profileController.getDeviceList());
-        }
+            //TODO: call update IP list here
+            values = MainActivity.mUrlList_as_StringArray;
 
-        adapter = new ArrayAdapter<String>(getActivity(),
-                android.R.layout.simple_list_item_1, values);
-        setListAdapter(adapter);
+            if (values != null)
+            {
+
+                updateIpListFromProfileHashMap(this.profileController.getDeviceList());
+            }
+
+            adapter = new ArrayAdapter<String>(getActivity(),
+                    android.R.layout.simple_list_item_1, values);
+            setListAdapter(adapter);
+        }
+        catch(Exception e)
+        {
+//            e.printStackTrace();
+        }
     }
 
     @Override

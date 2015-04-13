@@ -214,7 +214,7 @@ public class NetworkDiscovery extends Thread
             }
         } catch (SocketTimeoutException e)
         {
-            Log.d("NetworkDiscovery", "timed out");
+//            Log.d("NetworkDiscovery", "timed out");
         }
         return null;
     }
@@ -229,7 +229,7 @@ public class NetworkDiscovery extends Thread
             return null;
         }
         String ipAddressString = inetAddress.getHostAddress();
-        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
+//        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
         return ipAddressString;
     }
 

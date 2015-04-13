@@ -54,7 +54,6 @@ public class MainActivity extends ActionBarActivity implements
     public SharedPreferenceAccessor sharedPreferenceAccessor;
     //used with callback from list fragment
     String appVersion = "1.0.1";// app versions
-    NetworkDiscovery mNetworkDiscovery; // Network Discovery Object
     // fragment variables here
     public static FragmentTransaction ft = null;
     DeviceListFrag deviceListFrag = null;
@@ -79,6 +78,7 @@ public class MainActivity extends ActionBarActivity implements
     public static String[] mUrlList_as_StringArray;
     private Intent theService;
 
+    MainActivity mainActivity;
 
     //-------------------BEGIN MAJOR LIFECYCLE METHODS--------------------------------
 
@@ -93,28 +93,19 @@ public class MainActivity extends ActionBarActivity implements
         super.onCreate(savedInstanceState);
         sharedPreferenceAccessor = new SharedPreferenceAccessor(this); //creates an accessor for our storage
         utilities = new Utilities(this); // instantiates our utilities object.
+
+        mainActivity=this;
         mUrlList_as_StringArray = new String[0];
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);// ensures that the app does not let the screen blank out while active
 
-        setContentView(R.layout.activity_main);
+//        setContentView(R.layout.activity_main);
         setContentView(R.layout.fragment_main);
         startListenerService(); //starts the listener service
 
-        mNetworkDiscovery = new NetworkDiscovery(utilities);
-        mNetworkDiscovery.setupNetworkDiscovery();//starts network discovery
 
-        profileController = new ProfileController(this, mNetworkDiscovery.getMyIp(), mNetworkDiscovery); //starts our profile controller
-        utilities = new Utilities(this);
         theService = new Intent(this, ListenerService.class);
 
-        // fragment code to allow for settings fragment and profile fragment
-        deviceListFrag = new DeviceListFrag();
-        deviceListFrag.setProfileController(this.profileController);
-        ft = getFragmentManager().beginTransaction();
-        ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        ft.commit();
     }
 
     /**
@@ -125,10 +116,26 @@ public class MainActivity extends ActionBarActivity implements
     @Override
     public void onResume() {
         super.onResume();
+        System.out.println("On Resume Called!");
 
         audioEngine = new Audio();
         streamingEngine1 = new VideoStreaming(audioEngine, utilities);
         streamingEngine2 = new VideoStreaming(audioEngine, utilities);
+
+        if(profileController==null)
+        if(listenerService!=null)
+        {
+            profileController = new ProfileController(mainActivity, listenerService.mNetworkDiscovery.getMyIp(), listenerService.mNetworkDiscovery); //starts our profile controller
+            listenerService.setProfileController(profileController);
+            // fragment code to allow for settings fragment and profile fragment
+            deviceListFrag = new DeviceListFrag();
+            deviceListFrag.setProfileController(profileController);
+            ft = getFragmentManager().beginTransaction();
+            ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
+            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+            ft.commit();
+        }
+
 
         bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
     }
@@ -152,8 +159,8 @@ public class MainActivity extends ActionBarActivity implements
         streamingEngine1.closeConnection();
         streamingEngine2.closeConnection();
         tcpEngine.closeConnection();
-        mNetworkDiscovery.stopNetworkDiscovery();
-
+        listenerService.stopListeningForConnections();
+        profileController.killProfileServer();
         super.onStop();
     }
 
@@ -165,8 +172,8 @@ public class MainActivity extends ActionBarActivity implements
     @Override
     public void onDestroy() {
         // if we wanted to destroy the service on activity destroy we could uncomment this
-//        listenerService.stopListeningForConnections();
-//        stopService(new Intent(this, ListenerService.class));
+        listenerService.stopListeningForConnections();
+        stopService(new Intent(this, ListenerService.class));
         super.onDestroy();
     }
 
@@ -209,6 +216,7 @@ public class MainActivity extends ActionBarActivity implements
         super.onNewIntent(intent);
         setIntent(intent);
 
+        System.out.println("On new intent received!");
         // return if no extras so we dont crash trying to retrieve them
         if(intent.getExtras()==null)
             return;
@@ -230,7 +238,9 @@ public class MainActivity extends ActionBarActivity implements
         // then start our own remote server and tel the other device to connect
         if (COMMAND_STRING.equals(ControlConstants.INTENT_COMMAND_START_STREAMING_FIRST)) {
             // TODO: set autoswitch to main layout =true
+
             setContentView(R.layout.activity_main);
+
             utilities.forceWakeUpUnlock();
 
             audioEngine.startAudioCapture();
@@ -317,7 +327,7 @@ public class MainActivity extends ActionBarActivity implements
         streamingEngine1.closeConnection();
         streamingEngine2.closeConnection();
         tcpEngine.closeConnection();
-        mNetworkDiscovery.stopNetworkDiscovery();
+//        mNetworkDiscovery.stopNetworkDiscovery();
 
         //back from settings is main screen
         if (this.currentLayoutId == R.layout.settings_menu) {
@@ -339,7 +349,7 @@ public class MainActivity extends ActionBarActivity implements
                 return true;
 
             case R.id.action_find_peers:
-                mUrlList_asArrayList = mNetworkDiscovery.getIpList();
+                mUrlList_asArrayList = listenerService.mNetworkDiscovery.getIpList();
 
                 // update initial list of discovered IPs
                 // also need to happen every time the view is called
@@ -383,12 +393,24 @@ public class MainActivity extends ActionBarActivity implements
             // LocalService instance
             ListenerService.LocalBinder binder = (ListenerService.LocalBinder) service;
             listenerService = binder.getService();
-            listenerService.setProfileController(profileController);
 
             serviceIsBoundToActivity = true;
 
-            // start the service listening for connection
-//            listenerService.startListeningForConnections();
+
+            if(profileController==null)
+            {
+                profileController = new ProfileController(mainActivity, listenerService.mNetworkDiscovery.getMyIp(), listenerService.mNetworkDiscovery); //starts our profile controller
+                listenerService.setProfileController(profileController);
+                // fragment code to allow for settings fragment and profile fragment
+                deviceListFrag = new DeviceListFrag();
+                deviceListFrag.setProfileController(profileController);
+                ft = getFragmentManager().beginTransaction();
+                ft.add(R.id.fragment_container, deviceListFrag, "MAIN_FRAGMENT");
+                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                ft.commit();
+            }
+
+
         }
 
         @Override

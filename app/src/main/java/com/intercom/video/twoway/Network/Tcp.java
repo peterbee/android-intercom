@@ -123,12 +123,11 @@ public class Tcp
     public int listenForConnection()
     {
         int connectionStage=0;
+
+        // close any previous connections
+        closeConnection();
         try
         {
-            System.out.println("Listening for connection!");
-
-            closeConnection();
-
             tcpServerSocket = new ServerSocket(getLISTENING_SERVICE_PORT());
             tcpSocket = tcpServerSocket.accept();
             tcpIn = tcpSocket.getInputStream();
@@ -143,14 +142,14 @@ public class Tcp
 
             connectionStage=tcpIn.read();
 
-            // just disconnect now, no use for keeping this connection open
-            closeConnection();
 
         } catch (Exception e)
         {
             e.printStackTrace();
         }
 
+        // just disconnect now, no use for keeping this connection open
+        closeConnection();
 
         return connectionStage;
     }

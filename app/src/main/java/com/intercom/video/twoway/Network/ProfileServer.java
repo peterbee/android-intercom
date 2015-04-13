@@ -25,12 +25,35 @@ public class ProfileServer implements Runnable{
         this.callingController = cc;
     }
 
+    boolean profileServerRunning;
+    public void killProfileServer()
+    {
+        profileServerRunning=false;
+        try
+        {
+            receiveDeviceServerSocket.close();
+        }
+        catch(Exception e)
+        {
+
+        }
+
+        try
+        {
+            receiveDeviceSocket.close();
+        }
+        catch(Exception e)
+        {
+
+        }
+    }
     private void initiateProfileServer()
     {
         try {
             receiveDeviceServerSocket = new ServerSocket(
                     NetworkConstants.PROFILE_TRANSFER_PROPER_PORT);
-            while(true) { //TODO: change this to stop on a flag
+            profileServerRunning=true;
+            while(profileServerRunning) { //TODO: change this to stop on a flag
                 receiveDeviceSocket = receiveDeviceServerSocket.accept();
                 profileIn = new ObjectInputStream(receiveDeviceSocket.getInputStream());
 
@@ -43,7 +66,7 @@ public class ProfileServer implements Runnable{
                     System.err.println("Done fucked up casting profile");
                     //Log.d("Profile Controller", "Error casting class sent over tcp");
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
+//                    e.printStackTrace();
                 }
             }
 

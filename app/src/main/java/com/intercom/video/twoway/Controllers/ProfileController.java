@@ -55,6 +55,11 @@ public class ProfileController {
         this.mainActivityCallback = mainActivity;
     }
 
+    public void killProfileServer()
+    {
+        profileServer.killProfileServer();
+    }
+
     //Add Contact To Master List
     public void addContact(String ip, ContactsEntity contactToAdd) {
         //String ipToSave = splitIpFromPort(ip);
