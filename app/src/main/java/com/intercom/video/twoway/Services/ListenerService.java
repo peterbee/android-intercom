@@ -36,7 +36,7 @@ public class ListenerService extends Service
 
     ControlConstants constants = new ControlConstants();
 
-    NetworkDiscovery mNetworkDiscovery; // Network Discovery Object
+    public NetworkDiscovery mNetworkDiscovery; // Network Discovery Object
 	/**
 	 * Class used for the client Binder. Because we know this service always
 	 * runs in the same process as its clients, we don't need to deal with IPC.
@@ -56,9 +56,9 @@ public class ListenerService extends Service
 	{
         startListeningForConnections();
 
-//        Utilities u = new Utilities();
-//        mNetworkDiscovery = new NetworkDiscovery(u);
-//        mNetworkDiscovery.setupNetworkDiscovery();//starts network discovery
+        Utilities u = new Utilities(this);
+        mNetworkDiscovery = new NetworkDiscovery(u);
+        mNetworkDiscovery.setupNetworkDiscovery();//starts network discovery
         // If we get killed, after returning from here, restart the service
 		return START_STICKY;
 	}
@@ -99,10 +99,17 @@ public class ListenerService extends Service
 		super.onCreate();
 	}
 
+    @Override
+    public void onDestroy()
+    {
+        mNetworkDiscovery.stopNetworkDiscovery();
+        stopListeningForConnections();
+    }
 
     public void stopListeningForConnections()
     {
         listeningForConnections=false;
+        serviceTcpEngine.closeConnection();
     }
 
     /*
@@ -120,21 +127,36 @@ public class ListenerService extends Service
                 {
                     while (listeningForConnections)
                     {
-                        int connectionStage=serviceTcpEngine.listenForConnection();
+                        try
+                        {
+                            int connectionStage = serviceTcpEngine.listenForConnection();
 
-                        // extract just the ip address from ip address and prot combo string
-                        // this would be cooler if done with regular expressions
-                        String RemoteAddress = serviceTcpEngine.lastRemoteIpAddress;
-                        String newRemoteAddress = RemoteAddress.substring(1, RemoteAddress.indexOf(":"));
+                            // extract just the ip address from ip address and prot combo string
+                            // this would be cooler if done with regular expressions
+                            String RemoteAddress = serviceTcpEngine.lastRemoteIpAddress;
+                            String newRemoteAddress = RemoteAddress.substring(1, RemoteAddress.indexOf(":"));
 
-                        // tell main activity to start streaming the remote video
-                        if(connectionStage==1)
-                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_FIRST, newRemoteAddress);
-                        if(connectionStage==2)
-                            sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_SECOND, newRemoteAddress);
-                        if(connectionStage== NetworkConstants.PROFILE)
-                            profileController.sendDeviceInfoByIp(newRemoteAddress);
+                            // tell main activity to start streaming the remote video
+                            if (connectionStage == 1)
+                                sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_FIRST, newRemoteAddress);
+                            if (connectionStage == 2)
+                                sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_SECOND, newRemoteAddress);
+                            if (connectionStage == NetworkConstants.PROFILE)
+                            {
+                                // profileController can be null if service started on boot
+                                try
+                                {
+                                    profileController.sendDeviceInfoByIp(newRemoteAddress);
+                                } catch (Exception e)
+                                {
 
+                                }
+                            }
+                        }
+                        catch(Exception e)
+                        {
+
+                        }
                         // now just close the connection since this is only proof of concept
                         serviceTcpEngine.closeConnection();
                     }

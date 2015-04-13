@@ -34,6 +34,8 @@ public class Utilities {
     TODO make this method less shitty and figure out the right way to do it
     */
     public void forceWakeUpUnlock() {
+
+        System.out.println("About to force wakeup unlock");
         KeyguardManager km = (KeyguardManager) mainContext.getSystemService(Context.KEYGUARD_SERVICE);
         final KeyguardManager.KeyguardLock kl = km.newKeyguardLock("MyKeyguardLock");
         kl.disableKeyguard();
