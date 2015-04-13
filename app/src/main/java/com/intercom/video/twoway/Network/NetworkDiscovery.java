@@ -253,15 +253,19 @@ public class NetworkDiscovery extends Thread
     }
 
     /**
-     * @param mainActivity
      * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
      * This method activates our Network discovery engine.
      */
-    public void setupNetworkDiscovery(MainActivity mainActivity) {
+    public void setupNetworkDiscovery() {
         //TODO: move this into NetworkDiscovery class
         //WifiManager mWifi= (WifiManager) getSystemService(Context.WIFI_SERVICE);
 
         start();
+
+        // Sean removed this code (charles) because it didn't seem to do anything
+        // and in order to put network discovery in the service we were no longer able to
+        // pass it main activity
+        /*
         mainActivity.mUrlList_asArrayList = getIpList();
 
         ArrayList<String> mUrlList_asArrayList = new ArrayList<String>();
@@ -269,6 +273,8 @@ public class NetworkDiscovery extends Thread
         // also need to happen every time the view is called
         MainActivity.mUrlList_as_StringArray = mainActivity.utilities.convertArrayListToStringArray(mUrlList_asArrayList);
         mainActivity.utilities.setIpList(MainActivity.mUrlList_as_StringArray);
+
+        */
 
     }
 }

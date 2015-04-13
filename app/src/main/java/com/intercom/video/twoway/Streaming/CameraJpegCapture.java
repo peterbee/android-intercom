@@ -25,7 +25,7 @@ public class CameraJpegCapture
     public Utilities utilities;
     int pWidth=320;
     int pHeight=240;
-    int jpegQuality = 10;
+    int jpegQuality = 50;
     Camera.Parameters params;
 
     private Camera mCamera;

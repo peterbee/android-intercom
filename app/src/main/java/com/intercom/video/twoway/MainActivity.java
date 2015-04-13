@@ -3,6 +3,7 @@ package com.intercom.video.twoway;
 //Android API imports
 
 import android.app.FragmentTransaction;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -99,8 +100,10 @@ public class MainActivity extends ActionBarActivity implements
         setContentView(R.layout.activity_main);
         setContentView(R.layout.fragment_main);
         startListenerService(); //starts the listener service
+
         mNetworkDiscovery = new NetworkDiscovery(utilities);
-        mNetworkDiscovery.setupNetworkDiscovery(this);//starts network discovery
+        mNetworkDiscovery.setupNetworkDiscovery();//starts network discovery
+
         profileController = new ProfileController(this, mNetworkDiscovery.getMyIp(), mNetworkDiscovery); //starts our profile controller
         utilities = new Utilities(this);
         theService = new Intent(this, ListenerService.class);
@@ -161,9 +164,9 @@ public class MainActivity extends ActionBarActivity implements
      */
     @Override
     public void onDestroy() {
-        // if we wanted to not destroy the service on activity destroy we could comment this out
-        listenerService.stopListeningForConnections();
-        stopService(new Intent(this, ListenerService.class));
+        // if we wanted to destroy the service on activity destroy we could uncomment this
+//        listenerService.stopListeningForConnections();
+//        stopService(new Intent(this, ListenerService.class));
         super.onDestroy();
     }
 
@@ -376,7 +379,6 @@ public class MainActivity extends ActionBarActivity implements
     private ServiceConnection listenerServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
-            utilities.showToastMessage("Connected to service");
             // We've bound to LocalService, cast the IBinder and get
             // LocalService instance
             ListenerService.LocalBinder binder = (ListenerService.LocalBinder) service;
@@ -386,12 +388,11 @@ public class MainActivity extends ActionBarActivity implements
             serviceIsBoundToActivity = true;
 
             // start the service listening for connection
-            listenerService.startListeningForConnections();
+//            listenerService.startListeningForConnections();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
-            utilities.showToastMessage("Disconnected from service");
             serviceIsBoundToActivity = false;
         }
     };
@@ -431,6 +432,7 @@ public class MainActivity extends ActionBarActivity implements
         // this just unlocks and turns on the other device via service
         tcpEngine.connectToDevice(ipAddress, 2);
     }
+
 
     //------------ BEGIN PROFILE SERVICE METHODS--------------------------------
     @Override

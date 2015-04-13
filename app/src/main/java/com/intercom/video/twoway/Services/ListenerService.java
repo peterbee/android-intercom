@@ -3,6 +3,7 @@ package com.intercom.video.twoway.Services;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
@@ -13,9 +14,11 @@ import android.util.Log;
 import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.MainActivity;
 import com.intercom.video.twoway.Network.NetworkConstants;
+import com.intercom.video.twoway.Network.NetworkDiscovery;
 import com.intercom.video.twoway.Network.Tcp;
 import com.intercom.video.twoway.R;
 import com.intercom.video.twoway.Utilities.ControlConstants;
+import com.intercom.video.twoway.Utilities.Utilities;
 
 public class ListenerService extends Service 
 {
@@ -33,6 +36,7 @@ public class ListenerService extends Service
 
     ControlConstants constants = new ControlConstants();
 
+    NetworkDiscovery mNetworkDiscovery; // Network Discovery Object
 	/**
 	 * Class used for the client Binder. Because we know this service always
 	 * runs in the same process as its clients, we don't need to deal with IPC.
@@ -50,8 +54,12 @@ public class ListenerService extends Service
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
+        startListeningForConnections();
 
-		// If we get killed, after returning from here, restart the service
+//        Utilities u = new Utilities();
+//        mNetworkDiscovery = new NetworkDiscovery(u);
+//        mNetworkDiscovery.setupNetworkDiscovery();//starts network discovery
+        // If we get killed, after returning from here, restart the service
 		return START_STICKY;
 	}
 
@@ -86,6 +94,7 @@ public class ListenerService extends Service
 
 
         startForeground(SERVICE_ID, n);
+
 
 		super.onCreate();
 	}
