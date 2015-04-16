@@ -14,6 +14,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.CheckBox;
@@ -48,7 +49,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MainActivity extends ActionBarActivity implements
         DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface,
-        UpdateDeviceListInterface {
+        UpdateDeviceListInterface, View.OnTouchListener {
     //--------------BEGIN VARIABLE DECLARATION---------------------------------
     public ProfileController profileController; // Object for sending and receiving profiles
     public SharedPreferenceAccessor sharedPreferenceAccessor;
@@ -175,6 +176,25 @@ public class MainActivity extends ActionBarActivity implements
         listenerService.stopListeningForConnections();
         stopService(new Intent(this, ListenerService.class));
         super.onDestroy();
+    }
+    
+    /**
+     * This must be overriden when we implement OnTouchListener.
+     * When touching the screen, mic will be turned on and when not touching the screen
+     * the mic will be turned off
+     */
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        //
+        switch (event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                mic = true;
+                break;
+            case MotionEvent.ACTION_UP:
+                mic = false;
+                break;
+        }
+        return mic;
     }
 
     //----------------BEGIN MINOR LIFECYCLE METHODS------------------------------
@@ -439,6 +459,9 @@ public class MainActivity extends ActionBarActivity implements
 
         // this unlocks and turns on the other device via service
         tcpEngine.connectToDevice(ipAddress, 1);
+        
+        // After connection is established, add an ontouch listener to the jpegTestImageView
+        activateOnTouchListener();
     }
 
     /**
@@ -467,6 +490,30 @@ public class MainActivity extends ActionBarActivity implements
     {
         if(deviceListFrag != null) {
             //deviceListFrag.updateIpListFromProfileHashMap(this.profileController.getDeviceList());
+        }
+    }
+    
+    /**
+     * Add a new touch listener on the jpegTestImageView view.
+     * When that view is being pressed, the mic will be turned on
+     */
+    private void activateOnTouchListener(){
+        View cameraView = findViewById(R.id.jpegTestImageView);
+        if (cameraView !=  null) {
+            cameraView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            mic = true;
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            mic = false;
+                            break;
+                    }
+                    return true;
+                }
+            });
         }
     }
 
