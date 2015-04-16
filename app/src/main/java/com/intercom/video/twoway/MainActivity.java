@@ -137,7 +137,7 @@ public class MainActivity extends ActionBarActivity implements
             ft.commit();
         }
 
-
+        activateOnTouchListener();
         bindService(theService, listenerServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -160,8 +160,9 @@ public class MainActivity extends ActionBarActivity implements
         streamingEngine1.closeConnection();
         streamingEngine2.closeConnection();
         tcpEngine.closeConnection();
-        listenerService.stopListeningForConnections();
-        profileController.killProfileServer();
+//        listenerService.stopListeningForConnections();
+        if(profileController!=null)
+            profileController.killProfileServer();
         super.onStop();
     }
 
@@ -492,18 +493,23 @@ public class MainActivity extends ActionBarActivity implements
             //deviceListFrag.updateIpListFromProfileHashMap(this.profileController.getDeviceList());
         }
     }
-    
+
+
     /**
      * Add a new touch listener on the jpegTestImageView view.
      * When that view is being pressed, the mic will be turned on
      */
-    private void activateOnTouchListener(){
+
+    private void activateOnTouchListener()
+    {
+        System.err.println("Activated on touch listener!");
         View cameraView = findViewById(R.id.jpegTestImageView);
         if (cameraView !=  null) {
             cameraView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getAction()) {
+                    switch (event.getAction())
+                    {
                         case MotionEvent.ACTION_DOWN:
                             mic = true;
                             break;
@@ -516,5 +522,6 @@ public class MainActivity extends ActionBarActivity implements
             });
         }
     }
+
 
 }
