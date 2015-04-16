@@ -87,7 +87,6 @@ public class CameraJpegCapture
             params = mCamera.getParameters();
             params.setPreviewSize(pWidth, pHeight);
 
-	        mCamera.setDisplayOrientation(90);
             mCamera.setParameters(params);
 			mCamera.setPreviewTexture(new SurfaceTexture(0));
         }
