@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
+ * @author Charles tOLL
  * Controls access to profiles, as well as sending and receiving profiles
  */
 public class ProfileController {
@@ -37,9 +38,14 @@ public class ProfileController {
     private UpdateDeviceListInterface mainActivityCallback;
     private NetworkDiscovery network;
 
-    /*Passes wifi manager and bitmap pic for now for testing purposes, need to already have device
-        Profile set up
-    */
+    /**
+     * The constructor for Profile controller, that sets up a new thread pool for all connections
+     * involving profiles, sets up all callbacks, loads the device profile from storage, and start the
+     * connection server.
+     * @param mainActivity The main calling main activity
+     * @param ip The ip of the device profile controller is running on
+     * @param nd - A reference to network discovery
+     */
     public ProfileController(MainActivity mainActivity, String ip, NetworkDiscovery nd) {
         network = nd;
         this.ip = ip;
@@ -55,6 +61,9 @@ public class ProfileController {
         this.mainActivityCallback = mainActivity;
     }
 
+    /**
+     * Ends the profile server.
+     */
     public void killProfileServer()
     {
         profileServer.killProfileServer();
@@ -73,12 +82,19 @@ public class ProfileController {
         }
     }
 
+    /**
+     * Sends a profile over tcp by ip.
+     * @param ip - The ip to send to
+     */
     public void sendDeviceInfoByIp(final String ip) {
         Runnable profileSender = new ProfileSender(ip, this.currentDevice);
         executor.execute(profileSender);
     }
 
-    //
+    /**
+     * Attempts to receive a profile by ip.
+     * @param ip The ip of the device whose profile is being requested.
+     */
     public void receiveDeviceInfoByIp(String ip) {
         String freshIp = splitIpFromPort(ip);
         if (this.devices.containsKey(freshIp)) {
@@ -99,6 +115,9 @@ public class ProfileController {
         }
     }
 
+    /**
+     * Updates the profile by rechecking the saved profile
+     */
     public void refreshDeviceProfile() {
         Bitmap devicePicture = loadProfilePictureFromPreferences();
         String deviceName = getDeviceNickname();
