@@ -6,26 +6,35 @@ import com.intercom.video.twoway.Controllers.ProfileController;
 import com.intercom.video.twoway.Models.ContactsEntity;
 
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Created by charles on 4/3/15.
+ * @Author Charles Toll on 4/3/15.
+ * This class creates a standing network listener for receiving profiles from other devices.
  */
 public class ProfileServer implements Runnable{
     private Socket receiveDeviceSocket;
     private ServerSocket receiveDeviceServerSocket;
     private ObjectInputStream profileIn;
     private final ProfileController callingController;
+    boolean profileServerRunning; //flag for gracefully killing the server
 
+    /**
+     * Constructor
+     *
+     * @param cc The ProfileController that created this server
+     */
     public ProfileServer(ProfileController cc)
     {
         this.callingController = cc;
     }
 
-    boolean profileServerRunning;
+    /**
+     * method for gracefully killing the profile server.  Closes all sockets and sets
+     * profileServerRunning = false;
+     */
     public void killProfileServer()
     {
         profileServerRunning=false;
@@ -33,27 +42,30 @@ public class ProfileServer implements Runnable{
         {
             receiveDeviceServerSocket.close();
         }
-        catch(Exception e)
-        {
-
+        catch(Exception e) {
+            Log.d("ProfileServer", "Could not close receiveDeviceServerSocket");
         }
 
         try
         {
             receiveDeviceSocket.close();
         }
-        catch(Exception e)
-        {
-
+        catch(Exception e) {
+            Log.d("ProfileServer", "Could not close receiveDeviceSocket");
         }
     }
+
+    /**
+     * Sets up the listener and accepts all incoming connections.  Attempts to convert all incoming
+     * data to ContactsEntity.
+     */
     private void initiateProfileServer()
     {
         try {
             receiveDeviceServerSocket = new ServerSocket(
                     NetworkConstants.PROFILE_TRANSFER_PROPER_PORT);
-            profileServerRunning=true;
-            while(profileServerRunning) { //TODO: change this to stop on a flag
+            profileServerRunning = true;
+            while (profileServerRunning) {
                 receiveDeviceSocket = receiveDeviceServerSocket.accept();
                 profileIn = new ObjectInputStream(receiveDeviceSocket.getInputStream());
 
@@ -63,15 +75,14 @@ public class ProfileServer implements Runnable{
                             receiveDeviceSocket.getRemoteSocketAddress().toString(), incoming);
                     callingController.updateDeviceList();
                 } catch (ClassCastException e) {
-                    System.err.println("Done fucked up casting profile");
-                    //Log.d("Profile Controller", "Error casting class sent over tcp");
+                    Log.d("ProfileServer", "Object could not be cast to ContactsEntity");
                 } catch (ClassNotFoundException e) {
-//                    e.printStackTrace();
+                    Log.d("ProfileServer", "Class could not be found?");
                 }
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.d("ProfileServer", "General exception in initiateProfileServer");
         }
 
     }
@@ -93,14 +104,11 @@ public class ProfileServer implements Runnable{
                     receiveDeviceInitiationStream.close();
                     receiveDeviceInitiationSocket.close();
                 } catch (NullPointerException e) {
-                    System.err.println("Done fucked up receiving profile: Null Pointer");
+                    Log.d("ProfileServer", "Received no data (data was NULL)");
                     e.printStackTrace(System.err);
-                    Log.d("Profile Controller", "There was an error Receiving profiles over tcp");
                 } catch (Exception e) {
-                    System.err.println("Done fucked up receiving profile: General Exception");
+                    Log.d("ProfileServer", "Threw general exception in requestProfile");
                     e.printStackTrace(System.err);
-                    System.err.println(e.getMessage());
-                    Log.d("Profile Controller", "There was an error Receiving profiles over tcp");
                 } finally {
                     callingController.removeIpFromLockedList(ip);
                 }
