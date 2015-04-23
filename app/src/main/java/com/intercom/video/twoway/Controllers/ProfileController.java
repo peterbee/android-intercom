@@ -39,11 +39,6 @@ public class ProfileController {
     private NetworkDiscovery network;
 
     /**
-     * Passes wifi manager and bitmap pic for now for testing purposes, need to already have devicE
-     * Profile set up
-     *
-    */
-    /**
      * The constructor for Profile controller, that sets up a new thread pool for all connections
      * involving profiles, sets up all callbacks, loads the device profile from storage, and start the
      * connection server.

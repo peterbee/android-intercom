@@ -15,8 +15,8 @@ import java.net.Socket;
 import java.util.Arrays;
 
 /**
+ * This class create and instantiates connections for surface views and video views in video streaming.
  * @author Sean Luther
- *         This class contains things that deal with transmitting and receiving video / audio streams
  */
 public class VideoStreaming {
     private int LISTENING_SERVICE_PORT = 2049;
