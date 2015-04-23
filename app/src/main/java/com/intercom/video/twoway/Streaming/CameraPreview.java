@@ -1,5 +1,4 @@
 package com.intercom.video.twoway.Streaming;
-import java.io.IOException;
 
 import android.content.Context;
 import android.hardware.Camera;
@@ -7,21 +6,26 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.intercom.video.twoway.Streaming.CameraJpegCapture;
+import java.io.IOException;
 
-/*
-Used to help get camera data.
+/**
+ * Used to help get camera data.
  */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 private SurfaceHolder mHolder;
 private Camera mCamera;
 
-public CameraPreview(Context context, Camera camera) {
+    /**
+     * Constructor
+     * Install a SurfaceHolder.Callback so we get notified when the underlying surface is created
+     * and destroyed.
+     *
+     * @param context
+     * @param camera
+     */
+    public CameraPreview(Context context, Camera camera) {
     super(context);
     mCamera = camera;
-
-    // Install a SurfaceHolder.Callback so we get notified when the
-    // underlying surface is created and destroyed.
     mHolder = getHolder();
     mHolder.addCallback(this);
     // deprecated setting, but required on Android versions prior to 3.0
