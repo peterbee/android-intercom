@@ -160,8 +160,11 @@ public class MainActivity extends ActionBarActivity implements
         streamingEngine1.closeConnection();
         streamingEngine2.closeConnection();
         tcpEngine.closeConnection();
-        listenerService.stopListeningForConnections();
-        profileController.killProfileServer();
+        //listenerService.stopListeningForConnections();
+        if(profileController != null)
+        {
+            profileController.killProfileServer();
+        }
         super.onStop();
     }
 
@@ -476,6 +479,7 @@ public class MainActivity extends ActionBarActivity implements
 
         // this just unlocks and turns on the other device via service
         tcpEngine.connectToDevice(ipAddress, 2);
+        activateOnTouchListener();
     }
 
 
