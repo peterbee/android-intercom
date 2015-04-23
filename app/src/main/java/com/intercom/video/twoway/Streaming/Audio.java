@@ -5,55 +5,52 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+import android.util.Log;
 
 import com.intercom.video.twoway.MainActivity;
 
 import java.io.ByteArrayOutputStream;
 
 /**
- * Deals with audio stuff that we use
+ * @Author Sean Luther
+ * This class handles all audio encoding, decoding, and playback
  */
 public class Audio
 {
-
-    // how many audio elements are we trying to capture at once
-    final int AUDIO_CHUNK_SIZE = 1024;
+    final int AUDIO_CHUNK_SIZE = 1024; // how many audio elements are we trying to capture at once
     final int BYTES_PER_AUDIO_ELEMENT = 2; // 2 bytes in 16bit format
-
     private static final int RECORDER_SAMPLERATE = 8000;
     private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_IN_MONO;
     private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
-
     boolean capturingAudio;
-
     AudioTrack audioTrackPlayer;
-
     static Object audioThreadPlaybackLock = new Object();
+    ByteArrayOutputStream audioDataStorageStream = new ByteArrayOutputStream(); // stores our built up audio data, this grows as more data is read and shrinks down when audio data is transmitted
 
-    // stores our built up audio data, this grows as more data is read and shrinks down when audio data is transmitted
-    ByteArrayOutputStream audioDataStorageStream = new ByteArrayOutputStream();
-
+    /**
+     * Constructor
+     * calls setupAudioPlayer
+     */
     public Audio()
     {
         setupAudioPlayer();
-
     }
-    /*
-    this returns all bytes in audioDataStorageStream and clears it
-    */
+
+    /**
+     * this returns all bytes in audioDataStorageStream and clears it
+     *
+     * @return a byte array containing the contents of audioDataStorageStream;
+     */
     public byte[] consumeAudioBytes()
     {
-
         byte[] audioData = audioDataStorageStream.toByteArray();
-
-        audioDataStorageStream = new ByteArrayOutputStream();
-
-        System.out.println("Consumed bytes for sending: "+audioData.length);
+        audioDataStorageStream = new ByteArrayOutputStream(); //this may be the cause of Out Of Memory errors during long runs.  Should be changed to a flushing method?
+        Log.i("Audio", "Consumed bytes for sending: " + audioData.length);
         return audioData;
     }
 
-    /*
-    sets up our audio player to constantly play data we feed it
+    /**
+     * sets up our audio player to constantly play data we feed it
      */
     public void setupAudioPlayer()
     {
@@ -61,8 +58,9 @@ public class Audio
         audioTrackPlayer.play();
     }
 
-    /*
-    feeds the audio player a chunk of data to play
+    /**
+     * feeds the audio player a chunk of data to play
+     * @param audioDataBuffer
      */
     void playAudioChunk(final byte[] audioDataBuffer)
     {
@@ -75,13 +73,11 @@ public class Audio
                     audioTrackPlayer.write(audioDataBuffer, 0, audioDataBuffer.length);
                 }
             }});
-
-
         audioPlaybackThread.start();
     }
 
-    /*
-    Start capturing audio data from the mic
+    /**
+     * Start capturing audio data from the mic
      */
     public void startAudioCapture()
     {
@@ -91,15 +87,10 @@ public class Audio
             public void run()
             {
                 byte audioDataBuffer[] = new byte[AUDIO_CHUNK_SIZE*BYTES_PER_AUDIO_ELEMENT];
-
                 audioDataStorageStream = new ByteArrayOutputStream();
-
                 AudioRecord audioRecorder = new AudioRecord(MediaRecorder.AudioSource.MIC, RECORDER_SAMPLERATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING, AUDIO_CHUNK_SIZE * BYTES_PER_AUDIO_ELEMENT);
-
                 capturingAudio=true;
-
                 audioRecorder.startRecording();
-
 
                 while (capturingAudio)
                 {
@@ -108,12 +99,9 @@ public class Audio
                     {
                         try
                         {
-
                             // gets the voice output from microphone to byte format
                             audioRecorder.read(audioDataBuffer, 0, AUDIO_CHUNK_SIZE * BYTES_PER_AUDIO_ELEMENT);
-
                             audioDataStorageStream.write(audioDataBuffer);
-
                         } catch (Exception e)
                         {
                             e.printStackTrace();
@@ -124,19 +112,18 @@ public class Audio
                     {
                         Thread.sleep(100);
                     }
-                    catch(Exception e)
-                    {
-
+                    catch(Exception e) {
+                        Log.d("Audio", "General exception during audio capture from mic");
                     }
 
 
                 }
-
                 audioRecorder.stop();
                 audioRecorder.release();
-            }});
+            }
+        });
 
-        System.err.println("About to start audio");
+        Log.i("Audio", "About to start audio");
         audioCaptureThread.start();
 
 
