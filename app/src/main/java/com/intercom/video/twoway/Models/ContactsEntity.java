@@ -10,14 +10,20 @@ import java.io.Serializable;
 /**
  * Created by charles on 3/9/15.
  */
-public class ContactsEntity implements Serializable{
+public class ContactsEntity implements Serializable {
 
     private String deviceName;
     private String picture;
     private String ip;
 
-    public ContactsEntity(String deviceName, Bitmap picture, String ip)
-    {
+    /**
+     * Constructor
+     *
+     * @param deviceName
+     * @param picture
+     * @param ip
+     */
+    public ContactsEntity(String deviceName, Bitmap picture, String ip) {
         this.deviceName = deviceName;
         this.picture = ContactsEntity.encodePictureToBase64(picture);
         this.ip = stripIp(ip);
@@ -32,13 +38,11 @@ public class ContactsEntity implements Serializable{
         this.picture = ContactsEntity.encodePictureToBase64(picture);
     }
 
-    public void setIp(String ip)
-    {
+    public void setIp(String ip) {
         this.ip = ip;
     }
 
-    public String getIp()
-    {
+    public String getIp() {
         return this.ip;
     }
 
@@ -47,16 +51,20 @@ public class ContactsEntity implements Serializable{
     }
 
     public Bitmap getPicture() {
-        if(picture != null) {
+        if (picture != null) {
             return ContactsEntity.decodePictureFromBase64(picture);
-        }
-        else
-        {
+        } else {
             return null;
         }
 
     }
 
+    /**
+     * Overwrote Equals to ensure that all objects within are equal.
+     *
+     * @param o
+     * @return
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -80,23 +88,32 @@ public class ContactsEntity implements Serializable{
         return result;
     }
 
-    private String stripIp(String ipToStrip)
-    {
-        if(ipToStrip == null)
-        {
+    /**
+     * Strips out the port identifier from any IPs we have discovered
+     *
+     * @param ipToStrip
+     * @return
+     */
+    private String stripIp(String ipToStrip) {
+        if (ipToStrip == null) {
             return "";
         }
-        if(!ipToStrip.contains(":"))
-        {
+        if (!ipToStrip.contains(":")) {
             return ipToStrip;
         }
         String[] splitIp = ipToStrip.split(":");
         return splitIp[0];
     }
 
+    /**
+     * Takes in a Bitmap, adds JPEG compression, converts to base64 in a byte array, and then
+     * stores the result in a String.
+     *
+     * @param picture
+     * @return
+     */
     public static String encodePictureToBase64(Bitmap picture) {
-        if(picture == null)
-        {
+        if (picture == null) {
             return null;
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -106,8 +123,14 @@ public class ContactsEntity implements Serializable{
         return encodedImage;
     }
 
-    public static Bitmap decodePictureFromBase64(String picToDecode)
-    {
+    /**
+     * Takes in a String which has been encoded using encodePictureToBase64 and decodes it back
+     * into a Bitmap
+     *
+     * @param picToDecode
+     * @return
+     */
+    public static Bitmap decodePictureFromBase64(String picToDecode) {
         byte[] b = Base64.decode(picToDecode, Base64.DEFAULT);
         Bitmap bitmap = BitmapFactory.decodeByteArray(b, 0, b.length);
         return bitmap;

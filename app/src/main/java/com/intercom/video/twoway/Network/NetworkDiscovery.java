@@ -5,7 +5,6 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
-import com.intercom.video.twoway.MainActivity;
 import com.intercom.video.twoway.Utilities.Utilities;
 
 import java.io.IOException;
@@ -20,20 +19,19 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Date;
 
-/*
-To operate me:
-NetworkDiscovery netdisco = new NetworkDiscovery();
-netdisco.start()
-ArrayList<String> ipList = netdisco.getUrlList();
-
-ipList == list of discovered ips
+/**
+ * @Author Sean Luther, Rob Z.
+ * To operate me:
+ * NetworkDiscovery netdisco = new NetworkDiscovery();
+ * netdisco.start()
+ * ArrayList<String> ipList = netdisco.getUrlList();
+ *
+ * ipList == list of discovered ips
  */
 public class NetworkDiscovery extends Thread
 {
 
     private static final int DISCOVERY_PORT = 44444;
-    //private static final int LISTENING_TIMEOUT_MS = 500;
-    //private static final int OPPORTUNITY_TIMEOUT_MS = 200;
     private WifiManager wifi;
     private DatagramSocket socket;
     private String myIp;
@@ -42,6 +40,12 @@ public class NetworkDiscovery extends Thread
     private Utilities utilities;
     private boolean discoveryRunning = false;
 
+    /**
+     * Constructor
+     * Takes in the Utilities object from the Main Activity to maintain correct references
+     *
+     * @param utilities
+     */
     public NetworkDiscovery(Utilities utilities)
     {
         this.utilities = utilities;
@@ -55,25 +59,26 @@ public class NetworkDiscovery extends Thread
         ipList = new ArrayList<String>();
     }
 
-    //get list here
     public ArrayList<String> getIpList()
     {
         return ipList;
     }
 
-    //stop me here
     public void stopNetworkDiscovery()
     {
         this.stop = true;
     }
 
-    //start me here
     public void startNetworkDiscovery()
     {
         this.stop = false;
     }
 
-
+    /**
+     * This is the Run method for the NetworkDiscovery thread
+     * The thread has no sleep in it, so it runs as fast as possible, sending out broadcast packets
+     * and then calls listenForResponses, rinse and repeat
+     */
     public void run()
     {
 
@@ -91,42 +96,28 @@ public class NetworkDiscovery extends Thread
                 {
                     sendBroadCast();
 
-                    /*
-                    try
-                    {
-                        this.sleep(OPPORTUNITY_TIMEOUT_MS);
-                    } catch (InterruptedException e)
-                    {
-                        Log.d("NetworkDiscovery", "Sleep interrupted");
-                    }
-                    */
-
-
                     String url = listenForResponses(socket);
 
                     if (url != null)
                     {
                         ipList.add(url);
                     }
-                } catch (IOException e)
-                {
-                    Log.d("NetworkDiscovery", "IOException?");
+                } catch (IOException e) {
+                    Log.d("NetworkDiscovery", "unable to send broadcast, IO exception");
                 } finally
                 {
                     socket.close();
                 }
 
-            } catch (SocketException e)
-            {
-//                Log.d("NetworkDiscovery", "Socket Issue");
+            } catch (SocketException e) {
+                Log.d("NetworkDiscovery", "Socket Issue");
             }
             try
             {
                 socket.close();
             }
-            catch(Exception e)
-            {
-
+            catch(Exception e) {
+                Log.d("NetworkDiscovery", "Unknown Exception");
             }
         }
         if (!socket.isClosed())
@@ -137,8 +128,7 @@ public class NetworkDiscovery extends Thread
 
     }
 
-    // this code doesnt work on some devices
-/*
+/*  // this code doesnt work on some devices
     private InetAddress getBroadcastAddress(WifiManager wifi) throws UnknownHostException
     {
         DhcpInfo dhcp = wifi.getDhcpInfo();
@@ -153,16 +143,22 @@ public class NetworkDiscovery extends Thread
                 "host address found: " + inetAddress.getHostAddress());
         return inetAddress;
     }
-
 */
 
-    // this seems to work on all devices
+    /**
+     * Performs the necessary math on the device.s Ip and the netmask to compute the broadcast
+     * address.
+     *
+     * @param myWifiManager
+     * @return
+     * @throws IOException
+     */
+    // this seems to work on most devices
     private InetAddress getBroadcastAddress(WifiManager myWifiManager) throws IOException
     {
         DhcpInfo myDhcpInfo = myWifiManager.getDhcpInfo();
-        if (myDhcpInfo == null)
-        {
-            Log.d("NetworkDiscovery", "COuld not get broadcast address");
+        if (myDhcpInfo == null) {
+            Log.d("NetworkDiscovery", "Could not get broadcast address");
             return null;
         }
         int broadcast = (myDhcpInfo.ipAddress & myDhcpInfo.netmask)
@@ -173,7 +169,10 @@ public class NetworkDiscovery extends Thread
         return InetAddress.getByAddress(quads);
     }
 
-
+    /**
+     * Sends arbitrary data (the current date) out to the broadcast IP on the port which we wish to
+     * discover
+     */
     private void sendBroadCast()
     {
         try
@@ -183,13 +182,18 @@ public class NetworkDiscovery extends Thread
             DatagramPacket packet = new DatagramPacket(data.getBytes(), data.length(),
                     getBroadcastAddress(wifi), DISCOVERY_PORT);
             socket.send(packet);
-        } catch (Exception e)
-        {
-//            Log.d("NetworkDiscovery", "Couldn't send broadcast");
+        } catch (Exception e) {
+            Log.d("NetworkDiscovery", "Couldn't send broadcast");
         }
-//        Log.d("NetworkDiscovery", "Sent broadcast");
+        Log.i("NetworkDiscovery", "Sent broadcast");
     }
 
+    /**
+     * Listens on the discovery port for arbitrary data until the socket times out
+     * @param socket
+     * @return
+     * @throws IOException
+     */
     private String listenForResponses(DatagramSocket socket) throws IOException
     {
         byte[] buf = new byte[1024];
@@ -201,20 +205,17 @@ public class NetworkDiscovery extends Thread
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet);
                 String ip = packet.getAddress().getHostAddress();
-                if (ip.equals(myIp) || ipList.contains(ip))
-                {
-//                    socket.send(packet);
-//                    Log.d("NetworkDiscovery", "Ip known, rebroadcasting: " + ip);
+                if (ip.equals(myIp) || ipList.contains(ip)) {
+                    Log.i("NetworkDiscovery", "Known Ip:" + ip + " discovered");
                 } else
                 {
                     payload = new String(packet.getData(), 0, packet.getLength());
-                    Log.d("NetworkDiscovery", "received: " + payload + " ip: " + ip);
+                    Log.i("NetworkDiscovery", "received: " + payload + " ip: " + ip);
                     return ip;
                 }
             }
-        } catch (SocketTimeoutException e)
-        {
-//            Log.d("NetworkDiscovery", "timed out");
+        } catch (SocketTimeoutException e) {
+            Log.d("NetworkDiscovery", "timed out");
         }
         return null;
     }
@@ -229,10 +230,15 @@ public class NetworkDiscovery extends Thread
             return null;
         }
         String ipAddressString = inetAddress.getHostAddress();
-//        Log.d("NetworkDiscovery", "My ip found: " + ipAddressString);
+        Log.i("NetworkDiscovery", "My ip found: " + ipAddressString);
         return ipAddressString;
     }
 
+    /**
+     * Converts IP address stored as int to Inet
+     * @param ipAddress
+     * @return
+     */
     private InetAddress ipIntToInet(int ipAddress)
     {
         InetAddress inetAddress = null;
@@ -257,9 +263,6 @@ public class NetworkDiscovery extends Thread
      * This method activates our Network discovery engine.
      */
     public void setupNetworkDiscovery() {
-        //TODO: move this into NetworkDiscovery class
-        //WifiManager mWifi= (WifiManager) getSystemService(Context.WIFI_SERVICE);
-
         start();
 
         // Sean removed this code (charles) because it didn't seem to do anything
@@ -273,7 +276,6 @@ public class NetworkDiscovery extends Thread
         // also need to happen every time the view is called
         MainActivity.mUrlList_as_StringArray = mainActivity.utilities.convertArrayListToStringArray(mUrlList_asArrayList);
         mainActivity.utilities.setIpList(MainActivity.mUrlList_as_StringArray);
-
         */
 
     }

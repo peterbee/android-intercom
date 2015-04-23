@@ -1,7 +1,5 @@
 package com.intercom.video.twoway.Network;
 
-import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStream;
@@ -11,39 +9,30 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-/*
-This class does all the tcp and networking stuff
+/**
+ * @author Sean Luther
+ * This class handles all network communciation for the Audio and VideoStreaming classes
  */
 public class Tcp
 {
     private int LISTENING_SERVICE_PORT = 1025;
-
-    // the remote address of the last device we connected to
-    public String lastRemoteIpAddress;
-
-    /*
-    Used when we are the client
-     */
-    private Socket tcpSocket;
-
-     /*
-    Used for accepting connections when we are the server
-     */
-    ServerSocket tcpServerSocket;
-    // Lower level streams
-    // good for transfering raw bytes of video data
+    public String lastRemoteIpAddress; // the remote address of the last device we connected to
+    private Socket tcpSocket; //Used when we are the client
+    ServerSocket tcpServerSocket; //Used for accepting connections when we are the server
+    // Lower level streams good for transferring raw bytes of video data
     InputStream tcpIn;
     OutputStream tcpOut;
-
-    // higher level readers and writers
-    // good for transfering text
+    // higher level readers and writers good for transfering text
     BufferedReader bufferedTcpIn;
     BufferedWriter bufferedTcpOut;
-
     int connectionState;
     final int DISCONNECTED = 1;
     final int CONNECTED = 2;
 
+    /**
+     * Constructor
+     * sets connectionState=DISCONNECTED
+     */
     public Tcp()
     {
         connectionState=DISCONNECTED;
@@ -60,8 +49,8 @@ public class Tcp
         this.LISTENING_SERVICE_PORT = LISTENING_SERVICE_PORT;
     }
 
-    /*
-    Close the streams and socket
+    /**
+     * Attempts to gracefully close all ports, sets connectionState=DISCONNECTED;
      */
     public void closeConnection()
     {
@@ -117,9 +106,14 @@ public class Tcp
         connectionState=DISCONNECTED;
     }
 
-    /*
-   Listen for a connection.  This should only be called from a seperate thread so the main thread isnt blocked
-    */
+    /**
+     * Listen for a connection.  This should only be called from a separate thread so the main
+     * thread isn't blocked
+     *
+     * @return int representing the current status of the connection
+     * 0 = not connected
+     * 1 = CONNECTED
+     */
     public int listenForConnection()
     {
         int connectionStage=0;
@@ -154,8 +148,11 @@ public class Tcp
         return connectionStage;
     }
 
-    /*
-    Informs the remote device that we have started a streaming server and are read to be connected to
+    /**
+     * Informs the remote device that we have started a streaming server and are ready to be
+     * connected to
+     * @param ipAddress
+     * @param connectionStage
      */
     public void connectToDevice(final String ipAddress, final int connectionStage)
     {
@@ -177,7 +174,7 @@ public class Tcp
                     connectionState=CONNECTED;
                     lastRemoteIpAddress=getRemoteIpAddress();
 
-                    // inform the remote device whether we initiaited the connection
+                    // inform the remote device whether we initiated the connection
                     // or are starting our server in response to the connection being initiated
                     tcpOut.write(connectionStage);
                 }
@@ -197,12 +194,12 @@ public class Tcp
 
     }
 
-    /*
-    Returns the ip address of the remote device we are connected to
+    /**
+     * Returns the ip address of the remote device we are connected to
+     * @return String with the remote IP address in it
      */
     public String getRemoteIpAddress()
     {
-
         return tcpSocket.getRemoteSocketAddress().toString();
     }
 
