@@ -55,9 +55,8 @@ public class Utilities {
 
 
         Window window = ((Activity) mainContext).getWindow();
-        window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
     }
 
     /**
