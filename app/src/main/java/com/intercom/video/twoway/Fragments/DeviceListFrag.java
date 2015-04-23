@@ -33,6 +33,13 @@ public class DeviceListFrag extends ListFragment {
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
+    /**
+     * Lifecycle activity which is called when the activity that contains the fragment is created.
+     * currently this activity populates the list adapter with all values discovered from
+     * Network Discovery.
+     *
+     * @param b
+     */
     @Override
     public void onActivityCreated(Bundle b) {
         super.onActivityCreated(b);
@@ -59,6 +66,13 @@ public class DeviceListFrag extends ListFragment {
         }
     }
 
+    /**
+     * Action handler for handling item selections
+     * @param l the ListView object
+     * @param v the View
+     * @param position The index of the item selected
+     * @param id the ID of the selected item
+     */
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
 
@@ -69,7 +83,10 @@ public class DeviceListFrag extends ListFragment {
         selectDetail(deviceIPs[position]);
     }
 
-
+    /**
+     * This is a call back method for use in Main Activity
+     * @param deviceIP
+     */
     private void selectDetail(String deviceIP) {
         // set layout and populate acquired IP in editText
         // TODO:will set edit text to not editable from UI later
@@ -81,12 +98,18 @@ public class DeviceListFrag extends ListFragment {
         mListener.onListItemSelected(deviceIP);
     }
 
-    // official android code:
-    // Container Activity ( MainActivity in this case )must implement this interface
+    /**
+     * Official android code: Container Activity ( MainActivity in this case )must implement this
+     * interface
+     */
     public interface onListItemSelectedListener {
         public void onListItemSelected(String deviceIP);
     }
 
+    /**
+     * LifeCycle activity that is called when the fragment is attached to the main activity
+     * @param activity
+     */
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -97,6 +120,10 @@ public class DeviceListFrag extends ListFragment {
         }
     }
 
+    /**
+     * Helper method for populating discovered device profiles.
+     * @param ips
+     */
     private void getDeviceProfiles(String[] ips) {
         for (String ip : ips) {
             try {
@@ -107,10 +134,18 @@ public class DeviceListFrag extends ListFragment {
         }
     }
 
+    /**
+     * Helper method for setting the Profile Controller
+     * @param pc
+     */
     public void setProfileController(ProfileController pc) {
         this.profileController = pc;
     }
 
+    /**
+     * Updates the IP list from the profile hashmap so that  profiles are displayed instead of IPs.
+     * @param devices
+     */
     public void updateIpListFromProfileHashMap(
             ConcurrentHashMap<String, ContactsEntity> devices) {
         if (values == null || devices == null) {
@@ -131,6 +166,10 @@ public class DeviceListFrag extends ListFragment {
         values = profiles;
     }
 
+    /**
+     * Updates the ipList variable
+     * @param ipList
+     */
     public void updateIpList(String[] ipList) {
         this.values = ipList;
     }

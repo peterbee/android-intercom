@@ -38,7 +38,14 @@ public class SettingsFragment extends Fragment {
     private ProfileControllerTransferInterface mListener;
     private ContactsEntity profile;
 
-
+    /**
+     * Lifecycle method that is called when the fragment view is created.
+     *
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -55,6 +62,10 @@ public class SettingsFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Lifecycle method that is called before onCreate to initialize components.
+     * @param view
+     */
     private void initializeComponents(View view) {
         this.deviceNickname = (EditText) view.findViewById(R.id.settings_menu_editText_deviceNic);
         this.useCameraView = (CheckBox) view.findViewById(R.id.settings_menu_checkBox_usecamaraview);
@@ -64,10 +75,10 @@ public class SettingsFragment extends Fragment {
         this.sharedPreferenceAccessor = new SharedPreferenceAccessor(this.getActivity());
     }
 
+    /**
+     * auto-triggered when device nic is changed
+     */
     public void activateSettingsMenuListeners() {
-        /*
-        auto-triggered when device nic is changed
-         */
 
         // auto-save on text change for deviceNIC in settings menu
         this.deviceNickname.addTextChangedListener(new TextWatcher() {
@@ -100,12 +111,20 @@ public class SettingsFragment extends Fragment {
 
     }
 
+    /**
+     * Action Handler for the Use Camera View checkbox
+     * @param isChecked
+     */
     public void setUseCameraViewFlag(boolean isChecked) {
         this.sharedPreferenceAccessor.writeBooleanToSharedPrefs(
                 SharedPreferenceAccessor.USE_CAMERA_VIEW,
                 isChecked, SharedPreferenceAccessor.SETTINGS_MENU);
     }
 
+    /**
+     * Updates the Device nickname
+     * @param newDeviceNickname
+     */
     public void setDeviceNic(String newDeviceNickname) {
         this.profileController.updateProfileName(newDeviceNickname);
     }
@@ -132,10 +151,10 @@ public class SettingsFragment extends Fragment {
         this.deviceNickname.setText(mDeviceNic);
     }
 
-    //These were just in the main method in my old repository... should have been a little bit smarter
-    //With how i handled that, but oh well
-
-    //Method called from settings fragment to take a profile picture for you device
+    /**
+     * Method called from settings fragment to take a profile picture for you device
+     * Likely needs to be moved
+     */
     public void takeProfilePicture() {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE, "ProfilePicture");
@@ -147,7 +166,9 @@ public class SettingsFragment extends Fragment {
         startActivityForResult(intent, UPDATE_PROFILE_PICTURE);
     }
 
-    //Called when going to settings layout, or when a device wants the contacts entity
+    /**
+     * Called when going to settings layout, or when a device wants the contacts entity
+     */
     private void setProfilePicture() {
         // Returns the Uri for a photo stored on disk given the fileName
         try {
@@ -171,7 +192,11 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    //Returns the actual path that can be used to grab the picture.
+    /**
+     * Returns the actual path that can be used to grab the picture.
+     * @param contentUri
+     * @return
+     */
     public String getRealPathFromURI(Uri contentUri) {
         String res = null;
         String[] proj = {MediaStore.Images.Media.DATA};
@@ -189,6 +214,12 @@ public class SettingsFragment extends Fragment {
         this.profile = this.profileController.updateProfilePicture(picture);
     }
 
+    /**
+     * Action Handler for handling when the picture is updated.
+     * @param requestCode
+     * @param resultCode
+     * @param imageReturnedIntent
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
         if (resultCode == Activity.RESULT_OK) {
@@ -203,6 +234,10 @@ public class SettingsFragment extends Fragment {
         public ProfileController retrieveProfileController();
     }
 
+    /**
+     * Lifecycle method called when the fragment is attached to the activity
+     * @param activity
+     */
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
