@@ -13,40 +13,39 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 
-/*
-This class contains things that deal with transmitting and receiving video / audio streams
+/**
+ * @author Sean Luther
+ * This class contains things that deal with transmitting and receiving video / audio streams
  */
-
 public class VideoStreaming
 {
-
     private int LISTENING_SERVICE_PORT = 2049;
     private Utilities utilities;
-
-    /*
-    Used when we are the client
-     */
-    Socket tcpSocket;
-
-    /*
-   Used for accepting connections when we are the server
-    */
-    ServerSocket tcpServerSocket;
-
-    // Lower level streams
-    // good for transfering raw bytes of video data
+    Socket tcpSocket; //Used when we are the client
+    ServerSocket tcpServerSocket; //Used for accepting connections when we are the server
+    // Lower level streams, good for transfering raw bytes of video data
     InputStream tcpIn;
     OutputStream tcpOut;
 
     volatile boolean connected;
-
     Bitmap receivedBitmap;
-
     Object sendFrameLock = new Object();
     Object decodeFrameLock = new Object();
-
     Audio audioEngine;
+    static int receivedcount = 0;
+    // this is used to so that we dont run multiple decode threads at once
+    // this is better than a synchronized section because synchonized sections will stack up and wait for others to finish
+    // this simple returns the method so nothing gets backed up
+    boolean currentlyDecodingFrame;
+    static int sentcount = 0;
 
+    /**
+     * Constructor
+     * sets connected = false;
+     *
+     * @param a
+     * @param utilities
+     */
     public VideoStreaming(Audio a, Utilities utilities)
     {
         this.utilities = utilities;
@@ -64,8 +63,8 @@ public class VideoStreaming
         this.LISTENING_SERVICE_PORT = LISTENING_SERVICE_PORT;
     }
 
-    /*
-    Close the streams and socket
+    /**
+     * Close the streams and socket
      */
     public void closeConnection()
     {
@@ -100,11 +99,12 @@ public class VideoStreaming
 
         connected = false;
     }
-    static int receivedcount=0;
 
-    /*
-   Listen for a connection.  This should only be called from a seperate thread so the main thread isnt blocked
-    */
+    /**
+     * Listen for a connection.  This should only be called from a seperate thread so the main
+     * thread isnt blocked
+     * @param jpegImageView
+     */
     public void listenForMJpegConnection(final ImageView jpegImageView)
     {
         Thread listenForConnectionThread = new Thread()
@@ -189,13 +189,6 @@ public class VideoStreaming
         listenForConnectionThread.start();
     }
 
-
-
-    // this is used to so that we dont run multiple decode threads at once
-    // this is better than a synchronized section because synchonized sections will stack up and wait for others to finish
-    // this simple returns the method so nothing gets backed up
-    boolean currentlyDecodingFrame;
-
     /**
      asynchronously decode a frame of video and audio so that we don't cause
      tcp stack to get backed up with incoming tcp data during the decode process
@@ -255,14 +248,24 @@ public class VideoStreaming
         decodeFrameThread.start();
     }
 
-
-    // packs 4 bytes into a long
+    /**
+     * packs 4 bytes into a long
+     * @param b4
+     * @param b3
+     * @param b2
+     * @param b1
+     * @return
+     */
     long packBytes(int b4, int b3, int b2, int b1)
     {
         return ((0xFFL & b4) << 24) | ((0xFFL & b3) << 16) | ((0xFFL & b2) << 8) | (0xFFL & b1);
     }
 
-    // unpack first 4 bytes of a long into a byte array
+    /**
+     * unpack first 4 bytes of a long into a byte array
+     * @param value
+     * @return
+     */
     byte[] unPackBytes(long value)
     {
         byte bytes[] = new byte[4];
@@ -275,11 +278,15 @@ public class VideoStreaming
         return bytes;
     }
 
+    /**
+     * Combines two byte arrays together
+     * @param a1
+     * @param a2
+     * @return
+     */
     byte[] combineByteArrays(byte a1[], byte[] a2)
     {
         byte dataCombined[] = new byte[a1.length + a2.length ];
-
-
         // concatenate both arrays for sending
         for (int i = 0; i < a1.length; i++)
             dataCombined[i] = a1[i];
@@ -290,7 +297,12 @@ public class VideoStreaming
 
         return dataCombined;
     }
-    static int sentcount=0;
+
+    /**
+     * Sends both the Audio and JPEG arrays out to the other device
+     * @param jpegDataByteArray
+     * @param audioDataByteArray
+     */
     void sendJpegFrame(final byte[] jpegDataByteArray, final byte[] audioDataByteArray)
     {
 
@@ -321,8 +333,9 @@ public class VideoStreaming
 
     }
 
-    /*
-    Try to connect to the other device, this must be done before we send any Jpeg frames
+    /**
+     * Try to connect to the other device, this must be done before we send any Jpeg frames
+     * @param ipAddress
      */
     public void connectToDevice(final String ipAddress)
     {
@@ -354,8 +367,9 @@ public class VideoStreaming
 
     }
 
-    /*
-    Returns the ip address of the remote device we are connected to
+    /**
+     * Returns the ip address of the remote device we are connected to
+     * @return
      */
     String getRemoteIpAddress()
     {
