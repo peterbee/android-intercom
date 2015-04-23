@@ -1,9 +1,5 @@
 package com.intercom.video.twoway.Streaming;
 
-/*
-This class deals with capturing camera data in real time
- */
-
 import android.app.Activity;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
@@ -20,6 +16,10 @@ import com.intercom.video.twoway.Utilities.Utilities;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
+/**
+ * @author Sean Luther
+ *         This class deals with capturing camera data in real time
+ */
 public class CameraJpegCapture
 {
     public Utilities utilities;
@@ -27,15 +27,19 @@ public class CameraJpegCapture
     int pHeight=240;
     int jpegQuality = 50;
     Camera.Parameters params;
-
     private Camera mCamera;
     private CameraPreview mPreview;
     FrameLayout preview;
     VideoStreaming streamEngine;
     Audio audioEngine;
-
     public static Camera.PreviewCallback previewCallback;
 
+    /**
+     * Constructor
+     * @param streamer
+     * @param audio
+     * @param utilities
+     */
     public CameraJpegCapture(VideoStreaming streamer, Audio audio, Utilities utilities)
     {
         this.utilities = utilities;
@@ -43,8 +47,11 @@ public class CameraJpegCapture
         audioEngine = audio;
     }
 
-    //returns list of supported preview sizes.  this will be useful later for determining video reslution
-    // Also prints them to log (useful now so we can manually set them for testing)
+    /**
+     * returns list of supported preview sizes.  this will be useful later for determining video
+     * resolution. Also prints them to log (useful now so we can manually set them for testing)
+     * @return List containing the supported preview sizes for the camera
+     */
     private List getSupportedPreviewSizes()
     {
         DisplayMetrics metrics = new DisplayMetrics();
@@ -65,8 +72,8 @@ public class CameraJpegCapture
         return p.getSupportedPreviewSizes();
     }
 
-    /*
-    we pass in streamEngine so we can send out frames as they are captured
+    /**
+     * we pass in streamEngine so we can send out frames as they are captured
      */
     public void startCam()
     {
@@ -96,8 +103,9 @@ public class CameraJpegCapture
         }
     }
 
-    /*
-    This sets our callback tat is called on every single camera preview frame
+    /**
+     * This sets our callback that is called on every single camera preview frame
+     * @param c
      */
     public void setupPreviewJpegCaptureCallback(Camera c)
     {
