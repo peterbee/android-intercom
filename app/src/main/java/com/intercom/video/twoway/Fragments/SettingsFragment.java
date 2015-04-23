@@ -26,6 +26,10 @@ import com.intercom.video.twoway.Models.ContactsEntity;
 import com.intercom.video.twoway.R;
 import com.intercom.video.twoway.Utilities.SharedPreferenceAccessor;
 
+/**
+ * The Settings fragment that shows the device name, and picture.
+ * @author Charles Toll, Alex Gusan
+ */
 
 public class SettingsFragment extends Fragment {
     private EditText deviceNickname;
