@@ -21,8 +21,8 @@ import com.intercom.video.twoway.Utilities.Utilities;
 
 /**
  * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
- * This class creates a ForeGround service that cannot be terminated through swiping or when the
- * app is terminated.  Service starts on boot.  Network Discovery runs in this service so that the
+ * This class creates a Foreground service, the least likely type of service to be killed
+ * by the android system.  Service starts on boot.  Network Discovery runs in this service so that the
  * device is discoverable at all times.
  */
 public class ListenerService extends Service 
@@ -50,7 +50,7 @@ public class ListenerService extends Service
 	}
 
     /**
-     * Lifecycle method that is called when Listener is started
+     * Lifecycle method that is called when service is to be started
      *
      * @param intent
      * @param flags
@@ -64,7 +64,8 @@ public class ListenerService extends Service
 
         Utilities u = new Utilities(this); //TODO: this should be passed the Utilities object from MainActivity
         mNetworkDiscovery = new NetworkDiscovery(u);
-        mNetworkDiscovery.setupNetworkDiscovery();//starts network discovery
+        mNetworkDiscovery.setupNetworkDiscovery();
+
         // If we get killed, after returning from here, restart the service
 		return START_STICKY;
 	}
@@ -77,7 +78,7 @@ public class ListenerService extends Service
 
 
     /**
-     * Lifecycle method that is called when the listener is created. Note that the Listeners icon
+     * Lifecycle method that is called when the service is created. Note that the service icon
      * and style are set in here.
      */
     @Override
@@ -116,6 +117,9 @@ public class ListenerService extends Service
         stopListeningForConnections();
     }
 
+    /**
+     * Clean up threads and tcp, called in onDestroy
+     */
     public void stopListeningForConnections()
     {
         listeningForConnections=false;
@@ -123,7 +127,10 @@ public class ListenerService extends Service
     }
 
     /**
-     * start listening for connections from other devices
+     * start listening for connections from other devices and decide what
+     * to do based on what command they send us.
+     * This is where we communicate back with the main activity via an intent
+     * and start the main activity if it is dead and start a video connection etc
      */
     public void startListeningForConnections()
     {
@@ -141,16 +148,21 @@ public class ListenerService extends Service
                         {
                             int connectionStage = serviceTcpEngine.listenForConnection();
 
-                            // extract just the ip address from ip address and prot combo string
+                            // extract just the ip address from ip address and port combo string
                             // this would be cooler if done with regular expressions
                             String RemoteAddress = serviceTcpEngine.lastRemoteIpAddress;
                             String newRemoteAddress = RemoteAddress.substring(1, RemoteAddress.indexOf(":"));
 
-                            // tell main activity to start streaming the remote video
+                            // tells us to connect to the remote server and start feeding it our video
+                            // then start our own remote server and tel the other device to connect
                             if (connectionStage == 1)
                                 sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_FIRST, newRemoteAddress);
+
+                            // tells us to connect to the remote server, this happens second after we have already started our own server and told them to connect
+                            // the difference between this and INTENT_COMMAND_START_STREAMING_FIRST is that we dont start a new server and tell the other to connect because we already did that
                             if (connectionStage == 2)
                                 sendCommandToActivity(constants.INTENT_COMMAND_START_STREAMING_SECOND, newRemoteAddress);
+
                             if (connectionStage == NetworkConstants.PROFILE)
                             {
                                 // profileController can be null if service started on boot
@@ -167,7 +179,7 @@ public class ListenerService extends Service
                         {
 
                         }
-                        // now just close the connection since this is only proof of concept
+                        // now just close the connection so we can listen for more
                         serviceTcpEngine.closeConnection();
                     }
                 }
@@ -178,10 +190,10 @@ public class ListenerService extends Service
 
     /**
      * send a command to the activity
-     * This is the Listener's primary means of communicating with the activity
-     * this also wakes the activity and turns on the screen
-     * @param command
-     * @param extra
+     * This is the services primary means of communicating with the activity
+     * this also starts the activity if it has been killed and brings it to the foreground
+     * @param command the command string we are sending the activity
+     * @param extra any extra data we need to send the activity, usually an ip address of a remote device
      */
     public void sendCommandToActivity(String command, String extra)
     {

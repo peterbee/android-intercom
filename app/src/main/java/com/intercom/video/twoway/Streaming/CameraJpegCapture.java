@@ -1,9 +1,5 @@
 package com.intercom.video.twoway.Streaming;
 
-/*
-This class deals with capturing camera data in real time
- */
-
 import android.app.Activity;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
@@ -20,6 +16,10 @@ import com.intercom.video.twoway.Utilities.Utilities;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
+/**
+ * @author Sean Luther
+ *         This class deals with capturing camera data in real time
+ */
 public class CameraJpegCapture
 {
     public Utilities utilities;
@@ -27,15 +27,19 @@ public class CameraJpegCapture
     int pHeight=240;
     int jpegQuality = 50;
     Camera.Parameters params;
-
     private Camera mCamera;
     private CameraPreview mPreview;
     FrameLayout preview;
     VideoStreaming streamEngine;
     Audio audioEngine;
-
     public static Camera.PreviewCallback previewCallback;
 
+    /**
+     * Constructor
+     * @param streamer instance of VideoStreaming that we used to send data
+     * @param audio instance of our Audio class that we used to capture audio
+     * @param utilities instance of Utilities class
+     */
     public CameraJpegCapture(VideoStreaming streamer, Audio audio, Utilities utilities)
     {
         this.utilities = utilities;
@@ -43,8 +47,11 @@ public class CameraJpegCapture
         audioEngine = audio;
     }
 
-    //returns list of supported preview sizes.  this will be useful later for determining video reslution
-    // Also prints them to log (useful now so we can manually set them for testing)
+    /**
+     * returns list of supported preview sizes.  this will be useful later for determining video
+     * resolution. Also prints them to log (useful now so we can manually set them for testing)
+     * @return List containing the supported preview sizes for the camera
+     */
     private List getSupportedPreviewSizes()
     {
         DisplayMetrics metrics = new DisplayMetrics();
@@ -65,8 +72,10 @@ public class CameraJpegCapture
         return p.getSupportedPreviewSizes();
     }
 
-    /*
-    we pass in streamEngine so we can send out frames as they are captured
+    /**
+     * Starts the camera at specified resolution
+     * and sets up our frame capture callback to be called each frame
+     *
      */
     public void startCam()
     {
@@ -96,8 +105,10 @@ public class CameraJpegCapture
         }
     }
 
-    /*
-    This sets our callback tat is called on every single camera preview frame
+    /**
+     * This sets our callback that is called on every single camera preview frame
+     * Grabs a frame, convertts to jpeg and sends it along with all audio that has collected since the last frame
+     * @param c the camera instance we want to set this callback on
      */
     public void setupPreviewJpegCaptureCallback(Camera c)
     {
@@ -111,16 +122,25 @@ public class CameraJpegCapture
                     int imageFormat = parameters.getPreviewFormat();
                     if (imageFormat == ImageFormat.NV21)
                     {
+                        /**
+                         * The YUV image representation of a camera frame
+                         */
                         YuvImage img = new YuvImage(data, ImageFormat.NV21, pWidth, pHeight, null);
 
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
+                        /**
+                         * Convert the YUV image to jpeg and convert to an array of bytes
+                         */
                         img.compressToJpeg(new Rect(0, 0, pWidth, pHeight), jpegQuality, out);
                         byte[] imageBytes = out.toByteArray();
 
                         // dont try to send anything if we arent connected
                         if(streamEngine.connected)
                         {
+                            /**
+                             * Send the video frame and all the audio that has built up since the previous frame
+                             */
                             streamEngine.sendJpegFrame(imageBytes, audioEngine.consumeAudioBytes());
                         }
                     }
