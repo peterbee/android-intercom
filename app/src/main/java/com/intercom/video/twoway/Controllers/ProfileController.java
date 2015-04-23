@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Controls access to profiles, as well as sending and receiving profiles
+ * Controls access to profiles, as well as sending and receiving profiles.
  */
 public class ProfileController {
     private static int INITIAL_PORT = 1025;
@@ -37,8 +37,8 @@ public class ProfileController {
     private UpdateDeviceListInterface mainActivityCallback;
     private NetworkDiscovery network;
 
-    /*Passes wifi manager and bitmap pic for now for testing purposes, need to already have device
-        Profile set up
+    /**Passes wifi manager and bitmap pic for now for testing purposes, need to already have device
+     * Profile set up
     */
     public ProfileController(MainActivity mainActivity, String ip, NetworkDiscovery nd) {
         network = nd;
@@ -73,12 +73,21 @@ public class ProfileController {
         }
     }
 
+    /**
+     * Called when a another device is requesting this device Profile. Spawns a new thread to send device
+     * through {@link com.intercom.video.twoway.Network.ProfileSender}
+     * @param ip - Ip of the device that is being sent a profile
+     */
     public void sendDeviceInfoByIp(final String ip) {
         Runnable profileSender = new ProfileSender(ip, this.currentDevice);
         executor.execute(profileSender);
     }
 
-    //
+    /**
+     * This method is called to initiate a profile request from another device ip, through
+     * {@link com.intercom.video.twoway.Network.ProfileServer}
+     * @param ip - Ip of the device contacting this device.
+     */
     public void receiveDeviceInfoByIp(String ip) {
         String freshIp = splitIpFromPort(ip);
         if (this.devices.containsKey(freshIp)) {
@@ -99,6 +108,9 @@ public class ProfileController {
         }
     }
 
+    /**
+     * Retrieves a saved profile.
+     */
     public void refreshDeviceProfile() {
         Bitmap devicePicture = loadProfilePictureFromPreferences();
         String deviceName = getDeviceNickname();

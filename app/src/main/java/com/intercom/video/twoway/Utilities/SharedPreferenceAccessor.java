@@ -4,8 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 /**
- * @author Charles Toll on 3/10/15.
- *         A class for storing and retreiving data from the SharedPreferences
+ * A class for storing and retreiving data from the SharedPreferences
  */
 public class SharedPreferenceAccessor {
     public static String SETTINGS_MENU = "SETTINGS MENU";
