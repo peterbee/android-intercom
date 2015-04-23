@@ -10,7 +10,8 @@ import java.io.IOException;
 
 /**
  * @Author Sean Luther
- * Used to help get camera data.
+ * Used to help get camera data.  This is mostly just boilerplate code that we need to work with the camera
+ * Most of this code was pulled from publicly available examples online.
  */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     private SurfaceHolder mHolder;
@@ -21,8 +22,8 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
      * Install a SurfaceHolder.Callback so we get notified when the underlying surface is created
      * and destroyed.
      *
-     * @param context
-     * @param camera
+     * @param context context, usually get this from an instance of Utilities.mainContext
+     * @param camera camera the camera instance we are working with
      */
     public CameraPreview(Context context, Camera camera) {
         super(context);

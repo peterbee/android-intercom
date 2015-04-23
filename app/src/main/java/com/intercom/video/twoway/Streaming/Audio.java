@@ -17,15 +17,56 @@ import java.io.ByteArrayOutputStream;
  */
 public class Audio
 {
-    final int AUDIO_CHUNK_SIZE = 1024; // how many audio elements are we trying to capture at once
-    final int BYTES_PER_AUDIO_ELEMENT = 2; // 2 bytes in 16bit format
+
+    /**
+     * how many audio elements are we trying to capture at once
+     * 1024 seems to work nicely
+     */
+    final int AUDIO_CHUNK_SIZE = 1024;
+
+    /**
+     * Bytes per audio element = 2 bytes in 16bit format
+     */
+    final int BYTES_PER_AUDIO_ELEMENT = 2;
+
+    /**
+     * The sample rate.  Default is 8000 which is very low for proof of concept
+     * This can probably be safely increased to a higher supported value
+     */
     private static final int RECORDER_SAMPLERATE = 8000;
+
+    /**
+     * How many audio channels, default is mono
+     */
     private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_IN_MONO;
+
+    /**
+     * Default ancoding, default is 16 bt pcm
+     */
     private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
+
+    /**
+     * Used to control the audio capture loop
+     */
     boolean capturingAudio;
+
+    /**
+     * Audio track player that plays raw pcm data we feed it
+     */
     AudioTrack audioTrackPlayer;
+
+    /**
+     * Used to synchronize the audio playback thread when playing a chunk of audio
+     * so that multiple pices of audio dont play at once
+     */
     static Object audioThreadPlaybackLock = new Object();
-    ByteArrayOutputStream audioDataStorageStream = new ByteArrayOutputStream(); // stores our built up audio data, this grows as more data is read and shrinks down when audio data is transmitted
+
+    /**
+     * This is just a buffer that shrinks and grows.
+     * stores our built up audio data, this grows as more data is read
+     * and shrinks down when audio data is transmitted.
+     */
+    ByteArrayOutputStream audioDataStorageStream = new ByteArrayOutputStream();
 
     /**
      * Constructor
@@ -38,19 +79,20 @@ public class Audio
 
     /**
      * this returns all bytes in audioDataStorageStream and clears it
-     *
+     * This is called each time we send a frame to grab all audio data
+     * that has built up since the previous frame
      * @return a byte array containing the contents of audioDataStorageStream;
      */
     public byte[] consumeAudioBytes()
     {
         byte[] audioData = audioDataStorageStream.toByteArray();
-        audioDataStorageStream = new ByteArrayOutputStream(); //this may be the cause of Out Of Memory errors during long runs.  Should be changed to a flushing method?
+        audioDataStorageStream = new ByteArrayOutputStream();
         Log.i("Audio", "Consumed bytes for sending: " + audioData.length);
         return audioData;
     }
 
     /**
-     * sets up our audio player to constantly play data we feed it
+     * starts up our audio player to constantly play data we feed it
      */
     public void setupAudioPlayer()
     {
@@ -94,7 +136,7 @@ public class Audio
 
                 while (capturingAudio)
                 {
-                    // tempoary fix to turn mic off so we can demonstrate with no feedback
+                    // only capture if the mic is on
                     if(MainActivity.mic)
                     {
                         try

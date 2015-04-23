@@ -11,7 +11,7 @@ import java.net.Socket;
 
 /**
  * @author Sean Luther
- * This class handles all network communciation for the Audio and VideoStreaming classes
+ * This class handles network communication for the service
  */
 public class Tcp
 {
@@ -51,6 +51,7 @@ public class Tcp
 
     /**
      * Attempts to gracefully close all ports, sets connectionState=DISCONNECTED;
+     * There is probably a much better way to do this
      */
     public void closeConnection()
     {
@@ -110,9 +111,7 @@ public class Tcp
      * Listen for a connection.  This should only be called from a separate thread so the main
      * thread isn't blocked
      *
-     * @return int representing the current status of the connection
-     * 0 = not connected
-     * 1 = CONNECTED
+     * @return int representing what type of connection this is: the initial connection request or the reply to that request
      */
     public int listenForConnection()
     {
@@ -129,30 +128,26 @@ public class Tcp
             bufferedTcpOut = new BufferedWriter(new OutputStreamWriter(tcpOut));
             bufferedTcpIn = new BufferedReader(new InputStreamReader(tcpIn));
 
-
             // if we got here with no exception we can assume we are connected
             connectionState = CONNECTED;
             lastRemoteIpAddress=getRemoteIpAddress();
 
             connectionStage=tcpIn.read();
-
-
         } catch (Exception e)
         {
             e.printStackTrace();
         }
 
-        // just disconnect now, no use for keeping this connection open
+        // disconnect now that we have the info we need
         closeConnection();
 
         return connectionStage;
     }
 
     /**
-     * Informs the remote device that we have started a streaming server and are ready to be
-     * connected to
-     * @param ipAddress
-     * @param connectionStage
+     * Informs the remote device that we want to start streaming and we have started our server
+     * @param ipAddress ip address of remote address
+     * @param connectionStage tell the remote device what connection stage this is: initial request or reply to request
      */
     public void connectToDevice(final String ipAddress, final int connectionStage)
     {
@@ -183,7 +178,6 @@ public class Tcp
                     e.printStackTrace();
                 }
 
-                // just disconnect now, no use for keeping this connection open
                 closeConnection();
 
 

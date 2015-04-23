@@ -29,15 +29,14 @@ public class VideoStreaming {
 
     volatile boolean connected;
     Bitmap receivedBitmap;
-    Object sendFrameLock = new Object();
-    Object decodeFrameLock = new Object();
     Audio audioEngine;
-    static int receivedcount = 0;
-    // this is used to so that we dont run multiple decode threads at once
-    // this is better than a synchronized section because synchonized sections will stack up and wait for others to finish
-    // this simple returns the method so nothing gets backed up
+
+    /**
+    this is used to so that we dont run multiple decode threads at once
+    this is better than a synchronized section because synchonized sections will stack up and wait for others to finish
+    this simple returns the method so nothing gets backed up
+     */
     boolean currentlyDecodingFrame;
-    static int sentcount = 0;
 
     /**
      * Constructor
@@ -89,10 +88,10 @@ public class VideoStreaming {
     }
 
     /**
-     * Listen for a connection.  This should only be called from a seperate thread so the main
-     * thread isn't blocked
+     * Listen for a connection and enter a loop receiving
+     * and decoding frames once the connection is established
      *
-     * @param jpegImageView
+     * @param jpegImageView the image view we are displaying the received jpeg frames to
      */
     public void listenForMJpegConnection(final ImageView jpegImageView) {
         Thread listenForConnectionThread = new Thread() {
@@ -219,11 +218,11 @@ public class VideoStreaming {
     /**
      * packs 4 bytes into a long
      *
-     * @param b4
-     * @param b3
-     * @param b2
-     * @param b1
-     * @return
+     * @param b4 byte4
+     * @param b3 byte3
+     * @param b2 byte2
+     * @param b1 byte1
+     * @return a long value of the 4 bytes packed together
      */
     long packBytes(int b4, int b3, int b2, int b1) {
         return ((0xFFL & b4) << 24) | ((0xFFL & b3) << 16) | ((0xFFL & b2) << 8) | (0xFFL & b1);
@@ -233,7 +232,7 @@ public class VideoStreaming {
      * unpack first 4 bytes of a long into a byte array
      *
      * @param value
-     * @return
+     * @return an array of 4 bytes from the long that was passed in
      */
     byte[] unPackBytes(long value) {
         byte bytes[] = new byte[4];
@@ -249,9 +248,9 @@ public class VideoStreaming {
     /**
      * Combines two byte arrays together
      *
-     * @param a1
-     * @param a2
-     * @return
+     * @param a1 the first array
+     * @param a2 the second array
+     * @return a1 and a2 appended together as a new array
      */
     byte[] combineByteArrays(byte a1[], byte[] a2) {
         byte dataCombined[] = new byte[a1.length + a2.length];
@@ -267,9 +266,11 @@ public class VideoStreaming {
 
     /**
      * Sends both the Audio and JPEG arrays out to the other device
+     * Also handles calculating the size of each array and putting that on
+     * the front of the data to be sent
      *
-     * @param jpegDataByteArray
-     * @param audioDataByteArray
+     *  @param jpegDataByteArray the byte array of a jpeg frame to be sent
+     * @param audioDataByteArray some amount of audio data to be sent
      */
     void sendJpegFrame(final byte[] jpegDataByteArray, final byte[] audioDataByteArray) {
 
@@ -297,9 +298,9 @@ public class VideoStreaming {
     }
 
     /**
-     * Try to connect to the other device, this must be done before we send any Jpeg frames
+     * Try to connect to the other device, this must be done before we send any audio or video data
      *
-     * @param ipAddress
+     * @param ipAddress ip address of remote device we are trying to connect to
      */
     public void connectToDevice(final String ipAddress) {
         Thread openConnectionThread = new Thread() {
@@ -329,7 +330,7 @@ public class VideoStreaming {
     /**
      * Returns the ip address of the remote device we are connected to
      *
-     * @return
+     * @return the ip address as a string
      */
     String getRemoteIpAddress() {
 
