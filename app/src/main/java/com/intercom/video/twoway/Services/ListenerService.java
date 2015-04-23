@@ -3,7 +3,6 @@ package com.intercom.video.twoway.Services;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
@@ -20,24 +19,23 @@ import com.intercom.video.twoway.R;
 import com.intercom.video.twoway.Utilities.ControlConstants;
 import com.intercom.video.twoway.Utilities.Utilities;
 
+/**
+ * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+ * This class creates a ForeGround service that cannot be terminated through swiping or when the
+ * app is terminated.  Service starts on boot.  Network Discovery runs in this service so that the
+ * device is discoverable at all times.
+ */
 public class ListenerService extends Service 
 {
     private ProfileController profileController;
-
     private Tcp serviceTcpEngine = new Tcp();
-
     private boolean listeningForConnections = false;
-
-    // we don't use this but the service wants to be assigned an id when it is created
-	private final int SERVICE_ID = 12345;
-
-	// Binder given to clients
-	private final IBinder mBinder = new LocalBinder();
-
+    private final int SERVICE_ID = 12345; // we don't use this but the service wants to be assigned an id when it is created
+    private final IBinder mBinder = new LocalBinder();// Binder given to clients
     ControlConstants constants = new ControlConstants();
-
     public NetworkDiscovery mNetworkDiscovery; // Network Discovery Object
-	/**
+
+    /**
 	 * Class used for the client Binder. Because we know this service always
 	 * runs in the same process as its clients, we don't need to deal with IPC.
 	 */
@@ -51,12 +49,20 @@ public class ListenerService extends Service
 		}
 	}
 
-	@Override
+    /**
+     * Lifecycle method that is called when Listener is started
+     *
+     * @param intent
+     * @param flags
+     * @param startId
+     * @return
+     */
+    @Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
         startListeningForConnections();
 
-        Utilities u = new Utilities(this);
+        Utilities u = new Utilities(this); //TODO: this should be passed the Utilities object from MainActivity
         mNetworkDiscovery = new NetworkDiscovery(u);
         mNetworkDiscovery.setupNetworkDiscovery();//starts network discovery
         // If we get killed, after returning from here, restart the service
@@ -67,10 +73,14 @@ public class ListenerService extends Service
 	public IBinder onBind(Intent intent)
 	{
 		return mBinder;
-	}
+    }
 
 
-	@Override
+    /**
+     * Lifecycle method that is called when the listener is created. Note that the Listeners icon
+     * and style are set in here.
+     */
+    @Override
 	public void onCreate()
 	{
         Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -112,8 +122,8 @@ public class ListenerService extends Service
         serviceTcpEngine.closeConnection();
     }
 
-    /*
-    start listening for connections from other devices
+    /**
+     * start listening for connections from other devices
      */
     public void startListeningForConnections()
     {
@@ -166,10 +176,12 @@ public class ListenerService extends Service
         }
     }
 
-    /*
-    send a command to the activity
-    This will probably be our primary means of communicating with the activity
-    this also wakes the activity and turns on the screen
+    /**
+     * send a command to the activity
+     * This is the Listener's primary means of communicating with the activity
+     * this also wakes the activity and turns on the screen
+     * @param command
+     * @param extra
      */
     public void sendCommandToActivity(String command, String extra)
     {
@@ -183,9 +195,8 @@ public class ListenerService extends Service
 
     public void setProfileController(ProfileController pc)
     {
-        if(pc == null)
-        {
-            Log.d("Ohhhhhh fuck", "Shit... it's created before everything else");
+        if(pc == null) {
+            Log.d("ListenerService", "ProfileController was NULL in setProfileController");
         }
         else {
             this.profileController = pc;
