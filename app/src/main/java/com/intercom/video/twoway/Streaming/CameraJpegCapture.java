@@ -36,9 +36,9 @@ public class CameraJpegCapture
 
     /**
      * Constructor
-     * @param streamer
-     * @param audio
-     * @param utilities
+     * @param streamer instance of VideoStreaming that we used to send data
+     * @param audio instance of our Audio class that we used to capture audio
+     * @param utilities instance of Utilities class
      */
     public CameraJpegCapture(VideoStreaming streamer, Audio audio, Utilities utilities)
     {
@@ -73,7 +73,9 @@ public class CameraJpegCapture
     }
 
     /**
-     * we pass in streamEngine so we can send out frames as they are captured
+     * Starts the camera at specified resolution
+     * and sets up our frame capture callback to be called each frame
+     *
      */
     public void startCam()
     {
@@ -105,7 +107,8 @@ public class CameraJpegCapture
 
     /**
      * This sets our callback that is called on every single camera preview frame
-     * @param c
+     * Grabs a frame, convertts to jpeg and sends it along with all audio that has collected since the last frame
+     * @param c the camera instance we want to set this callback on
      */
     public void setupPreviewJpegCaptureCallback(Camera c)
     {
@@ -119,16 +122,25 @@ public class CameraJpegCapture
                     int imageFormat = parameters.getPreviewFormat();
                     if (imageFormat == ImageFormat.NV21)
                     {
+                        /**
+                         * The YUV image representation of a camera frame
+                         */
                         YuvImage img = new YuvImage(data, ImageFormat.NV21, pWidth, pHeight, null);
 
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
+                        /**
+                         * Convert the YUV image to jpeg and convert to an array of bytes
+                         */
                         img.compressToJpeg(new Rect(0, 0, pWidth, pHeight), jpegQuality, out);
                         byte[] imageBytes = out.toByteArray();
 
                         // dont try to send anything if we arent connected
                         if(streamEngine.connected)
                         {
+                            /**
+                             * Send the video frame and all the audio that has built up since the previous frame
+                             */
                             streamEngine.sendJpegFrame(imageBytes, audioEngine.consumeAudioBytes());
                         }
                     }
