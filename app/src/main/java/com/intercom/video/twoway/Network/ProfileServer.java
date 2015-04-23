@@ -11,7 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * @Author Charles Toll on 4/3/15.
+ * @author Charles Toll on 4/3/15.
  * This class creates a standing network listener for receiving profiles from other devices.
  */
 public class ProfileServer implements Runnable{

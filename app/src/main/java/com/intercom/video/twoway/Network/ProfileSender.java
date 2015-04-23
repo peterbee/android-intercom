@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
- * @Author Charles Toll on 4/3/15.
+ * @author Charles Toll on 4/3/15.
  * This class transmits profile data to other devices
  */
 public class ProfileSender implements Runnable{

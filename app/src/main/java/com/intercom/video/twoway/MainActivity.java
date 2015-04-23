@@ -44,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @version 1.0.1
  *          Main activity of the Application.
- * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+ * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
  * @Implements DeviceListFrag.onListItemSelectedListener, SettingsFragment.ProfileControllerTransferInterface,UpdateDeviceListInterface
  */
 public class MainActivity extends ActionBarActivity implements
@@ -84,7 +84,7 @@ public class MainActivity extends ActionBarActivity implements
     //-------------------BEGIN MAJOR LIFECYCLE METHODS--------------------------------
 
     /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * Initial lifecycle method call.  Should be creating all permanent objects here that do not
      * need to be killed or re-instantiated.
      * @param savedInstanceState
@@ -110,7 +110,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * Next lifecycle method, this is where we instantiate all items that need to be recreated
      * when the app comes back into focus
      */
@@ -142,7 +142,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * This is where we kill all items that need to be removed when the application loses focus
      */
     @Override
@@ -151,7 +151,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * This is called when the activity is no longer visible (Ex. user presses the home button)
      * closes
      */
@@ -166,7 +166,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * This is where we terminate all items that could potentially remain after the application
      * is closed, such as the listener service
      */
@@ -200,7 +200,7 @@ public class MainActivity extends ActionBarActivity implements
     //----------------BEGIN MINOR LIFECYCLE METHODS------------------------------
 
     /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * method to call list fragment to screen from fragment_mail layout
      */
     public void showDeviceList() {
@@ -215,7 +215,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * Shows the settings fragment
      */
     public void showSettings() {
@@ -227,7 +227,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * This is where we handle messages (as intents) from the service
      * @param intent
      */
@@ -293,7 +293,7 @@ public class MainActivity extends ActionBarActivity implements
     /**
      * @param menu
      * @return
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * Inflate the menu; this adds items to the action bar if it is present.
      */
     @Override
@@ -304,7 +304,7 @@ public class MainActivity extends ActionBarActivity implements
 
     /**
      * @param layoutResID
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * keeps track of current layout id as Int
      */
     @Override
@@ -317,7 +317,7 @@ public class MainActivity extends ActionBarActivity implements
 
     /**
      * @param deviceIP
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * official android code, Container Activity must implement this interface
      */
     // TODO: not sure if this is implemented right
@@ -329,7 +329,7 @@ public class MainActivity extends ActionBarActivity implements
 
     /**
      * @param deviceIP
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * This method is executed when list item is clicked and ip selected
      */
     public void onListItemSelected(String deviceIP) {
@@ -387,7 +387,7 @@ public class MainActivity extends ActionBarActivity implements
 
     /**
      * @param view
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * Action handler callback for monitoring when the Mic checkbox is changed
      */
     public void onCheckboxClicked(View view) {
@@ -403,7 +403,7 @@ public class MainActivity extends ActionBarActivity implements
     }
     //------------------BEGIN SERVICE METHODS-----------------------------------
     /**
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * Defines callbacks for service binding, passed to bindService()
      */
     private ServiceConnection listenerServiceConnection = new ServiceConnection() {
@@ -446,7 +446,7 @@ public class MainActivity extends ActionBarActivity implements
 
     /**
      * @param ipAddress
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * This is called when we click the establish connection button attempts to establish the
      * tcp connection to another device this starts our streaming server and tells the other
      * device to connect to us
@@ -466,7 +466,7 @@ public class MainActivity extends ActionBarActivity implements
 
     /**
      * @param ipAddress
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
+     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
      * This is like establishConnection() except is run when when a connection intent is received
      */
     void establishConnectionOnIntent(String ipAddress) {
