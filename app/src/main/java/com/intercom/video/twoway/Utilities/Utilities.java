@@ -20,19 +20,26 @@ import java.util.UUID;
 /*
 This class contains useful stuff that we dont want to put in main activity because it will be big and messy
  */
+
+/**
+ * @author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert Z.
+ */
 public class Utilities {
     public Context mainContext;
     private WifiManager wifi;
 
+    /**
+     * Constructor
+     *
+     * @param c
+     */
     public Utilities(Context c) {
         mainContext = c;
     }
 
-    /*
-    forces screen wake up and unlock
-    TODO make this work without depricated features.
-    TODO make this method less shitty and figure out the right way to do it
-    */
+    /**
+     * forces screen wake up and unlock, should be compatible with deprecated and current APIs
+     */
     public void forceWakeUpUnlock() {
 
         System.out.println("About to force wakeup unlock");
@@ -53,9 +60,10 @@ public class Utilities {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
-    /*
-     * This returns a unique UUID string that should be unique to this device
-     * just in case we need it at some point in the future
+    /**
+     * This returns a unique UUID string that should be unique to this device just in case we need
+     * it at some point in the future
+     * @return
      */
     public String getDeviceId() {
         final TelephonyManager tm = (TelephonyManager) mainContext
@@ -76,9 +84,10 @@ public class Utilities {
         return deviceId;
     }
 
-    /*
-    Lets us show a toast message from any thread
-    */
+    /**
+     * Lets us show a toast message from any thread
+     * @param message
+     */
     public void showToastMessage(final String message) {
         ((Activity) mainContext).runOnUiThread(new Runnable() {
             public void run() {
@@ -87,10 +96,11 @@ public class Utilities {
         });
     }
 
-    /*
-    send a command to the activity
-    This will probably be our primary means of communicating with the activity
-    this also wakes the activity and turns on the screen
+    /**
+     * send a command to the activity This will probably be our primary means of communicating with
+     * the activity this also wakes the activity and turns on the screen
+     * @param command
+     * @param extra
      */
     public void sendCommandToActivity(String command, String extra) {
         Intent startMainActivityIntent = new Intent(this.mainContext, MainActivity.class);
@@ -104,18 +114,14 @@ public class Utilities {
     /**
      * @param mArrayList
      * @return String[] composed of all elements in mArrayList
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
      * method for converting an Arraylist into a String[].  Used for converting the Ip addresses
      * received from NetworkDiscovery to a easier to use format at this time.
      */
     //todo: can have NetworkDiscovery return string list instead
-    //todo: can also move this to utilities
     public String[] convertArrayListToStringArray(ArrayList<String> mArrayList) {
         String[] mStringArray = new String[mArrayList.size()];
 
-//        System.out.println("size of this shit = "+mArrayList.size());
-
-        System.err.println("pre for loop");
+        Log.i("Utilities", "pre for loop in convertArrayListToStringArray");
         for (int i = 0; i < mArrayList.size(); i++) {
             Log.i("MainActivity_line511", "what the fuck for loop");
             mStringArray[i] = mArrayList.get(i);
@@ -127,7 +133,6 @@ public class Utilities {
     /**
      * @param mArrayList
      * @param mainActivity
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
      * method for populating mStringArrayIpList
      */
     public void setIpList(ArrayList<String> mArrayList, MainActivity mainActivity) {
@@ -137,7 +142,6 @@ public class Utilities {
 
     /**
      * @param newIpList
-     * @Author Cole Risch, Sean Luther, Eric Van Gelder, Charles Toll, Alex Gusan, Robert V.
      * gets latest list of discovered IPs from network discovery and sets teh global variable
      */
     public void setIpList(String[] newIpList) {
